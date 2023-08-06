@@ -52,5 +52,7 @@ filterwarnings = [
     "error",
 ]
 markers = [
-    "live: calls external APIs",
+    "all: tagged on all tests using hooks in conftest.py",
+    "live: calls external APIs (skipped by default)",
 ]
+addopts = '-m "not live"'

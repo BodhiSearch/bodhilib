@@ -23,3 +23,12 @@ def parse_prompts(input: PromptInput) -> List[Prompt]:
         result = [parse_prompts(p) for p in input]
         return list(itertools.chain(*result))
     raise TypeError(f"Unknown prompt type: {type(input)}")
+
+
+class PromptTemplate:
+    def __init__(self, template: str, role: str = "user"):
+        self.template = template
+        self.role = role
+
+    def to_prompt(self, **kwargs) -> Prompt:
+        return Prompt(self.template.format(**kwargs), role=self.role)

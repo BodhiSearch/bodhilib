@@ -1,4 +1,4 @@
-from bodhisearch.prompt import Prompt, parse_prompts
+from bodhisearch.prompt import Prompt, PromptTemplate, parse_prompts
 
 default_system_prompt = (
     "Answer my question below based on best of your ability. "
@@ -59,3 +59,14 @@ def test_parse_prompt_mix():
     assert prompts[0] == Prompt(default_user_prompt)
     assert prompts[1] == Prompt(default_system_prompt, "system")
     assert prompts[2] == Prompt(default_user_prompt, "system")
+
+
+def test_prompt_template():
+    template = PromptTemplate(
+        "Question: What day of the week comes after {day}?\nAnswer: ",
+        role="user",
+    )
+    assert template.to_prompt(day="Monday") == Prompt(
+        "Question: What day of the week comes after Monday?\nAnswer: ",
+        role="user",
+    )

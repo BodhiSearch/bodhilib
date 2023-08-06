@@ -1,7 +1,7 @@
 import pytest
 
 from bodhisearch.llm import OpenAIChat, OpenAIClassic, get_llm
-from bodhisearch.prompt import Prompt
+from bodhisearch.prompt import Prompt, PromptTemplate
 
 from .test_prompt import default_system_prompt, default_user_prompt
 
@@ -69,3 +69,13 @@ def test_openai_classic_generate_with_system_prompt(llm_davinci):
     result = llm_davinci.generate([default_system_prompt, default_user_prompt])
     assert result.role == "ai"
     assert "tuesday" in result.text.strip().lower()
+
+
+@pytest.mark.live
+def test_openai_chat_generate_with_prompt_template(llm_gpt35_turbo):
+    template = PromptTemplate(
+        "Question: What day comes after {day}?\nAnswer: "
+    )
+    prompt = template.to_prompt({"day": "Tuesday"})
+    result = llm_gpt35_turbo.generate(prompt)
+    assert "wednesday" in result.text.strip().lower()
