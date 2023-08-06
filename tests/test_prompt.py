@@ -37,7 +37,7 @@ def test_parse_prompt_from_dict():
     input = {"text": default_user_prompt}
     prompts = parse_prompts(input)
     assert len(prompts) == 1
-    assert prompts[0] == Prompt(default_user_prompt)
+    assert prompts[0] == Prompt(default_user_prompt, "user")
 
 
 def test_parse_prompt_from_dict_full():
