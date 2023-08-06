@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "bodhi-search"
+version = "0.1.0"
+description = "intuitive and powerful library to work with LLMs"
+authors = ["Amir Nagri <amir.nagri@proton.me>"]
+readme = "README.md"
+packages = [{include = "bodhi_search", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
