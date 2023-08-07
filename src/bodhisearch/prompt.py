@@ -7,9 +7,7 @@ class Prompt(NamedTuple):
     role: str = "user"
 
 
-PromptInput = Union[
-    str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]
-]
+PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
 
 
 def parse_prompts(input: PromptInput) -> List[Prompt]:

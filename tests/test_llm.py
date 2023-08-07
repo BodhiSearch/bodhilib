@@ -41,6 +41,18 @@ def test_unknown_provider_raise_error():
     assert str(e.value) == "Unknown provider: unknown"
 
 
+def test_openai_chat_raise_error_when_called_using_callable(llm_gpt35_turbo):
+    with pytest.raises(TypeError) as e:
+        _ = llm_gpt35_turbo()
+    assert str(e.value) == "'OpenAIChat' object is not callable, did you mean to call 'generate'?"
+
+
+def test_openai_classic_raise_error_when_called_using_callable(llm_davinci):
+    with pytest.raises(TypeError) as e:
+        _ = llm_davinci()
+    assert str(e.value) == "'OpenAIClassic' object is not callable, did you mean to call 'generate'?"
+
+
 @pytest.mark.live
 def test_openai_chat_generate(llm_gpt35_turbo):
     result = llm_gpt35_turbo.generate(default_user_prompt)
@@ -50,9 +62,7 @@ def test_openai_chat_generate(llm_gpt35_turbo):
 
 @pytest.mark.live
 def test_openai_chat_generate_with_system_prompt(llm_gpt35_turbo):
-    result = llm_gpt35_turbo.generate(
-        [Prompt(default_system_prompt, "system"), default_user_prompt]
-    )
+    result = llm_gpt35_turbo.generate([Prompt(default_system_prompt, "system"), default_user_prompt])
     assert result.role == "ai"
     assert "tuesday" in result.text.strip().lower()
 
@@ -73,9 +83,7 @@ def test_openai_classic_generate_with_system_prompt(llm_davinci):
 
 @pytest.mark.live
 def test_openai_chat_generate_with_prompt_template(llm_gpt35_turbo):
-    template = PromptTemplate(
-        "Question: What day comes after {day}?\nAnswer: "
-    )
+    template = PromptTemplate("Question: What day comes after {day}?\nAnswer: ")
     prompt = template.to_prompt({"day": "Tuesday"})
     result = llm_gpt35_turbo.generate(prompt)
     assert "wednesday" in result.text.strip().lower()

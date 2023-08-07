@@ -24,6 +24,9 @@ class OpenAIChat(NamedTuple):
     def _to_messages(self, prompts: List[Prompt]) -> List[Dict[str, str]]:
         return [{"role": p.role, "content": p.text} for p in prompts]
 
+    def __call__(self, *args, **kwargs):
+        raise TypeError(f"'{type(self).__name__}' object is not callable, did you mean to call 'generate'?")
+
 
 class OpenAIClassic(NamedTuple):
     model: str
@@ -37,14 +40,15 @@ class OpenAIClassic(NamedTuple):
     def _to_prompt(self, prompts: List[Prompt]) -> str:
         return "\n".join([p.text for p in prompts])
 
+    def __call__(self, *args, **kwargs):
+        raise TypeError(f"'{type(self).__name__}' object is not callable, did you mean to call 'generate'?")
+
 
 def get_llm(provider: str, model: str, api_key: str = None) -> LLM:
     if provider == "openai":
         if api_key is None:
             if os.environ.get("OPENAI_API_KEY") is None:
-                raise ValueError(
-                    "environment variable OPENAI_API_KEY is not set"
-                )
+                raise ValueError("environment variable OPENAI_API_KEY is not set")
             else:
                 openai.api_key = os.environ["OPENAI_API_KEY"]
         else:
