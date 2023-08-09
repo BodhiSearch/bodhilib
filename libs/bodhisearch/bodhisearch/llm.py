@@ -1,4 +1,4 @@
-from bodhisearch import PluginManager
+from bodhisearch.plugin import PluginManager
 
 
 class LLM:
