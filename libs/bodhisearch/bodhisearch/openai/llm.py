@@ -3,7 +3,14 @@ from typing import Dict, List, NamedTuple
 
 import openai
 
+import bodhisearch
+from bodhisearch.hookspecs import Provider
 from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
+
+
+@bodhisearch.provider
+def bodhisearch_get_providers() -> List[Provider]:
+    return [Provider("openai", "bodhisearch", "llm", get_llm, "0.1.0")]
 
 
 def get_llm(provider: str, model: str, api_key: str = None):
