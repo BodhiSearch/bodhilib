@@ -19,8 +19,8 @@ build-backend = "poetry.core.masonry.api"
 testpaths = ["tests"]
 filterwarnings = ["error"]
 markers = [
-    "all: tagged on all tests using hooks in conftest.py",
-    "live: calls external APIs (skipped by default)",
+  "all: tagged on all tests using hooks in conftest.py",
+  "live: calls external APIs (skipped by default)",
 ]
 addopts = '-m "not live"'
 env_files = [".env.test"]
@@ -29,8 +29,10 @@ env_files = [".env.test"]
 [tool.poetry.plugins.bodhisearch]
 cohere = "bodhisearch_cohere"
 
+# only for black configs
 [tool.black]
 line-length = 120
+target-version = ['py38']
 preview = true
 include = '\.pyi?$'
 exclude = '''

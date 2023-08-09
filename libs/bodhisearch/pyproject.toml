@@ -30,8 +30,20 @@ pytest = "^7.4.0"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error"]
+markers = [
+    "all: tagged on all tests using hooks in conftest.py",
+    "live: calls external APIs (skipped by default)",
+]
+addopts = '-m "not live"'
+env_files = [".env.test"]
+
+# only for black configs
 [tool.black]
 line-length = 120
+target-version = ['py38']
 preview = true
 include = '\.pyi?$'
 exclude = '''
@@ -47,13 +59,3 @@ exclude = '''
   | dist
 )/
 '''
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-filterwarnings = ["error"]
-markers = [
-    "all: tagged on all tests using hooks in conftest.py",
-    "live: calls external APIs (skipped by default)",
-]
-addopts = '-m "not live"'
-env_files = [".env.test"]
