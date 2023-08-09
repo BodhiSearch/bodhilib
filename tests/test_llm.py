@@ -4,7 +4,7 @@ from bodhisearch.llm import get_llm
 from bodhisearch.openai import OpenAIChat, OpenAIClassic
 from bodhisearch.prompt import Prompt, PromptTemplate
 
-from .test_prompt import default_system_prompt, default_user_prompt
+from tests.test_prompt import default_system_prompt, default_user_prompt
 
 
 @pytest.fixture
