@@ -1,57 +1,19 @@
 import pytest
+from tests.prompt_utils import default_system_prompt, default_user_prompt
 
 from bodhisearch.llm import get_llm
 from bodhisearch.openai import OpenAIChat, OpenAIClassic
 from bodhisearch.prompt import Prompt, PromptTemplate
 
-from tests.test_prompt import default_system_prompt, default_user_prompt
-
 
 @pytest.fixture
-def llm_davinci():
+def llm_davinci() -> OpenAIClassic:
     return get_llm("openai", "text-davinci-003")
 
 
 @pytest.fixture
-def llm_gpt35_turbo():
+def llm_gpt35_turbo() -> OpenAIChat:
     return get_llm("openai", "gpt-3.5-turbo")
-
-
-def test_get_llm_openai_classic():
-    llm = get_llm("openai", "text-ada-001")
-    assert llm.model == "text-ada-001"
-    assert type(llm) is OpenAIClassic
-
-
-def test_get_llm_openai_chat():
-    llm = get_llm("openai", "gpt-3.5-turbo")
-    assert llm.model == "gpt-3.5-turbo"
-    assert type(llm) is OpenAIChat
-
-
-def test_get_llm_openai_raise_error_when_api_key_is_not_set(monkeypatch):
-    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    with pytest.raises(ValueError) as e:
-        _ = get_llm("openai", "gpt-3.5-turbo")
-    assert str(e.value) == "environment variable OPENAI_API_KEY is not set"
-
-
-def test_unknown_provider_raise_error():
-    with pytest.raises(ValueError) as e:
-        _ = get_llm("unknown", "unknown-model")
-    assert str(e.value) == "Unknown provider: unknown"
-
-
-def test_openai_chat_raise_error_when_called_using_callable(llm_gpt35_turbo):
-    with pytest.raises(TypeError) as e:
-        _ = llm_gpt35_turbo()
-    assert str(e.value) == "'OpenAIChat' object is not callable, did you mean to call 'generate'?"
-
-
-def test_openai_classic_raise_error_when_called_using_callable(llm_davinci):
-    with pytest.raises(TypeError) as e:
-        _ = llm_davinci()
-    assert str(e.value) == "'OpenAIClassic' object is not callable, did you mean to call 'generate'?"
 
 
 @pytest.mark.live

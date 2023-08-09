@@ -1,9 +1,6 @@
-from bodhisearch.prompt import Prompt, PromptTemplate, parse_prompts
+from tests.prompt_utils import default_system_prompt, default_user_prompt
 
-default_system_prompt = (
-    "Answer my question below based on best of your ability. " + "Say no if you don't know the answer."
-)
-default_user_prompt = "Question: What day of the week comes after Monday?\nAnswer: "
+from bodhisearch.prompt import Prompt, PromptTemplate, parse_prompts
 
 
 def test_parse_prompt_from_str():
