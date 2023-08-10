@@ -16,7 +16,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["tests_bodhisearch_cohere"]
 filterwarnings = ["error"]
 markers = [
   "all: tagged on all tests using hooks in conftest.py",

@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, NamedTuple
+from typing import Dict, List, NamedTuple, Optional
 
 import openai
 
@@ -13,7 +13,7 @@ def bodhisearch_get_providers() -> List[Provider]:
     return [Provider("openai", "bodhisearch", "llm", get_llm, "0.1.0")]
 
 
-def get_llm(provider: str, model: str, api_key: str = None):
+def get_llm(provider: str, model: str, api_key: Optional[str] = None):
     if provider != "openai":
         raise ValueError(f"Unknown provider: {provider}")
     if api_key is None:

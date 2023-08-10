@@ -1,4 +1,3 @@
-# only for black configs
 [tool.black]
 line-length = 120
 target-version = ['py38']
@@ -17,3 +16,8 @@ exclude = '''
   | dist
 )/
 '''
+
+[tool.mypy]
+python_version = 3.8
+warn_return_any = true
+warn_unused_configs = true

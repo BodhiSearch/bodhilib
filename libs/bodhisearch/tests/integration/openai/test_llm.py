@@ -1,18 +1,17 @@
 import pytest
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 
-from bodhisearch.llm import get_llm
-from bodhisearch.openai import OpenAIChat, OpenAIClassic
+from bodhisearch.llm import LLM, get_llm
 from bodhisearch.prompt import Prompt, PromptTemplate
 
 
 @pytest.fixture
-def llm_davinci() -> OpenAIClassic:
+def llm_davinci() -> LLM:
     return get_llm("openai", "text-davinci-003")
 
 
 @pytest.fixture
-def llm_gpt35_turbo() -> OpenAIChat:
+def llm_gpt35_turbo() -> LLM:
     return get_llm("openai", "gpt-3.5-turbo")
 
 

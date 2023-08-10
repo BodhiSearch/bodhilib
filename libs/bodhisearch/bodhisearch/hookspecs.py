@@ -1,4 +1,5 @@
 from typing import List, NamedTuple
+import typing
 
 import pluggy
 
@@ -10,7 +11,7 @@ class Provider(NamedTuple):
     provider: str
     author: str
     type: str  # "llm", "vector_store", "embedder", "loader", "memory"
-    callable_func: callable
+    callable_func: typing.Callable
     version: str = ""
 
 
@@ -22,3 +23,4 @@ def bodhisearch_get_providers() -> List[Provider]:
     """Return a list of provider classes to be registered with the provider
     :return: list of provider with identifiers and a callable function get an instance
     """
+    return []
