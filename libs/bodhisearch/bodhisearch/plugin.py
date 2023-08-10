@@ -1,10 +1,12 @@
 import itertools
+from typing import Any, Dict, Optional, cast
 
 import pluggy
 
 import bodhisearch.hookspecs as hookspecs
 from bodhisearch import logger, package_name, pluggy_project_name
 from bodhisearch.hookspecs import Provider
+from bodhisearch.llm import LLM
 
 
 class PluginManager:
@@ -25,11 +27,11 @@ class PluginManager:
         self.pm = pm
         self.providers = None
 
-    def get(self, type: str, provider: str, **kargs):
+    def get(self, type: str, provider: str, **kargs: Dict[str, Any]) -> LLM:
         self.providers = self.providers or self._fetch_providers()
         for p in self.providers:
             if p.provider == provider and p.type == type:
-                return p.callable_func(provider, **kargs)
+                return p.callable_func(provider, **kargs)  # type: ignore
         raise ValueError(f"Unknown provider: {provider}")
 
     def _fetch_providers(self):
@@ -44,3 +46,7 @@ class PluginManager:
         valid_providers = [p for p in providers if isinstance(p, Provider)]
         logger.debug({"msg": "valid providers", "providers": valid_providers})
         return valid_providers
+
+
+def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
+    return cast(LLM, PluginManager().get("llm", provider, model=model, api_key=api_key))  # type: ignore

@@ -1,5 +1,6 @@
 import os
 from typing import List, Optional
+from bodhisearch.llm import LLM
 
 import cohere
 
@@ -13,7 +14,7 @@ def bodhisearch_get_providers():
     return [Provider("cohere", "bodhisearch", "llm", get_llm, "0.1.0")]
 
 
-def get_llm(provider: str, model: str, api_key: Optional[str] = None):
+def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
     if provider != "cohere":
         raise ValueError(f"Unknown provider: {provider}")
     if api_key is None:
@@ -24,13 +25,13 @@ def get_llm(provider: str, model: str, api_key: Optional[str] = None):
     return Cohere(model=model, api_key=api_key)
 
 
-class Cohere:
+class Cohere(LLM):
     def __init__(self, model, api_key):
         self.model = model
         self.client = cohere.Client(api_key=api_key)
         self.aclient = cohere.AsyncClient(api_key=api_key)
 
-    def generate(self, prompt_input: PromptInput):
+    def generate(self, prompt_input: PromptInput) -> Prompt:
         prompts = parse_prompts(prompt_input)
         input = self._to_prompt(prompts)
         result = self.client.generate(input, model=self.model)

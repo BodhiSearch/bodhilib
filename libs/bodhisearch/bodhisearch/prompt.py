@@ -28,5 +28,5 @@ class PromptTemplate:
         self.template = template
         self.role = role
 
-    def to_prompt(self, **kwargs) -> Prompt:
+    def to_prompt(self, **kwargs: Dict[str, Any]) -> Prompt:
         return Prompt(self.template.format(**kwargs), role=self.role)

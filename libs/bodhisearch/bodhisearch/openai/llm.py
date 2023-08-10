@@ -1,10 +1,11 @@
 import os
-from typing import Dict, List, NamedTuple, Optional
+from typing import Dict, List, Optional
 
 import openai
 
 import bodhisearch
 from bodhisearch.hookspecs import Provider
+from bodhisearch.llm import LLM
 from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
 
 
@@ -13,7 +14,7 @@ def bodhisearch_get_providers() -> List[Provider]:
     return [Provider("openai", "bodhisearch", "llm", get_llm, "0.1.0")]
 
 
-def get_llm(provider: str, model: str, api_key: Optional[str] = None):
+def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
     if provider != "openai":
         raise ValueError(f"Unknown provider: {provider}")
     if api_key is None:
@@ -29,10 +30,11 @@ def get_llm(provider: str, model: str, api_key: Optional[str] = None):
         return OpenAIClassic(model)
 
 
-class OpenAIChat(NamedTuple):
-    model: str
+class OpenAIChat(LLM):
+    def __init__(self, model: str):
+        self.model = model
 
-    def generate(self, prompts: PromptInput):
+    def generate(self, prompts: PromptInput) -> Prompt:
         parsed_prompts = parse_prompts(prompts)
         completion = openai.ChatCompletion.create(
             model=self.model,
@@ -47,10 +49,11 @@ class OpenAIChat(NamedTuple):
         raise TypeError(f"'{type(self).__name__}' object is not callable, did you mean to call 'generate'?")
 
 
-class OpenAIClassic(NamedTuple):
-    model: str
+class OpenAIClassic(LLM):
+    def __init__(self, model: str) -> None:
+        self.model = model
 
-    def generate(self, prompts: PromptInput):
+    def generate(self, prompts: PromptInput) -> Prompt:
         parsed_prompts = parse_prompts(prompts)
         prompt = self._to_prompt(parsed_prompts)
         result = openai.Completion.create(model=self.model, prompt=prompt)

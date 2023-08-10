@@ -1,6 +1,6 @@
 from bodhisearch_cohere import Cohere
 
-from bodhisearch.llm import get_llm
+from bodhisearch.plugin import get_llm
 from bodhisearch.openai import OpenAIChat
 
 

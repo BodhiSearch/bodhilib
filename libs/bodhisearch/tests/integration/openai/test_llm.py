@@ -1,7 +1,8 @@
+from bodhisearch.plugin import get_llm
 import pytest
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 
-from bodhisearch.llm import LLM, get_llm
+from bodhisearch.llm import LLM
 from bodhisearch.prompt import Prompt, PromptTemplate
 
 
