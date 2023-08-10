@@ -11,13 +11,13 @@ PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[D
 
 
 def parse_prompts(input: PromptInput) -> List[Prompt]:
-    if type(input) is str:
+    if isinstance(input, str):
         return [Prompt(input)]
-    if type(input) is Prompt:
+    if isinstance(input, Prompt):
         return [input]
-    if type(input) is dict:
+    if isinstance(input, dict):
         return [Prompt(**input)]
-    if type(input) is list:
+    if isinstance(input, list):
         result = [parse_prompts(p) for p in input]
         return list(itertools.chain(*result))
     raise TypeError(f"Unknown prompt type: {type(input)}")
