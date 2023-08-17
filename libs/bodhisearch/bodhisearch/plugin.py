@@ -31,7 +31,7 @@ class PluginManager:
         self.providers = self.providers or self._fetch_providers()
         for p in self.providers:
             if p.provider == provider and p.type == type:
-                return p.callable_func(provider, **kargs)  # type: ignore
+                return p.func(provider, **kargs)  # type: ignore
         raise ValueError(f"Unknown provider: {provider}")
 
     def _fetch_providers(self):

@@ -1,5 +1,5 @@
-from typing import List, NamedTuple
 import typing
+from typing import List, NamedTuple
 
 import pluggy
 
@@ -11,7 +11,7 @@ class Provider(NamedTuple):
     provider: str
     author: str
     type: str  # "llm", "vector_store", "embedder", "loader", "memory"
-    callable_func: typing.Callable
+    func: typing.Callable
     version: str = ""
 
 
