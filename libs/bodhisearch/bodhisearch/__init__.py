@@ -4,18 +4,31 @@ import os
 import pluggy
 
 
-# name of the package
 package_name = "bodhisearch"
 
-# configure library-wide logging
-logger = logging.getLogger(package_name)
-root_logger = logging.getLogger()
-log_level = os.environ.get("BODHISEARCH_LOG_LEVEL", root_logger.getEffectiveLevel())
-logger.setLevel(log_level)
-handler = logging.StreamHandler()
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+logger = None
+
+
+def set_logger(logger_: logging.Logger, /) -> None:
+    global logger
+    logger = logger_
+
+
+def init_logger():
+    # if library logging level not set, set the logger as the root logger
+    if "BODHISEARCH_LOG_LEVEL" not in os.environ:
+        set_logger(logging.getLogger())
+        return
+    log_level = os.environ.get("BODHISEARCH_LOG_LEVEL")
+    logger.setLevel(log_level)
+    handler = logging.StreamHandler()
+    format = os.environ("BODHISEARCH_LOG_FORMAT", "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter(format)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+
+init_logger()
 
 # pluggy settings
 pluggy_project_name = "bodhisearch"
