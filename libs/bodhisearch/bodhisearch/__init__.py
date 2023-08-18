@@ -1,19 +1,18 @@
 import pluggy
 
-# core services
+# llm
 from bodhisearch.llm import LLM as LLM
-from bodhisearch.logger.logging import init_logger
+from bodhisearch.llm import Provider as Provider
+from bodhisearch.llm import get_llm as get_llm
+
+# logger
+from bodhisearch.logging import logger as logger
 
 # prompts
 from bodhisearch.prompt import Prompt as Prompt
 from bodhisearch.prompt import PromptInput as PromptInput
 
-# schemas
-from bodhisearch.schemas import Provider as Provider
-
 package_name = "bodhisearch"
-
-logger = init_logger()
 
 # pluggy settings
 pluggy_project_name = "bodhisearch"

@@ -17,3 +17,6 @@ def init_logger():
     formatter = logging.Formatter(format)
     handler.setFormatter(formatter)
     logger.addHandler(handler)
+
+
+logger = init_logger()
