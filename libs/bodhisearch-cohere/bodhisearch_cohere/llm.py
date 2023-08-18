@@ -4,7 +4,7 @@ from typing import List, Optional
 import cohere
 
 import bodhisearch
-from bodhisearch.hookspecs import Provider
+from bodhisearch import Provider
 from bodhisearch.llm import LLM
 from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
 

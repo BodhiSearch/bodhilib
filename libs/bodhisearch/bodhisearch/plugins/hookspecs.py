@@ -1,19 +1,10 @@
-import typing
-from typing import List, NamedTuple
+from typing import List
 
 import pluggy
 
-package_name = "bodhisearch"
+from bodhisearch import Provider
+
 pluggy_project_name = "bodhisearch"
-
-
-class Provider(NamedTuple):
-    provider: str
-    author: str
-    type: str  # "llm", "vector_store", "embedder", "loader", "memory"
-    func: typing.Callable
-    version: str = ""
-
 
 hookspec = pluggy.HookspecMarker(pluggy_project_name)
 

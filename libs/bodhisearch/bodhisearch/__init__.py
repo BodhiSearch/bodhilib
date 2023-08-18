@@ -1,5 +1,7 @@
 import pluggy
 
+# schemas
+from bodhisearch.schemas import Provider as Provider
 from bodhisearch.logger.logging import init_logger
 
 package_name = "bodhisearch"

@@ -3,9 +3,8 @@ from typing import Any, Dict, Optional, cast
 
 import pluggy
 
-import bodhisearch.hookspecs as hookspecs
-from bodhisearch import logger, package_name, pluggy_project_name
-from bodhisearch.hookspecs import Provider
+import bodhisearch.plugins.hookspecs as hookspecs
+from bodhisearch import Provider, logger, package_name, pluggy_project_name
 from bodhisearch.llm import LLM
 
 
