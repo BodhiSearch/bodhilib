@@ -1,10 +1,16 @@
 import itertools
-from typing import Any, Dict, List, NamedTuple, Union
+from typing import Any, Dict, List, Literal, Optional, Union
+
+from pydantic import BaseModel
 
 
-class Prompt(NamedTuple):
+class Prompt(BaseModel):
     text: str
-    role: str = "user"
+    role: Literal["ai", "user", "system"]
+    source: Literal["input", "output"]
+
+    def __init__(self, text: str, role: Optional[str] = "user", source: Optional[str] = "input"):
+        super().__init__(text=text, role=role, source=source)
 
 
 PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]

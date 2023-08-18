@@ -40,7 +40,7 @@ class OpenAIChat(LLM):
             model=self.model,
             messages=self._to_messages(parsed_prompts),
         )
-        return Prompt(completion.choices[0].message["content"], role="ai")
+        return Prompt(completion.choices[0].message["content"], role="ai", source="output")
 
     def _to_messages(self, prompts: List[Prompt]) -> List[Dict[str, str]]:
         return [{"role": p.role, "content": p.text} for p in prompts]
@@ -57,7 +57,7 @@ class OpenAIClassic(LLM):
         parsed_prompts = parse_prompts(prompts)
         prompt = self._to_prompt(parsed_prompts)
         result = openai.Completion.create(model=self.model, prompt=prompt)
-        return Prompt(result.choices[0]["text"], role="ai")
+        return Prompt(result.choices[0]["text"], role="ai", source="output")
 
     def _to_prompt(self, prompts: List[Prompt]) -> str:
         return "\n".join([p.text for p in prompts])
