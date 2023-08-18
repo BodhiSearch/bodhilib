@@ -1,7 +1,10 @@
 import itertools
+import textwrap
 from typing import Any, Dict, List, Literal, Optional, Union
 
 from pydantic import BaseModel
+
+from bodhisearch.logging import logger
 
 Role = Literal["system", "ai", "user"]
 Source = Literal["input", "output"]
@@ -10,9 +13,11 @@ Source = Literal["input", "output"]
 class Prompt(BaseModel):
     text: str
     role: Role
-    source: Literal["input", "output"]
+    source: Source
 
-    def __init__(self, text: str, role: Optional[Role] = "user", source: Optional[str] = "input"):
+    def __init__(self, text: str, role: Optional[Role] = "user", source: Optional[Source] = "input"):
+        role = role or "user"
+        source = source or "input"
         super().__init__(text=text, role=role, source=source)
 
 
@@ -32,11 +37,47 @@ def parse_prompts(input: PromptInput) -> List[Prompt]:
     raise TypeError(f"Unknown prompt type: {type(input)}")
 
 
+Engine = Literal["default", "jinja2"]
+
+
 class PromptTemplate:
-    def __init__(self, template: str, role: Optional[Role] = "user", source: Optional[Source] = "input"):
+    def __init__(
+        self,
+        template: str,
+        role: Optional[Role] = None,
+        source: Optional[Source] = None,
+        engine: Optional[Engine] = "default",
+        **kwargs: Dict[str, Any],
+    ) -> None:
         self.template = template
         self.role = role
         self.source = source
+        self.engine = engine
+        self.kwargs = kwargs
 
-    def to_prompt(self, **kwargs: Dict[str, Any]) -> Prompt:
-        return Prompt(self.template.format(**kwargs), role=self.role, source=self.source)
+    def to_prompt(self, **all_vars: Dict[str, Any]) -> Prompt:
+        if self.engine == "default":
+            return Prompt(self.template.format(**all_vars), role=self.role, source=self.source)
+        if self.engine == "jinja2":
+            try:
+                import jinja2  # noqa: F401
+            except ImportError as e:
+                logger.error(
+                    "jinja2 is required for advance prompt templates. "
+                    "Install the jinja2 dependency separately using `pip install jinja2`, "
+                    "or install the additional dependencies on bodhisearch.prompt package using `pip install"
+                    " bodhisearch[prompt]`."
+                )
+                raise e
+            from jinja2 import Template
+
+            template = Template(textwrap.dedent(self.template))
+            result = template.render(self.kwargs)
+            return Prompt(result, role=self.role, source=self.source)
+        raise ValueError(f"Unknown engine {self.engine}")
+
+
+def prompt_with_examples(
+    template: str, role: Optional[Role] = None, source: Optional[Source] = None, **kwargs: Dict[str, Any]
+) -> PromptTemplate:
+    return PromptTemplate(template, role=role, source=source, engine="jinja2", **kwargs)
