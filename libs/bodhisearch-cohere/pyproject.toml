@@ -27,7 +27,7 @@ env_files = [".env.test"]
 
 
 [tool.poetry.plugins.bodhisearch]
-cohere = "bodhisearch_cohere"
+cohere = "bodhisearch_cohere.llm"
 
 # only for black configs
 [tool.black]

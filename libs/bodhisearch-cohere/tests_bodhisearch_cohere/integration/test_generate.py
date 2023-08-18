@@ -1,4 +1,4 @@
-from bodhisearch_cohere import get_llm
+from bodhisearch_cohere.llm import get_llm
 
 
 def test_cohere_generate():

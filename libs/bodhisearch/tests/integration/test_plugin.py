@@ -1,10 +1,10 @@
-from bodhisearch_cohere import Cohere
+from bodhisearch_cohere.llm import Cohere
 
 from bodhisearch.plugin import get_llm
 from bodhisearch.openai import OpenAIChat
 
 
-def test_cohere_openai():
+def test_openai_provider():
     openai = get_llm("openai", "gpt-3.5-turbo")
     assert type(openai) is OpenAIChat
 
