@@ -15,7 +15,7 @@ current_module = sys.modules[__name__]
 
 class LLM(abc.ABC):
     @abc.abstractmethod
-    def generate(self, prompts: PromptInput) -> Prompt:
+    def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
         ...
 
 

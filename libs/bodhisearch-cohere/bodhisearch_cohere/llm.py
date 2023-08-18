@@ -1,5 +1,5 @@
 import os
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 import cohere
 
@@ -31,11 +31,12 @@ class Cohere(LLM):
         self.client = cohere.Client(api_key=api_key)
         self.aclient = cohere.AsyncClient(api_key=api_key)
 
-    def generate(self, prompt_input: PromptInput) -> Prompt:
-        prompts = parse_prompts(prompt_input)
-        input = self._to_prompt(prompts)
+    def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
+        parsed_prompts = parse_prompts(prompts)
+        input = self._to_prompt(parsed_prompts)
+        # TODO - pass kwargs
         result = self.client.generate(input, model=self.model)
-        return Prompt(result.generations[0].text, role="ai")
+        return Prompt(result.generations[0].text, role="ai", source="output")
 
     def _to_prompt(self, prompts: List[Prompt]) -> str:
         return "\n".join([p.text for p in prompts])

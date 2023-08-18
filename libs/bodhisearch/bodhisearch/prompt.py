@@ -77,6 +77,10 @@ class PromptTemplate:
         raise ValueError(f"Unknown engine {self.engine}")
 
 
+def user_prompt(text: str) -> Prompt:
+    return Prompt(text=text, role="user", source="input")
+
+
 def prompt_with_examples(
     template: str, role: Optional[Role] = None, source: Optional[Source] = None, **kwargs: Dict[str, Any]
 ) -> PromptTemplate:

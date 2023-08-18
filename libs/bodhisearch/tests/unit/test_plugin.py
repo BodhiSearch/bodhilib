@@ -1,7 +1,6 @@
-from bodhisearch_cohere.llm import Cohere
-
 from bodhisearch import get_llm
 from bodhisearch.openai import OpenAIChat
+from bodhisearch_cohere.llm import Cohere
 
 
 def test_openai_provider():
