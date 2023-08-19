@@ -10,8 +10,7 @@ python = "^3.8.1,<3.12"
 python-dotenv = "^1.0.0"
 openai = "^0.27.8"
 pluggy = "^1.2.0"
-pytest-dotenv = "^0.5.2"
-jinja2 = {version = "^3.1.2", extras = ["prompt"]}
+jinja2 = { version = "^3.1.2", extras = ["prompt"] }
 
 
 [tool.poetry.group.dev]
@@ -37,8 +36,8 @@ build-backend = "poetry.core.masonry.api"
 testpaths = ["tests"]
 filterwarnings = ["error"]
 markers = [
-    "all: tagged on all tests using hooks in conftest.py",
-    "live: calls external APIs (skipped by default)",
+  "all: tagged on all tests using hooks in conftest.py",
+  "live: calls external APIs (skipped by default)",
 ]
 addopts = '-m "not live"'
 env_files = [".env.test"]

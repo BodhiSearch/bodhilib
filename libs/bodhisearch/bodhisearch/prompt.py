@@ -85,3 +85,7 @@ def prompt_with_examples(
     template: str, role: Optional[Role] = None, source: Optional[Source] = None, **kwargs: Dict[str, Any]
 ) -> PromptTemplate:
     return PromptTemplate(template, role=role, source=source, engine="jinja2", **kwargs)
+
+
+def prompt_output(text: str, role: Optional[Role] = "ai", source: Optional[Source] = "output") -> Prompt:
+    return Prompt(text=text, role=role, source=source)
