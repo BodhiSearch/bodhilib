@@ -8,8 +8,9 @@ authors = ["Amir Nagri <amir.nagri@proton.me>"]
 python = "^3.8.1,<3.12"
 bodhisearch = { path = "../bodhisearch", develop = true }
 cohere = "^4.19.2"
-pytest = "^7.4.0"
 
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
 
 [build-system]
 requires = ["poetry-core"]
