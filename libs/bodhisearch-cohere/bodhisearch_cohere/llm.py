@@ -1,9 +1,24 @@
+"""
+LLM implementation for Cohere.
+
+See https://cohere.ai/docs/quickstart
+
+To use this provider, you must set the COHERE_API_KEY environment variable.
+
+.. code-block:: python
+
+    from bodhisearch import BodhiSearch
+    from bodhisearch_cohere import Cohere
+
+    bs = BodhiSearch(providers=[Cohere("curie")]
+    bs.generate("Hello, I am a")This module contains
+
+"""
 import os
 from typing import Any, Dict, List, Optional
 
-import cohere
-
 import bodhisearch
+import cohere
 from bodhisearch import Provider
 from bodhisearch.llm import LLM
 from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
@@ -11,6 +26,9 @@ from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
 
 @bodhisearch.provider
 def bodhisearch_get_providers():
+    """
+    This function is used by bodhisearch to find all providers in this module.
+    """
     return [Provider("cohere", "bodhisearch", "llm", get_llm, "0.1.0")]
 
 
