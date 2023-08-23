@@ -1,4 +1,4 @@
-from bodhisearch import get_llm
+from bodhisearch.llm import get_llm
 from bodhisearch.openai import OpenAIChat
 from bodhisearch_cohere.llm import Cohere
 

@@ -1,15 +1,13 @@
 import os
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
-import openai
-
-import bodhisearch
-from bodhisearch import Provider
-from bodhisearch.llm import LLM
+from bodhisearch.llm import LLM, Provider, provider
 from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
 
+import openai
 
-@bodhisearch.provider
+
+@provider
 def bodhisearch_get_providers() -> List[Provider]:
     return [Provider("openai", "bodhisearch", "llm", get_llm, "0.1.0")]
 

@@ -4,7 +4,6 @@ import sys
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 
 import pluggy
-
 from bodhisearch.logging import logger
 from bodhisearch.prompt import Prompt, PromptInput
 
@@ -92,3 +91,7 @@ def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
     manager = PluginManager.instance()
     llm = manager.get("llm", provider, model=model, api_key=api_key)
     return cast(LLM, llm)
+
+
+pluggy_project_name = "bodhisearch"
+provider = pluggy.HookimplMarker(pluggy_project_name)

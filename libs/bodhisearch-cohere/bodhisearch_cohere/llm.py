@@ -17,14 +17,12 @@ To use this provider, you must set the COHERE_API_KEY environment variable.
 import os
 from typing import Any, Dict, List, Optional
 
-import bodhisearch
 import cohere
-from bodhisearch import Provider
-from bodhisearch.llm import LLM
+from bodhisearch.llm import LLM, Provider, provider
 from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
 
 
-@bodhisearch.provider
+@provider
 def bodhisearch_get_providers():
     """
     This function is used by bodhisearch to find all providers in this module.
