@@ -11,6 +11,7 @@ cohere = "^4.19.2"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
+pytest-dotenv = "^0.5.2"
 
 [tool.poetry.group.docs.dependencies]
 autodoc-pydantic = "^1.9.0"
