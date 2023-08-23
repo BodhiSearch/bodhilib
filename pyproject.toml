@@ -1,6 +1,6 @@
 # contains code style and formatting configuration for the complete project
 [tool.poetry]
-name = "bodhisearch-mono"
+name = "bodhilib-mono"
 version = "0.1.0"
 description = "intuitive and powerful library to work with LLMs"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
@@ -49,7 +49,7 @@ disallow_untyped_defs = true
 exclude = ['test\_.*', 'conftest\.py', 'docs/conf\.py']
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = ["libs/bodhisearch", "libs/bodhisearch.cohere"]
+mypy_path = ["libs/bodhilib", "libs/bodhilib.cohere"]
 
 [tool.ruff]
 target-version = "py38"
