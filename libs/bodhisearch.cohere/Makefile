@@ -20,6 +20,6 @@ run_docs:
 	poetry run python -m http.server -d docs/_build 8000
 
 run_autodocs:
-	poetry run sphinx-autobuild -n --watch docs --watch bodhisearch_cohere -b html docs/ docs/_build/
+	poetry run sphinx-autobuild -n --watch docs --watch bodhisearch.cohere -b html docs/ docs/_build/
 
 build: clean build_docs

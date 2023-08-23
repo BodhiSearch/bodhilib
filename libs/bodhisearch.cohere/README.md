@@ -1,7 +1,7 @@
-# bodhisearch_cohere
+# bodhisearch.cohere
 
-![PyPI status](https://img.shields.io/pypi/v/bodhisearch_cohere.svg)
-[![Travis status](https://img.shields.io/travis/BodhiSearch/bodhisearch_cohere.svg)](https://travis-ci.com/BodhiSearch/bodhisearch_cohere)
+![PyPI status](https://img.shields.io/pypi/v/bodhisearch.cohere.svg)
+[![Travis status](https://img.shields.io/travis/BodhiSearch/bodhisearch.cohere.svg)](https://travis-ci.com/BodhiSearch/bodhisearch.cohere)
 [![Readthedocs status](https://readthedocs.org/projects/my-lazy-llm/badge/?version=latest)](https://my-lazy-llm.readthedocs.io/en/latest/?version=latest)
 
 ## Licence

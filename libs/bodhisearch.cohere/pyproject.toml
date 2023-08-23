@@ -3,6 +3,7 @@ name = "bodhisearch-cohere"
 version = "0.1.0"
 description = ""
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
+packages = [{ include = "bodhisearch" }]
 
 [tool.poetry.dependencies]
 python = "^3.8.1,<3.12"
@@ -37,7 +38,7 @@ env_files = [".env.test"]
 
 
 [tool.poetry.plugins.bodhisearch]
-cohere = "bodhisearch_cohere.llm"
+cohere = "bodhisearch.cohere.llm"
 
 # only for black configs
 [tool.black]

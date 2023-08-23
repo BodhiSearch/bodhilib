@@ -9,10 +9,11 @@ from pathlib import Path
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "bodhisearch_cohere"
+project = "bodhisearch.cohere"
 copyright = "2023, Amir Nagri"
 author = "Amir Nagri"
-PACKAGE_VERSION = metadata.version("bodhisearch_cohere")
+# TODO: changing to namespace might cause issue here
+PACKAGE_VERSION = metadata.version("bodhisearch.cohere")
 version = release = PACKAGE_VERSION
 
 # -- General configuration ---------------------------------------------------
@@ -38,7 +39,7 @@ html_static_path = ["_static"]
 
 # hookin sphinx_apidoc
 PROJECT_ROOT = Path(__file__).parent.parent
-PACKAGE_ROOT = PROJECT_ROOT / "bodhisearch_cohere"
+PACKAGE_ROOT = PROJECT_ROOT / "bodhisearch"
 
 
 def run_apidoc(_):

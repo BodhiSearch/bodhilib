@@ -8,7 +8,7 @@ To use this provider, you must set the COHERE_API_KEY environment variable.
 .. code-block:: python
 
     from bodhisearch import BodhiSearch
-    from bodhisearch_cohere import Cohere
+    from bodhisearch.cohere import Cohere
 
     bs = BodhiSearch(providers=[Cohere("curie")]
     bs.generate("Hello, I am a")This module contains
@@ -17,9 +17,10 @@ To use this provider, you must set the COHERE_API_KEY environment variable.
 import os
 from typing import Any, Dict, List, Optional
 
-import cohere
 from bodhisearch.llm import LLM, Provider, provider
 from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
+
+import cohere
 
 
 @provider

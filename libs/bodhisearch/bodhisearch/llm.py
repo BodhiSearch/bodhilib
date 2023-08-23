@@ -72,7 +72,7 @@ class PluginManager:
             if p.provider == provider and p.type == type:
                 llm = p.func(provider, **kargs)
                 return cast(LLM, llm)
-        raise ValueError(f"Unknown provider: {provider}")
+        raise ValueError(f"Unknown provider: {provider}, available providers: {self.providers}")
 
     def _fetch_providers(self) -> List[Provider]:
         logger.debug({"msg": "fetching providers"})

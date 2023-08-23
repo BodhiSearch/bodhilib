@@ -1,9 +1,9 @@
-.. bodhisearch_cohere documentation master file, created by
+.. bodhisearch.cohere documentation master file, created by
    sphinx-quickstart on Sun Aug 20 10:10:35 2023.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to bodhisearch_cohere's documentation!
+Welcome to bodhisearch.cohere's documentation!
 ==============================================
 
 .. toctree::

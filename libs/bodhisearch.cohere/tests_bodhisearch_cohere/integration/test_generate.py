@@ -1,5 +1,5 @@
 import pytest
-from bodhisearch_cohere.llm import get_llm
+from bodhisearch.cohere.llm import get_llm
 
 
 @pytest.mark.live

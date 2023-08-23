@@ -9,7 +9,7 @@ You can contribute in many ways:
 
 ### Report Bugs
 
-Report bugs at <https://github.com/BodhiSearch/bodhisearch_cohere/issues>.
+Report bugs at <https://github.com/BodhiSearch/bodhisearch.cohere/issues>.
 
 If you are reporting a bug, please include:
 
@@ -29,13 +29,13 @@ and "help wanted" is open to whoever wants to implement it.
 
 ### Write Documentation
 
-bodhisearch_cohere could always use more documentation, whether as part of the
-official bodhisearch_cohere docs, in docstrings, or even on the web in blog posts,
+`bodhisearch.cohere` could always use more documentation, whether as part of the
+official `bodhisearch.cohere` docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 ### Submit Feedback
 
-The best way to send feedback is to file an issue at <https://github.com/BodhiSearch/bodhisearch_cohere/issues>.
+The best way to send feedback is to file an issue at <https://github.com/BodhiSearch/bodhisearch.cohere/issues>.
 
 If you are proposing a feature:
 
@@ -46,22 +46,22 @@ If you are proposing a feature:
 
 ## Get Started!
 
-Ready to contribute? Here's how to set up `bodhisearch_cohere` for local development.
+Ready to contribute? Here's how to set up `bodhisearch.cohere` for local development.
 
-1. Fork the `BodhiSearch/bodhisearch_cohere` repo on GitHub.
+1. Fork the `BodhiSearch/bodhisearch.cohere` repo on GitHub.
 
 2. Clone your fork locally:
 
    ```
-   $ git clone git@github.com:your_name_here/bodhisearch_cohere.git
+   $ git clone git@github.com:your_name_here/bodhisearch.cohere.git
    ```
 
 3. Install your local copy into a virtualenv using pyenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development:
 
    ```
-   $ pyenv virtualenv 3.8 bodhisearch_cohere
-   $ cd bodhisearch_cohere/
+   $ pyenv virtualenv 3.8 bodhi
    $ pipx install poetry
+   $ cd bodhisearch.cohere/
    $ poetry install
    ```
 

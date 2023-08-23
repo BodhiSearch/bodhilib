@@ -7,7 +7,7 @@ set -o xtrace
 
 # Build the api documentation
 rm -rf docs/reference
-poetry run sphinx-apidoc --force --implicit-namespaces --module-first -o docs/reference/ bodhisearch_cohere/
+poetry run sphinx-apidoc --force --implicit-namespaces --module-first -o docs/reference/ bodhisearch/
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 cd "${SCRIPT_DIR}"
