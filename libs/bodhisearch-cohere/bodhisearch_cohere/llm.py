@@ -23,7 +23,7 @@ from bodhisearch.prompt import Prompt, PromptInput, parse_prompts
 
 
 @provider
-def bodhisearch_get_providers():
+def bodhisearch_get_providers() -> List[Provider]:
     """
     This function is used by bodhisearch to find all providers in this module.
     """
@@ -42,7 +42,7 @@ def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
 
 
 class Cohere(LLM):
-    def __init__(self, model, api_key):
+    def __init__(self, model: str, api_key: Optional[str]):
         self.model = model
         self.client = cohere.Client(api_key=api_key)
         self.aclient = cohere.AsyncClient(api_key=api_key)

@@ -43,18 +43,20 @@ def bodhisearch_get_providers() -> List[Provider]:
 class PluginManager:
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls) -> "PluginManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
     @classmethod
-    def instance(cls):
-        if cls._instance is None:
-            cls()
-        return cls._instance
+    def instance(cls) -> "PluginManager":
+        # extracting in variable because of mypy warning
+        instance = cls._instance
+        if instance is None:
+            return cls()
+        return instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         pm = pluggy.PluginManager(pluggy_project_name)
         pm.add_hookspecs(current_module)
         pm.load_setuptools_entrypoints(package_name)
@@ -62,7 +64,7 @@ class PluginManager:
 
         pm.register(bodhisearch_openai)
         self.pm = pm
-        self.providers = None
+        self.providers: Optional[List[Provider]] = None
 
     def get(self, type: str, provider: str, **kargs: Dict[str, Any]) -> LLM:
         self.providers = self.providers or self._fetch_providers()
@@ -72,7 +74,7 @@ class PluginManager:
                 return cast(LLM, llm)
         raise ValueError(f"Unknown provider: {provider}")
 
-    def _fetch_providers(self):
+    def _fetch_providers(self) -> List[Provider]:
         logger.debug({"msg": "fetching providers"})
         providers = list(itertools.chain(*self.pm.hook.bodhisearch_get_providers()))
         logger.debug({"msg": "fetched providers", "providers": providers})
@@ -89,7 +91,7 @@ class PluginManager:
 # factories
 def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
     manager = PluginManager.instance()
-    llm = manager.get("llm", provider, model=model, api_key=api_key)
+    llm = manager.get("llm", provider, model=model, api_key=api_key)  # type: ignore
     return cast(LLM, llm)
 
 
