@@ -31,6 +31,16 @@ def bodhilib_get_providers() -> List[Provider]:
 
 
 def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
+    """
+    returns an instance of LLM for the given provider.
+    Args:
+        provider: provider name
+        model: model name
+    Returns:
+        an instance of LLM for the given provider
+        :raises ValueError: if provider is not "cohere"
+        :raises ValueError: if api_key is not set
+    """
     if provider != "cohere":
         raise ValueError(f"Unknown provider: {provider}")
     if api_key is None:

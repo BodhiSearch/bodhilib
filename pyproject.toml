@@ -17,6 +17,17 @@ pre-commit = "^3.3.3"
 ruff = "^0.0.284"
 pydantic = "^1"
 
+[tool.poetry.group.docs.dependencies]
+autodoc-pydantic = "^1.9.0"
+myst-parser = "^2.0.0"
+sphinx = "^6.2.1"
+sphinx-autobuild = "^2021.3.14"
+sphinx-book-theme = "^1.0.1"
+sphinx-copybutton = "^0.5.2"
+esbonio = "^0.16.1"
+doc8 = "^1.1.1"
+pydocstyle = "^6.3.0"
+
 [tool.black]
 line-length = 120
 target-version = ['py38']
@@ -84,3 +95,6 @@ per-file-ignores = {}
 line-length = 120
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 fix = true
+
+[tool.pydocstyle]
+match = '^(?!test_|conf|conftest).*\.py$'

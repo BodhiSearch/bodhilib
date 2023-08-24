@@ -80,7 +80,6 @@ instance/
 **/docs/_build/
 **/.buildinfo
 **/.doctrees
-**/docs/reference/
 
 # PyBuilder
 .pybuilder/

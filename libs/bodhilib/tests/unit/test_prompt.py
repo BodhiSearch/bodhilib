@@ -1,4 +1,5 @@
 import textwrap
+
 from bodhilib.prompt import Prompt, PromptTemplate, parse_prompts, prompt_with_examples
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt

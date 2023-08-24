@@ -67,6 +67,20 @@ class OpenAIClassic(LLM):
 def get_llm(
     provider: str, model: str, api_key: Optional[str] = None, **kwargs: Dict[str, Any]
 ) -> Union[OpenAIChat, OpenAIClassic]:
+    """
+    returns an instance of LLM for the given provider.
+
+    Args:
+        provider (str): provider name
+        model (str): model name
+        api_key (str): api key
+        kwargs (Dict[str, Any]): additional arguments
+    Returns:
+        LLM: an instance of LLM for the given provider
+    Raises:
+        ValueError: if provider is not "openai"
+        ValueError: if api_key is not set
+    """
     if provider != "openai":
         raise ValueError(f"Unknown provider: {provider}")
     if api_key is None:

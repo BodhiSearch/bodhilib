@@ -1,3 +1,4 @@
+"""This module contains the LLM class and the PluginManager class."""
 import abc
 import itertools
 import sys
@@ -13,18 +14,41 @@ current_module = sys.modules[__name__]
 
 
 class LLM(abc.ABC):
+    """LLM is the base class for all language models."""
+
     @abc.abstractmethod
     def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
+        """Generate text from the given prompt.
+
+        Args:
+            prompt: prompt to generate text from. Prompt can be any of the following::
+                - str: a string prompt
+                - Prompt a Prompt object
+                - List[str]: a list of string prompts
+                - List[Prompt]: a list of Prompt objects
+                - Dict[str, Any]: a dict of prompt in keyword "prompt" and additional arguments
+                - List[Dict[str, Any]]: a list of dict of prompt in keyword "prompt" and additional arguments
+            kwargs: additional arguments
+
+        Returns:
+            Prompt: generated text as a Prompt object
+        """
         ...
 
 
 # plugins
-pluggy_project_name = "bodhilib"
-
-hookspec = pluggy.HookspecMarker(pluggy_project_name)
+hookspec = pluggy.HookspecMarker(package_name)
 
 
 class Provider(NamedTuple):
+    """
+    Provider encapsulates info related to LLM service.
+
+    This object is returned by plugins implementing the method
+    `bodhilib_get_providers` and is used by the PluginManager to
+    get an instance of LLM.
+    """
+
     provider: str
     author: str
     type: str  # "llm", "vector_store", "embedder", "loader", "memory"
@@ -34,8 +58,10 @@ class Provider(NamedTuple):
 
 @hookspec
 def bodhilib_get_providers() -> List[Provider]:
-    """Return a list of provider classes to be registered with the provider
-    :return: list of provider with identifiers and a callable function get an instance
+    """
+    Return a list of provider classes to be registered with the provider
+    Returns:
+        List[Provider]: list of provider classes supported by the plugin
     """
     return []
 
@@ -57,7 +83,7 @@ class PluginManager:
         return instance
 
     def __init__(self) -> None:
-        pm = pluggy.PluginManager(pluggy_project_name)
+        pm = pluggy.PluginManager(package_name)
         pm.add_hookspecs(current_module)
         pm.load_setuptools_entrypoints(package_name)
         from bodhilib import openai as bodhilib_openai
@@ -90,6 +116,11 @@ class PluginManager:
 
 # factories
 def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
+    """
+    Get an instance of LLM for the given provider and model.
+    Returns:
+        LLM: instance of LLM
+    """
     manager = PluginManager.instance()
     llm = manager.get("llm", provider, model=model, api_key=api_key)  # type: ignore
     return cast(LLM, llm)
