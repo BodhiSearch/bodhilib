@@ -60,7 +60,7 @@ disallow_untyped_defs = true
 exclude = ['test\_.*', 'conftest\.py', 'docs/conf\.py']
 namespace_packages = true
 explicit_package_bases = true
-mypy_path = ["libs/bodhilib", "libs/bodhilib.cohere"]
+mypy_path = ["libs/bodhilib/src", "libs/bodhilib.cohere"]
 
 [tool.ruff]
 target-version = "py38"
