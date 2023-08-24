@@ -19,14 +19,15 @@ pydantic = "^1"
 
 [tool.poetry.group.docs.dependencies]
 autodoc-pydantic = "^1.9.0"
-myst-parser = "^2.0.0"
-sphinx = "^6.2.1"
+myst-parser = "^0.18.1"
+sphinx = "^5.3.0"
 sphinx-autobuild = "^2021.3.14"
 sphinx-book-theme = "^1.0.1"
 sphinx-copybutton = "^0.5.2"
 esbonio = "^0.16.1"
 doc8 = "^1.1.1"
 pydocstyle = "^6.3.0"
+myst-nb = "^0.17.2"
 
 [tool.black]
 line-length = 120
