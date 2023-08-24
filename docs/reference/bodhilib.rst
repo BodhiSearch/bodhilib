@@ -1,38 +1,23 @@
 bodhilib namespace
 ==================
 
+.. py:module:: bodhilib
+
 Subpackages
 -----------
 
 .. toctree::
    :maxdepth: 1
-   :glob:
 
-   bodhilib.*
+   bodhilib.openai
+   bodhilib.cohere
 
 Submodules
 ----------
 
-bodhilib.llm module
--------------------
+.. toctree::
+   :maxdepth: 2
 
-.. automodule:: bodhilib.llm
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bodhilib.logging module
------------------------
-
-.. automodule:: bodhilib.logging
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-bodhilib.prompt module
-----------------------
-
-.. automodule:: bodhilib.prompt
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   bodhilib.llm
+   bodhilib.logging
+   bodhilib.prompt
