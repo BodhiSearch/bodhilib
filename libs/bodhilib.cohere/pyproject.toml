@@ -3,7 +3,7 @@ name = "bodhilib.cohere"
 version = "0.1.0"
 description = ""
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
-packages = [{ include = "bodhilib" }]
+packages = [{ include = "bodhilib", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.8.1,<3.12"
@@ -28,6 +28,7 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
+pythonpath = ["src"]
 testpaths = ["tests_bodhilib_cohere"]
 filterwarnings = ["error"]
 markers = [

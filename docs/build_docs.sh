@@ -7,7 +7,7 @@ set -o xtrace
 
 # Build the api documentation
 # rm -rf docs/reference/_autosummary
-poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o docs/reference libs/bodhilib.cohere/bodhilib
+poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o docs/reference libs/bodhilib.cohere/src/bodhilib
 poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o docs/reference libs/bodhilib/src/bodhilib
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
