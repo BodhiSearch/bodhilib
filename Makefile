@@ -18,7 +18,14 @@ build_docs: clean_docs
 run_docs:
 	poetry run python -m http.server -d docs/api/_build 8000
 
+clean_guides:
+	rm -rf docs/guides/_build/
+
+build_guides: clean_guides
+	docs/build_guides.sh
+
+run_guides:
+	poetry run python -m http.server -d docs/guides/_build 9000
+
 run_autodocs:
 	poetry run sphinx-autobuild -n --watch docs --watch libs/bodhilib/src -b html docs/api docs/api/_build/
-
-build: clean build_docs

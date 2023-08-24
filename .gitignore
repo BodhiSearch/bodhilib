@@ -80,6 +80,7 @@ instance/
 **/_build/
 **/.buildinfo
 **/.doctrees
+**/jupyter_execute/
 
 # PyBuilder
 .pybuilder/
