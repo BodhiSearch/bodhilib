@@ -7,10 +7,10 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 1
+   :glob:
 
-   bodhilib.openai
-   bodhilib.cohere
+   bodhilib.*
 
 Submodules
 ----------
