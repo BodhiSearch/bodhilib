@@ -1,5 +1,5 @@
-bodhilib.prompt
-===============
+bodhilib.prompt module
+======================
 
 .. automodule:: bodhilib.prompt
    :members:

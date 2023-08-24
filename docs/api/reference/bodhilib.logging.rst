@@ -1,5 +1,5 @@
-bodhilib.logging
-================
+bodhilib.logging module
+=======================
 
 .. automodule:: bodhilib.logging
    :members:

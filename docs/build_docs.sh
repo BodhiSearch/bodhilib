@@ -7,14 +7,14 @@ set -o xtrace
 
 # Build the api documentation
 # rm -rf docs/reference/_autosummary
-poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o docs/reference libs/bodhilib.cohere/src/bodhilib
-poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o docs/reference libs/bodhilib/src/bodhilib
+poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o docs/api/reference libs/bodhilib/src/bodhilib
+poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o docs/api/reference libs/bodhilib.cohere/src/bodhilib
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"
 cd "${SCRIPT_DIR}"
 
 # Build the documentation
-poetry run sphinx-build -a -E -j auto -n --color -W --keep-going -b html . _build/
+poetry run sphinx-build -a -E -j auto -n --color -W --keep-going -b html api api/_build/
 
 # Check links in the documentation
-poetry run sphinx-build -b linkcheck . _build/linkcheck/
+poetry run sphinx-build -b linkcheck api api/_build/linkcheck/

@@ -2,7 +2,7 @@ Welcome to bodhilib's documentation!
 ====================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
    reference/modules

@@ -10,15 +10,15 @@ help:
 clean: clean_docs
 
 clean_docs:
-	rm -rf docs/_build/
+	rm -rf docs/api/_build/
 
 build_docs: clean_docs
 	docs/build_docs.sh
 
 run_docs:
-	poetry run python -m http.server -d docs/_build 8000
+	poetry run python -m http.server -d docs/api/_build 8000
 
 run_autodocs:
-	poetry run sphinx-autobuild -n --watch docs --watch bodhilib.cohere -b html docs/ docs/_build/
+	poetry run sphinx-autobuild -n --watch docs --watch libs/bodhilib/src -b html docs/api docs/api/_build/
 
 build: clean build_docs
