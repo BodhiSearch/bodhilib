@@ -1,6 +1,4 @@
-"""
-Prompt module. Contains classes and functions related to prompt.
-"""
+"""Prompt module. Contains classes and functions related to prompt."""
 import itertools
 import textwrap
 from typing import Any, Dict, List, Literal, Optional, Union

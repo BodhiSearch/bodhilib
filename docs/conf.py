@@ -14,10 +14,7 @@ docs_dir = Path(os.path.dirname(__file__))
 libs = docs_dir / ".." / "libs"
 # find all directories in libs
 for d in libs.iterdir():
-    # insert them into sys.path
-    if d.is_dir():
-        print("adding to path: ", d.resolve())
-        sys.path.insert(0, str(d.resolve()))
+    sys.path.insert(0, str(d.resolve()))
 
 project = "bodhilib"
 copyright = "2023, Amir Nagri"
@@ -31,10 +28,24 @@ extensions = []
 
 templates_path = ["_templates"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-extensions = ["sphinx.ext.autodoc", "sphinx.ext.napoleon"]
+extensions = [
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.napoleon",
+    "sphinx.ext.intersphinx",
+    "sphinxcontrib.autodoc_pydantic",
+    "sphinx_copybutton",
+]
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "alabaster"
+# html_theme = "alabaster"
+html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/", None),
+}
+autodoc_typehints = "description"
+autosummary_generate = True

@@ -1,4 +1,5 @@
-"""This module contains the LLM class and the PluginManager class."""
+"""Language Model Manager (LLM) is a module to manage language models."""
+
 import abc
 import itertools
 import sys
@@ -21,15 +22,14 @@ class LLM(abc.ABC):
         """Generate text from the given prompt.
 
         Args:
-            prompt: prompt to generate text from. Prompt can be any of the following::
+            prompts: prompt to generate text from. Prompt can be any of the following::
                 - str: a string prompt
-                - Prompt a Prompt object
-                - List[str]: a list of string prompts
-                - List[Prompt]: a list of Prompt objects
+                - Prompt: a :class:`.Prompt` object
+                - List[str]: a list of :obj:`str` prompts
+                - List[Prompt]: a list of :class:`.Prompt` objects
                 - Dict[str, Any]: a dict of prompt in keyword "prompt" and additional arguments
                 - List[Dict[str, Any]]: a list of dict of prompt in keyword "prompt" and additional arguments
-            kwargs: additional arguments
-
+            **kwargs: additional arguments
         Returns:
             Prompt: generated text as a Prompt object
         """

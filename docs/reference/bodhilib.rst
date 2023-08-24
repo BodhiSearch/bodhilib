@@ -1,8 +1,6 @@
 bodhilib namespace
 ==================
 
-.. py:module:: bodhilib
-
 Subpackages
 -----------
 
