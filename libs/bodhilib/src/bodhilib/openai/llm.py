@@ -1,3 +1,4 @@
+"""bodhilib :class:`bodhilib.llm.LLM` implementation for OpenAI API."""
 import os
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
@@ -9,10 +10,13 @@ import openai
 
 @provider
 def bodhilib_get_providers() -> List[Provider]:
+    """Return a list of provider classes to be registered with the provider."""
     return [Provider("openai", "bodhilib", "llm", get_llm, "0.1.0")]
 
 
 class OpenAIChat(LLM):
+    """OpenAI Chat API implementation for :class:`bodhilib.llm.LLM`."""
+
     def __init__(self, model: str, **kwargs: Dict[str, Any]) -> None:
         self.model = model
         self.kwargs = kwargs
@@ -46,6 +50,8 @@ class OpenAIChat(LLM):
 
 
 class OpenAIClassic(LLM):
+    """OpenAI Classic API implementation for :class:`bodhilib.llm.LLM`."""
+
     def __init__(self, model: str, **kwargs: Dict[str, Any]) -> None:
         self.model = model
         self.kwargs = kwargs
@@ -67,8 +73,7 @@ class OpenAIClassic(LLM):
 def get_llm(
     provider: str, model: str, api_key: Optional[str] = None, **kwargs: Dict[str, Any]
 ) -> Union[OpenAIChat, OpenAIClassic]:
-    """
-    returns an instance of LLM for the given provider.
+    """Returns an instance of LLM for the given provider.
 
     Args:
         provider (str): provider name

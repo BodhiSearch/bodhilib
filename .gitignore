@@ -5,6 +5,7 @@ storage
 .python-version
 .DS_Store
 tmp.py
+sitecustomize.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

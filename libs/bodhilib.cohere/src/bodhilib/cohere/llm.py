@@ -1,5 +1,4 @@
-"""
-LLM implementation for Cohere.
+"""LLM implementation for Cohere.
 
 See https://cohere.ai/docs/quickstart
 
@@ -24,18 +23,17 @@ import cohere
 
 @provider
 def bodhilib_get_providers() -> List[Provider]:
-    """
-    This function is used by bodhilib to find all providers in this module.
-    """
+    """This function is used by bodhilib to find all providers in this module."""
     return [Provider("cohere", "bodhilib", "llm", get_llm, "0.1.0")]
 
 
 def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
-    """
-    returns an instance of LLM for the given provider.
+    """Returns an instance of LLM for the given provider.
+
     Args:
         provider: provider name
         model: model name
+        api_key: api key required by cohere APIs
     Returns:
         an instance of LLM for the given provider
         :raises ValueError: if provider is not "cohere"
@@ -52,6 +50,8 @@ def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
 
 
 class Cohere(LLM):
+    """Cohere API implementation for :class:`bodhilib.llm.LLM`."""
+
     def __init__(self, model: str, api_key: Optional[str]):
         self.model = model
         self.client = cohere.Client(api_key=api_key)

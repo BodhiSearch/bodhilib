@@ -1,3 +1,5 @@
+"""OpenAI API operations."""
+
 from bodhilib.openai.llm import (
     OpenAIChat,
     OpenAIClassic,

@@ -26,8 +26,9 @@ sphinx-book-theme = "^1.0.1"
 sphinx-copybutton = "^0.5.2"
 esbonio = "^0.16.1"
 doc8 = "^1.1.1"
-pydocstyle = "^6.3.0"
+pydocstyle = { extras = ["toml"], version = "^6.3.0" }
 myst-nb = "^0.17.2"
+tomli = "^2.0.1"
 
 [tool.black]
 line-length = 120
@@ -98,4 +99,6 @@ dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 fix = true
 
 [tool.pydocstyle]
-match = '^(?!test_|conf|conftest).*\.py$'
+match = "(?!test_|conftest).*\\.py"
+add_ignore = "D102, D107"
+convention = "google"

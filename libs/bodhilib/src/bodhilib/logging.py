@@ -7,13 +7,11 @@ package_name = "bodhilib"
 
 
 def init_logger() -> logging.Logger:
-    """
-    Initialize logger for bodhilib.
+    """Initialize logger for bodhilib.
 
-    Returns the default logger if BODHILIB_LOG_LEVEL is not set,
-    else returns a logger with the name "bodhilib" and log level
-    set to BODHILIB_LOG_LEVEL. Optionally also sets the format of
-    the log message using BODHILIB_LOG_FORMAT.
+    Returns the default logger if BODHILIB_LOG_LEVEL is not set, else returns a logger with
+    the name "bodhilib" and log level set to BODHILIB_LOG_LEVEL. Optionally also sets the
+    format of the log message using BODHILIB_LOG_FORMAT.
 
     Returns:
         logging.Logger: logger for bodhilib

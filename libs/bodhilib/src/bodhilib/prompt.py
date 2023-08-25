@@ -11,17 +11,15 @@ Source = Literal["input", "output"]
 
 
 class Prompt(BaseModel):
-    """
-    Prompt class. Represents a prompt.
-    """
+    """Prompt encapsulating inputs to interact with LLM."""
 
     text: str
     role: Role
     source: Source
 
     def __init__(self, text: str, role: Optional[Role] = "user", source: Optional[Source] = "input"):
-        """
-        Initialize a prompt.
+        """Initialize a prompt.
+
         Args:
             text: text of the prompt
             role: role of the prompt. Can be one of "system", "ai", "user". Defaults to "user".
@@ -36,9 +34,7 @@ PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[D
 
 
 def parse_prompts(input: PromptInput) -> List[Prompt]:
-    """
-    Parses from the PromptInput to List[Prompt].
-    """
+    """Parses from the PromptInput to List[Prompt]."""
     if isinstance(input, str):
         return [Prompt(input)]
     if isinstance(input, Prompt):
@@ -55,9 +51,7 @@ Engine = Literal["default", "jinja2"]
 
 
 class PromptTemplate:
-    """
-    PromptTemplate used for generating prompts using a template.
-    """
+    """PromptTemplate used for generating prompts using a template."""
 
     def __init__(
         self,
@@ -67,14 +61,14 @@ class PromptTemplate:
         engine: Optional[Engine] = "default",
         **kwargs: Dict[str, Any],
     ) -> None:
-        """
-        Initialize a prompt template.
+        """Initializes a prompt template.
+
         Args:
             template: template string
-            role: role of the prompt. Can be one of "system", "ai", "user". Defaults to "user".
-            source: source of the prompt. Can be one of "input", "output". Defaults to "input".
-            engine: engine to use for rendering the template. Can be one of "default", "jinja2". Defaults to "default".
-            kwargs: additional arguments to be used for rendering the template
+            role: role of the prompt.
+            source: source of the prompt.
+            engine: engine to use for rendering the template.
+            **kwargs: additional arguments to be used for rendering the template
         """
         self.template = template
         self.role = role
@@ -83,8 +77,8 @@ class PromptTemplate:
         self.kwargs = kwargs
 
     def to_prompt(self, **kwargs: Dict[str, Any]) -> Prompt:
-        """
-        Converts the PromptTemplate into a Prompt.
+        """Converts the PromptTemplate into a Prompt.
+
         Args:
             kwargs: all variables to be used for rendering the template
         Returns:
@@ -112,27 +106,35 @@ class PromptTemplate:
 
 
 def user_prompt(text: str) -> Prompt:
-    """
-    Factory method to generate a user prompt from string.
+    """Factory method to generate user prompt from string.
+
     Args:
         text: text of the prompt
     Returns:
-        Prompt: prompt generated from the text. Defaults role to user and source to input.
+        Prompt: Prompt object generated from the text. Defaults role="user" and source="input".
     """
     return Prompt(text=text, role="user", source="input")
 
 
-def prompt_with_examples(
-    template: str, role: Optional[Role] = None, source: Optional[Source] = None, **kwargs: Dict[str, Any]
-) -> PromptTemplate:
+def prompt_with_examples(template: str, **kwargs: Dict[str, Any]) -> PromptTemplate:
+    """Factory method to generate a prompt template with examples.
+
+    Prompt uses `jinja2` template engine to generate prompt with examples.
+
+    Args:
+        template: a `jinja2` compliant template string to loop through examples
+        **kwargs: additional arguments to be used for rendering the template.
+            Can also contain `role` and `source` to override the default values.
     """
-    Factory method to generate a prompt template with examples.
-    """
-    return PromptTemplate(template, role=role, source=source, engine="jinja2", **kwargs)
+    # pop role from kwargs or get None
+    role = kwargs.pop("role", None)
+    source = kwargs.pop("source", None)
+    return PromptTemplate(template, role=role, source=source, engine="jinja2", **kwargs)  # type: ignore
 
 
 def prompt_output(text: str, role: Optional[Role] = "ai", source: Optional[Source] = "output") -> Prompt:
-    """
-    Factory method to generate a prompt of source="output" from string. Used by plugins to generate output prompts.
+    """Factory method to generate output prompts.
+
+    Generates a prompt with source="output". Mainly by LLMs to generate output prompts.
     """
     return Prompt(text=text, role=role, source=source)
