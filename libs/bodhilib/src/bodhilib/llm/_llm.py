@@ -1,5 +1,3 @@
-""":mod:`bodhilib.llm` module defines classes and methods for LLM operations."""
-
 import abc
 import itertools
 import sys

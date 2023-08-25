@@ -1,4 +1,3 @@
-"""Logging module for bodhilib."""
 import logging
 import os
 
