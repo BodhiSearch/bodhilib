@@ -1,8 +1,7 @@
 import logging
 import os
 
-# TODO import constant from root package
-package_name = "bodhilib"
+from bodhilib.common import package_name
 
 
 def init_logger() -> logging.Logger:
@@ -29,7 +28,5 @@ def init_logger() -> logging.Logger:
     return logger
 
 
-"""
-logger to log messages for library and plugins of bodhilib
-"""
+"""Common logger for bodhilib"""
 logger = init_logger()

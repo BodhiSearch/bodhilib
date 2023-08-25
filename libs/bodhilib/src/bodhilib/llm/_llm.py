@@ -4,11 +4,12 @@ import sys
 from typing import Any, Callable, Dict, List, NamedTuple, Optional, cast
 
 import pluggy
+from bodhilib.common import package_name
 from bodhilib.logging import logger
 from bodhilib.prompt import Prompt, PromptInput
 
-# TODO - remove packagename duplication, import from core
-package_name = "bodhilib"
+hookspec = pluggy.HookspecMarker(package_name)
+provider = pluggy.HookimplMarker(package_name)
 current_module = sys.modules[__name__]
 
 
@@ -33,10 +34,6 @@ class LLM(abc.ABC):
             Prompt: generated text as a Prompt object
         """
         ...
-
-
-# plugins
-hookspec = pluggy.HookspecMarker(package_name)
 
 
 class Provider(NamedTuple):
@@ -126,6 +123,3 @@ def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
     manager = PluginManager.instance()
     llm = manager.get("llm", provider, model=model, api_key=api_key)  # type: ignore
     return cast(LLM, llm)
-
-
-provider = pluggy.HookimplMarker(package_name)
