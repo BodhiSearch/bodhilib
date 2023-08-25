@@ -1,53 +1,57 @@
-"""LLM implementation for Cohere.
-
-See https://cohere.ai/docs/quickstart
-
-To use this provider, you must set the COHERE_API_KEY environment variable.
-
-.. code-block:: python
-
-    from bodhilib.cohere import Cohere
-
-    bs = Cohere(api_key="foobar")
-    bs.generate("Hello, I am a")
-
-"""
+"""LLM implementation for Cohere."""
 import os
 from typing import Any, Dict, List, Optional
 
 from bodhilib.llm import LLM
-from bodhilib.plugin import Provider, provider
+from bodhilib.plugin import Service, service_provider
 from bodhilib.prompt import Prompt, PromptInput, parse_prompts
 
 import cohere
 
 
-@provider
-def bodhilib_get_providers() -> List[Provider]:
-    """This function is used by bodhilib to find all providers in this module."""
-    return [Provider("cohere", "bodhilib", "llm", get_llm, "0.1.0")]
+@service_provider
+def bodhilib_list_services() -> List[Service]:
+    """This function is used by bodhilib to find all services in this module."""
+    return [Service("cohere", "llm", "bodhilib", cohere_llm_service_builder, "0.1.0")]
 
 
-def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
-    """Returns an instance of LLM for the given provider.
+def cohere_llm_service_builder(
+    *,
+    service_name: Optional[str] = None,
+    service_type: Optional[str] = "llm",
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+) -> LLM:
+    """Returns an instance of Cohere LLM service implementing :class:`bodhilib.llm.LLM`.
 
     Args:
-        provider: provider name
-        model: model name
-        api_key: api key required by cohere APIs
+        service_name: service name to wrap, should be "cohere"
+        service_type: service type of the implementation, should be "llm"
+        model: Cohere model identifier
+        api_key: api key for Cohere service, if not set, it will be read from environment variable COHERE_API_KEY
     Returns:
-        an instance of LLM for the given provider
-        :raises ValueError: if provider is not "cohere"
-        :raises ValueError: if api_key is not set
+        LLM: a service instance implementing :class:`bodhilib.llm.LLM` for the given service and model
+    Raises:
+        ValueError: if service_name is not "cohere"
+        ValueError: if service_type is not "llm"
+        ValueError: if model is not set
+        ValueError: if api_key is not set, and environment variable COHERE_API_KEY is not set
     """
-    if provider != "cohere":
-        raise ValueError(f"Unknown provider: {provider}")
+    # TODO use pydantic for parameter validation
+    if service_name != "cohere":
+        raise ValueError(f"Unknown service: {service_name=}")
+    if service_type != "llm":
+        raise ValueError(f"Unknown service type: {service_type=}")
+    if model is None:
+        raise ValueError("model is not set")
     if api_key is None:
         if os.environ.get("COHERE_API_KEY") is None:
             raise ValueError("environment variable COHERE_API_KEY is not set")
         else:
             api_key = os.environ["COHERE_API_KEY"]
-    return Cohere(model=model, api_key=api_key)
+    # TODO filter for Cohere configs
+    return Cohere(model=model, api_key=api_key, **kwargs)
 
 
 class Cohere(LLM):

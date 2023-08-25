@@ -28,12 +28,12 @@ class LLM(abc.ABC):
         ...
 
 
-def get_llm(provider: str, model: str, api_key: Optional[str] = None) -> LLM:
-    """Get an instance of LLM for the given provider and model.
+def get_llm(service_name: str, model: str, api_key: Optional[str] = None) -> LLM:
+    """Get an instance of LLM for the given service name and model.
 
     Returns:
         LLM: instance of LLM
     """
     manager = PluginManager.instance()
-    llm = manager.get("llm", provider, model=model, api_key=api_key)  # type: ignore
+    llm = manager.get(service_name, "llm", model=model, api_key=api_key)  # type: ignore
     return cast(LLM, llm)

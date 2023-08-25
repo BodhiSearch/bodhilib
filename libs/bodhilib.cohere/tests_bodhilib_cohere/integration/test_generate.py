@@ -1,10 +1,10 @@
 import pytest
-from bodhilib.cohere.llm import get_llm
+from bodhilib.cohere.llm import cohere_llm_service_builder
 
 
 @pytest.mark.live
 def test_cohere_generate():
-    cohere = get_llm("cohere", "command")
+    cohere = cohere_llm_service_builder(service_name="cohere", model="command")
     result = cohere.generate("What day comes after Monday?")
     assert result.role == "ai"
     assert "tuesday" in result.text.strip().lower()

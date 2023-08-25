@@ -3,16 +3,16 @@ import os
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
 from bodhilib.llm import LLM
-from bodhilib.plugin import Provider, provider
+from bodhilib.plugin import Service, service_provider
 from bodhilib.prompt import Prompt, PromptInput, parse_prompts
 
 import openai
 
 
-@provider
-def bodhilib_get_providers() -> List[Provider]:
-    """Return a list of provider classes to be registered with the provider."""
-    return [Provider("openai", "bodhilib", "llm", get_llm, "0.1.0")]
+@service_provider
+def bodhilib_list_services() -> List[Service]:
+    """Return a list of services supported by the plugin."""
+    return [Service("openai", "llm", "bodhilib", openai_llm_service_builder, "0.1.0")]
 
 
 class OpenAIChat(LLM):
@@ -71,24 +71,37 @@ class OpenAIClassic(LLM):
         raise TypeError(f"'{type(self).__name__}' object is not callable, did you mean to call 'generate'?")
 
 
-def get_llm(
-    provider: str, model: str, api_key: Optional[str] = None, **kwargs: Dict[str, Any]
+def openai_llm_service_builder(
+    *,
+    service_name: Optional[str] = None,
+    service_type: Optional[str] = "llm",
+    model: Optional[str] = None,
+    api_key: Optional[str] = None,
+    **kwargs: Dict[str, Any],
 ) -> Union[OpenAIChat, OpenAIClassic]:
-    """Returns an instance of LLM for the given provider.
+    """Returns an instance of LLM for the given arguments.
 
     Args:
-        provider (str): provider name
-        model (str): model name
-        api_key (str): api key
-        kwargs (Dict[str, Any]): additional arguments
+        service_name: service name to wrap, should be "openai"
+        service_type: service of the implementation, should be "llm"
+        model: OpenAI model identifier
+        api_key: OpenAI api key, if not set, it will be read from environment variable OPENAI_API_KEY
+        **kwargs: additional arguments passed to the OpenAI API client
     Returns:
-        LLM: an instance of LLM for the given provider
+        LLM: an instance of LLM for the given service, and model
     Raises:
-        ValueError: if provider is not "openai"
-        ValueError: if api_key is not set
+        ValueError: if service_name is not "openai"
+        ValueError: if service_type is not "llm"
+        ValueError: if model is not set
+        ValueError: if api_key is not set and environment variable OPENAI_API_KEY is not set
     """
-    if provider != "openai":
-        raise ValueError(f"Unknown provider: {provider}")
+    # TODO replace with pydantic validations
+    if service_name != "openai":
+        raise ValueError(f"Unknown service: {service_name=}")
+    if service_type != "llm":
+        raise ValueError(f"Service type not supported: {service_type=}, supported service types: llm")
+    if model is None:
+        raise ValueError("model is not set")
     if api_key is None:
         if os.environ.get("OPENAI_API_KEY") is None:
             raise ValueError("environment variable OPENAI_API_KEY is not set")
