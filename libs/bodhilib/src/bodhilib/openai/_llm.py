@@ -1,18 +1,10 @@
-"""bodhilib :class:`bodhilib.llm.LLM` implementation for OpenAI API."""
-import os
-from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
+"""OpenAI LLM module."""
+from typing import Any, Dict, Iterable, List, NoReturn
 
 from bodhilib.llm import LLM
-from bodhilib.plugin import Service, service_provider
 from bodhilib.prompt import Prompt, PromptInput, parse_prompts
 
 import openai
-
-
-@service_provider
-def bodhilib_list_services() -> List[Service]:
-    """Return a list of services supported by the plugin."""
-    return [Service("openai", "llm", "bodhilib", openai_llm_service_builder, "0.1.0")]
 
 
 class OpenAIChat(LLM):
@@ -69,48 +61,3 @@ class OpenAIClassic(LLM):
 
     def __call__(self, *args: Iterable[Any], **kwargs: Dict[str, Any]) -> NoReturn:
         raise TypeError(f"'{type(self).__name__}' object is not callable, did you mean to call 'generate'?")
-
-
-def openai_llm_service_builder(
-    *,
-    service_name: Optional[str] = None,
-    service_type: Optional[str] = "llm",
-    model: Optional[str] = None,
-    api_key: Optional[str] = None,
-    **kwargs: Dict[str, Any],
-) -> Union[OpenAIChat, OpenAIClassic]:
-    """Returns an instance of LLM for the given arguments.
-
-    Args:
-        service_name: service name to wrap, should be "openai"
-        service_type: service of the implementation, should be "llm"
-        model: OpenAI model identifier
-        api_key: OpenAI api key, if not set, it will be read from environment variable OPENAI_API_KEY
-        **kwargs: additional arguments passed to the OpenAI API client
-    Returns:
-        LLM: an instance of LLM for the given service, and model
-    Raises:
-        ValueError: if service_name is not "openai"
-        ValueError: if service_type is not "llm"
-        ValueError: if model is not set
-        ValueError: if api_key is not set and environment variable OPENAI_API_KEY is not set
-    """
-    # TODO replace with pydantic validations
-    if service_name != "openai":
-        raise ValueError(f"Unknown service: {service_name=}")
-    if service_type != "llm":
-        raise ValueError(f"Service type not supported: {service_type=}, supported service types: llm")
-    if model is None:
-        raise ValueError("model is not set")
-    if api_key is None:
-        if os.environ.get("OPENAI_API_KEY") is None:
-            raise ValueError("environment variable OPENAI_API_KEY is not set")
-        else:
-            openai.api_key = os.environ["OPENAI_API_KEY"]
-    else:
-        openai.api_key = api_key
-    params: Dict[str, Any] = {**{"api_key": api_key}, **kwargs}
-    if model.startswith("gpt"):
-        return OpenAIChat(model, **params)
-    else:
-        return OpenAIClassic(model, **params)

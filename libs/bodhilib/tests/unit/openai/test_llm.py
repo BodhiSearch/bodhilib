@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
 import pytest
-from bodhilib.openai import OpenAIChat, OpenAIClassic, openai_llm_service_builder
+from bodhilib.openai import OpenAIChat, OpenAIClassic
+from bodhilib.openai import openai_llm_service_builder
 
 classic_model = "text-ada-001"
 chat_model = "gpt-3.5-turbo"
