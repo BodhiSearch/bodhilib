@@ -2,7 +2,8 @@
 import os
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
-from bodhilib.llm import LLM, Provider, provider
+from bodhilib.llm import LLM
+from bodhilib.plugin import Provider, provider
 from bodhilib.prompt import Prompt, PromptInput, parse_prompts
 
 import openai
