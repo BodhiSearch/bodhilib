@@ -8,25 +8,24 @@ packages = [{ include = "bodhilib", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.8.1,<4"
-python-dotenv = "^1.0.0"
+jinja2 = { version = "^3.1.2", extras = ["prompt"] }
 openai = "^0.27.8"
 pluggy = "^1.2.0"
-jinja2 = { version = "^3.1.2", extras = ["prompt"] }
-
+pydantic = "^1"
+python-dotenv = "^1.0.0"
 
 [tool.poetry.group.dev]
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.7.0"
-isort = "^5.12.0"
 pre-commit = "^3.3.3"
 flake8 = "^6.1.0"
 mypy = "^1.4.1"
-
+ruff = "^0.0.284"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
 pytest-socket = "^0.6.0"
 pytest-dotenv = "^0.5.2"
 
