@@ -7,17 +7,7 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 1
-
-   bodhilib.openai
-   bodhilib.cohere
-
-Submodules
-----------
-
-.. toctree::
    :maxdepth: 2
+   :glob:
 
-   bodhilib.llm
-   bodhilib.logging
-   bodhilib.prompt
+   bodhilib.*

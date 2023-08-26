@@ -26,7 +26,3 @@ def init_logger() -> logging.Logger:
     handler.setFormatter(formatter)
     logger.addHandler(handler)
     return logger
-
-
-"""Common logger for bodhilib"""
-logger = init_logger()

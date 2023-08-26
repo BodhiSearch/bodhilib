@@ -1,7 +1,7 @@
-bodhilib.cohere package
+bodhilib.models package
 =======================
 
-.. automodule:: bodhilib.cohere
+.. automodule:: bodhilib.models
    :members:
    :undoc-members:
    :show-inheritance:

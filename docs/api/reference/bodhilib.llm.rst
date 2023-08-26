@@ -1,5 +1,5 @@
-bodhilib.llm module
-===================
+bodhilib.llm package
+====================
 
 .. automodule:: bodhilib.llm
    :members:
