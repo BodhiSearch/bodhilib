@@ -1,7 +1,7 @@
 import logging
 import os
 
-from bodhilib.common import package_name
+from bodhilib.core import package_name
 
 
 def init_logger() -> logging.Logger:

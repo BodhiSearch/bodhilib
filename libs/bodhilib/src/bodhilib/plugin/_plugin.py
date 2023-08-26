@@ -4,7 +4,7 @@ import sys
 from typing import Any, Callable, Dict, List, NamedTuple, Optional
 
 import pluggy
-from bodhilib.common import package_name
+from bodhilib.core import package_name
 from bodhilib.logging import logger
 
 hookspec = pluggy.HookspecMarker(package_name)
