@@ -10,7 +10,15 @@ from bodhilib.plugin import Service, service_provider
 @service_provider
 def bodhilib_list_services() -> List[Service]:
     """This function is used by bodhilib to find all services in this module."""
-    return [Service("cohere", "llm", "bodhilib", cohere_llm_service_builder, "0.1.0")]
+    return [
+        Service(
+            service_name="cohere",
+            service_type="llm",
+            publisher="bodhilib",
+            service_builder=cohere_llm_service_builder,
+            version="0.1.0",
+        )
+    ]
 
 
 def cohere_llm_service_builder(

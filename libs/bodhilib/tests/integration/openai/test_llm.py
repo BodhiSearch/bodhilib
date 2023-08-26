@@ -1,6 +1,6 @@
 import pytest
 from bodhilib.llm import LLM, get_llm
-from bodhilib.prompt import Prompt, PromptTemplate
+from bodhilib.models import Prompt, PromptTemplate
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 

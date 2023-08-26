@@ -11,7 +11,15 @@ import openai
 @service_provider
 def bodhilib_list_services() -> List[Service]:
     """Return a list of services supported by the plugin."""
-    return [Service("openai", "llm", "bodhilib", openai_llm_service_builder, "0.1.0")]
+    return [
+        Service(
+            service_name="openai",
+            service_type="llm",
+            publisher="bodhilib",
+            service_builder=openai_llm_service_builder,
+            version="0.1.0",
+        )
+    ]
 
 
 def openai_llm_service_builder(

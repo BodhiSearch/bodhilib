@@ -2,7 +2,7 @@ import abc
 from typing import Any, Dict, Optional, cast
 
 from bodhilib.plugin import PluginManager
-from bodhilib.prompt import Prompt, PromptInput
+from bodhilib.models import Prompt, PromptInput
 
 
 class LLM(abc.ABC):
@@ -28,12 +28,28 @@ class LLM(abc.ABC):
         ...
 
 
-def get_llm(service_name: str, model: str, api_key: Optional[str] = None) -> LLM:
+def get_llm(
+    service_name: str,
+    model: str,
+    api_key: Optional[str] = None,
+    *,
+    publisher: Optional[str] = None,
+    version: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+) -> LLM:
     """Get an instance of LLM for the given service name and model.
 
     Returns:
         LLM: instance of LLM
     """
     manager = PluginManager.instance()
-    llm = manager.get(service_name, "llm", model=model, api_key=api_key)  # type: ignore
+    llm = manager.get(
+        service_name=service_name,
+        service_type="llm",
+        model=model,
+        api_key=api_key,
+        publisher=publisher,
+        version=version,
+        **kwargs,
+    )
     return cast(LLM, llm)

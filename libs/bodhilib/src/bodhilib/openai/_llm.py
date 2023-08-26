@@ -2,7 +2,7 @@
 from typing import Any, Dict, Iterable, List, NoReturn
 
 from bodhilib.llm import LLM
-from bodhilib.prompt import Prompt, PromptInput, parse_prompts
+from bodhilib.models import Prompt, PromptInput, parse_prompts
 
 import openai
 

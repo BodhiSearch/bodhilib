@@ -63,12 +63,32 @@ class PluginManager:
         self.pm = pm
         self.services: Optional[List[Service]] = None
 
-    def get(self, service_name: str, service_type: str, **kwargs: Dict[str, Any]) -> Any:
+    def get(
+        self,
+        service_name: str,
+        service_type: str,
+        *,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+        publisher: Optional[str] = None,
+        version: Optional[str] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Any:
         """Get an instance of service for the given service and type."""
         self.services = self.services or self._fetch_services()
         for service in self.services:
             if service.service_name == service_name and service.service_type == service_type:
-                all_args = {**{"service_name": service_name, "service_type": service_type}, **kwargs}
+                all_args = {
+                    **{
+                        "service_name": service_name,
+                        "service_type": service_type,
+                        "api_key": api_key,
+                        "publisher": publisher,
+                        "version": version,
+                        "model": model,
+                    },
+                    **kwargs,
+                }
                 component = service.service_builder(**all_args)
                 return component
         raise ValueError(f"Unknown service: {service_name}, available services: {self.services}")
