@@ -167,7 +167,7 @@ name = "bodhilib"
 version = "0.1.0"
 description = "intuitive and powerful library to work with LLMs"
 optional = false
-python-versions = "^3.8.1,<3.12"
+python-versions = "^3.8.1,<4"
 files = []
 develop = true
 
@@ -902,5 +902,5 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 
 [metadata]
 lock-version = "2.0"
-python-versions = "^3.8.1,<3.12"
-content-hash = "bc85bf5b3784728d79764145e32dd8b12aabb18d93a10f3e4095f286468abc43"
+python-versions = "^3.8.1,<4"
+content-hash = "dbeb42292725dcc3ffd1b5032219c717b9e2844ce8389995f00e66c62e36fb41"
