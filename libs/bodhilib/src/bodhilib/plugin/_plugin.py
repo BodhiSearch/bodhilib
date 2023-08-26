@@ -60,10 +60,6 @@ class PluginManager:
         pm = pluggy.PluginManager(package_name)
         pm.add_hookspecs(current_module)
         pm.load_setuptools_entrypoints(package_name)
-        # TODO remove after moving openai plugin to separate repo
-        import bodhilib.openai as bodhilib_openai
-
-        pm.register(bodhilib_openai)
         self.pm = pm
         self.services: Optional[List[Service]] = None
 

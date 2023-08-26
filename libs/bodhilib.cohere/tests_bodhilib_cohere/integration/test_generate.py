@@ -1,5 +1,5 @@
 import pytest
-from bodhilib.cohere.llm import cohere_llm_service_builder
+from bodhilib.cohere import cohere_llm_service_builder
 
 
 @pytest.mark.live

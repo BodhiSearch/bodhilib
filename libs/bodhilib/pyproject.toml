@@ -34,6 +34,9 @@ pytest-dotenv = "^0.5.2"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.poetry.plugins.bodhilib]
+openai = "bodhilib.openai"
+
 [tool.pytest.ini_options]
 pythonpath = ["src"]
 testpaths = ["tests"]

@@ -31,7 +31,7 @@ env_files = [".env.test"]
 
 
 [tool.poetry.plugins.bodhilib]
-cohere = "bodhilib.cohere.llm"
+cohere = "bodhilib.cohere"
 
 # only for black configs
 [tool.black]

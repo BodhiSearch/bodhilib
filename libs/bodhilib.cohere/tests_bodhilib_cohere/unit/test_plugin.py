@@ -1,4 +1,4 @@
-from bodhilib.cohere.llm import Cohere, bodhilib_list_services, cohere_llm_service_builder
+from bodhilib.cohere import Cohere, bodhilib_list_services, cohere_llm_service_builder
 from bodhilib.llm import get_llm
 import pytest
 
