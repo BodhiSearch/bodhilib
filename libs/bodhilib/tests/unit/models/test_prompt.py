@@ -1,7 +1,16 @@
 import textwrap
 
 import pytest
-from bodhilib.models import Prompt, PromptTemplate, Role, parse_prompts, prompt_with_examples
+from bodhilib.models import (
+    Prompt,
+    PromptTemplate,
+    Role,
+    Source,
+    parse_prompts,
+    prompt_user,
+    prompt_output,
+    prompt_with_examples,
+)
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 
@@ -164,3 +173,17 @@ def test_prompt_with_examples():
     Example output: """)
 
     assert prompt.text == expected
+
+
+def test_prompt_user():
+    prompt = prompt_user(default_user_prompt)
+    assert prompt.text == default_user_prompt
+    assert prompt.role == Role.USER
+    assert prompt.source == Source.INPUT
+
+
+def test_prompt_output():
+    prompt = prompt_output(default_system_prompt)
+    assert prompt.text == default_system_prompt
+    assert prompt.role == Role.AI
+    assert prompt.source == Source.OUTPUT

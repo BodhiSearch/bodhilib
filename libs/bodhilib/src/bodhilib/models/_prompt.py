@@ -112,12 +112,12 @@ def prompt_user(text: str) -> Prompt:
     Returns:
         Prompt: Prompt object generated from the text. Defaults role="user" and source="input".
     """
-    return Prompt(text=text, role="user", source="input")
+    return Prompt(text=text, role=Role.USER, source=Source.INPUT)
 
 
-def prompt_output(text: str, role: Optional[Role] = Role.AI, source: Optional[Source] = Source.OUTPUT) -> Prompt:
+def prompt_output(text: str) -> Prompt:
     """Factory method to generate output prompts.
 
     Generates a prompt with source="output". Mainly by LLMs to generate output prompts.
     """
-    return Prompt(text=text, role=role, source=source)
+    return Prompt(text=text, role=Role.AI, source=Source.OUTPUT)

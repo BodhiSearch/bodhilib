@@ -2,7 +2,7 @@
 from typing import Any, Dict, Iterable, List, NoReturn
 
 from bodhilib.llm import LLM
-from bodhilib.models import Prompt, PromptInput, parse_prompts
+from bodhilib.models import Prompt, PromptInput, parse_prompts, prompt_output
 
 import openai
 
@@ -33,7 +33,7 @@ class OpenAIChat(LLM):
             model=self.model, messages=self._to_messages(parsed_prompts), **varags
         )
         response = completion.choices[0].message["content"]
-        return Prompt(response, role="ai", source="output")
+        return prompt_output(response)
 
     def _to_messages(self, prompts: List[Prompt]) -> List[Dict[str, str]]:
         return [{"role": p.role, "content": p.text} for p in prompts]
@@ -54,7 +54,7 @@ class OpenAIClassic(LLM):
         prompt = self._to_prompt(parsed_prompts)
         result = openai.Completion.create(model=self.model, prompt=prompt, **kwargs)
         response = result.choices[0]["text"]
-        return Prompt(response, role="ai", source="output")
+        return prompt_output(response)
 
     def _to_prompt(self, prompts: List[Prompt]) -> str:
         return "\n".join([p.text for p in prompts])
