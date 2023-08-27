@@ -1,10 +1,34 @@
 import itertools
+from enum import Enum
 from typing import Any, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
-Role = Literal["system", "ai", "user"]
 Source = Literal["input", "output"]
+
+
+class Role(str, Enum):
+    """Role of the prompt.
+
+    Used for fine-grain control over "role" instructions to the LLM service.
+    Can be one of - "system", "ai", or "user".
+    """
+
+    SYSTEM = "system"
+    AI = "ai"
+    USER = "user"
+
+    def __str__(self) -> str:
+        """Returns the string value of the role enum."""
+        return self.value
+
+    def __eq__(self, other: Any) -> bool:
+        """Compares the role to other role and string values."""
+        if isinstance(other, str):
+            return self.value == other
+        elif isinstance(other, Role):
+            return self.value == other.value
+        return False
 
 
 class Prompt(BaseModel):
@@ -13,11 +37,14 @@ class Prompt(BaseModel):
     text: str
     """The text or content or input component of the prompt."""
 
-    role: Role = "user"
+    role: Role = Role.USER
     """The role of the prompt.
 
-    Used for fine-grain control over role instructions to the LLM model.
+    Used for fine-grain control over role instructions to the LLM service.
     Can be one of - "system", "ai", or "user".
+
+    Role can be given as a string or as a Role enum. The string is converted to Role enum.
+    If the string value is not one of the allowed values, then a ValueError is raised.
 
     Defaults to "user"."""
 
@@ -30,7 +57,7 @@ class Prompt(BaseModel):
     Defaults to "input"."""
 
     # overriding __init__ to provide positional argument construction for prompt. E.g. `Prompt("text")`
-    def __init__(self, text: str, role: Optional[Role] = "user", source: Optional[Source] = "input"):
+    def __init__(self, text: str, role: Optional[Union[Role, str]] = Role.USER, source: Optional[Source] = "input"):
         """Initialize a prompt.
 
         Args:
@@ -38,9 +65,21 @@ class Prompt(BaseModel):
             role: role of the prompt. Can be one of "system", "ai", "user". Defaults to "user".
             source: source of the prompt. Can be one of "input", "output". Defaults to "input".
         """
-        role = role or "user"
+        role = role or Role.USER
         source = source or "input"
         super().__init__(text=text, role=role, source=source)
+
+    @validator("role", pre=True, always=True)
+    def convert_to_role_enum(cls, value: Any) -> Role:
+        if isinstance(value, str):
+            try:
+                return Role(value)
+            except ValueError as e:
+                raise ValueError(f"Invalid role value. Allowed values are {[e.value for e in Role]}") from e
+        elif isinstance(value, Role):
+            return value
+        else:
+            raise ValueError("Invalid type for role")
 
 
 PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
@@ -71,7 +110,7 @@ def prompt_user(text: str) -> Prompt:
     return Prompt(text=text, role="user", source="input")
 
 
-def prompt_output(text: str, role: Optional[Role] = "ai", source: Optional[Source] = "output") -> Prompt:
+def prompt_output(text: str, role: Optional[Role] = Role.AI, source: Optional[Source] = "output") -> Prompt:
     """Factory method to generate output prompts.
 
     Generates a prompt with source="output". Mainly by LLMs to generate output prompts.

@@ -1,6 +1,7 @@
 import textwrap
 
-from bodhilib.models import Prompt, PromptTemplate, parse_prompts, prompt_with_examples
+import pytest
+from bodhilib.models import Prompt, PromptTemplate, parse_prompts, prompt_with_examples, Role
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 
@@ -11,7 +12,7 @@ def test_parse_prompt_from_str():
     assert prompts[0] == Prompt(default_user_prompt)
 
 
-def test_empty_list():
+def test_parse_prompt_empty_list():
     prompts = parse_prompts([])
     assert prompts == []
 
@@ -55,6 +56,37 @@ def test_parse_prompt_mix():
     assert prompts[0] == Prompt(default_user_prompt)
     assert prompts[1] == Prompt(default_system_prompt, "system")
     assert prompts[2] == Prompt(default_user_prompt, "system")
+
+
+def test_prompt_init_with_positional_args():
+    prompt = Prompt(default_user_prompt)
+    assert prompt.text == default_user_prompt
+    assert prompt.role == "user"
+    assert prompt.source == "input"
+
+
+def test_prompt_init_with_positional_args_full():
+    prompt = Prompt(default_user_prompt, "system", "output")
+    assert prompt.text == default_user_prompt
+    assert prompt.role == "system"
+    assert prompt.source == "output"
+
+
+def test_prompt_init_with_role_enum():
+    prompt = Prompt(default_user_prompt, role=Role.USER, source="input")
+    assert prompt.role == "user"
+    assert prompt.role == Role.USER
+
+
+def test_prompt_init_with_invalid_role():
+    with pytest.raises(ValueError) as e:
+        Prompt(default_user_prompt, "invalid", "input")
+    assert len(e.value.errors()) == 1
+    error = e.value.errors()[0]
+    assert error["loc"] == ("role",)
+    assert error["type"] == "value_error"
+    expected_message = "Invalid role value. Allowed values are ['system', 'ai', 'user']"
+    assert error["msg"] == expected_message
 
 
 # prompt template
