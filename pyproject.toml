@@ -4,15 +4,48 @@ name = "bodhilib-mono"
 version = "0.1.0"
 description = "intuitive and powerful library to work with LLMs"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
+packages = [
+  { include = "bodhilib", from = "libs/bodhilib/src" },
+  { include = "bodhilib", from = "libs/bodhilib.cohere/src" },
+]
 
 [tool.poetry.dependencies]
 python = "^3.8.1,<4"
+jinja2 = "^3.1.2"
+openai = "^0.27.8"
+pluggy = "^1.2.0"
 pydantic = "^1"
+python-dotenv = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
-mypy = "^1.4.1"
 pre-commit = "^3.3.3"
+flake8 = "^6.1.0"
+mypy = "^1.4.1"
 ruff = "^0.0.284"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+pytest-socket = "^0.6.0"
+pytest-dotenv = "^0.5.2"
+
+[tool.poetry.plugins.bodhilib]
+openai = "bodhilib.openai"
+cohere = "bodhilib.cohere"
+
+[tool.pytest.ini_options]
+pythonpath = ["libs/bodhilib/src", "libs/bodhilib.cohere/src"]
+testpaths = [
+  "libs/bodhilib/tests",
+  "libs/bodhilib.cohere/tests_bodhilib_cohere",
+]
+filterwarnings = ["error"]
+markers = [
+  "all: tagged on all tests using hooks in conftest.py",
+  "live: calls external APIs (skipped by default)",
+]
+addopts = '-m "not live"'
+env_files = [".env.test"]
 
 [tool.poetry.group.docs.dependencies]
 autodoc-pydantic = "^1.9.0"
