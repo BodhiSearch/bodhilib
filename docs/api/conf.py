@@ -50,6 +50,7 @@ autodoc_default_options = {
 }
 autosummary_generate = True
 autodoc_pydantic_model_show_json = False
+autoclass_content = "both"
 # rendering fields like `role (bodhilib.models._prompt.Role)`
 # switching fields off once figure out how to display objects from private modules with properly
 autodoc_pydantic_model_show_field_summary = False

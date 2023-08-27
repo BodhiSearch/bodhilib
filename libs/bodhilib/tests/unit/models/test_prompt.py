@@ -1,7 +1,7 @@
 import textwrap
 
 import pytest
-from bodhilib.models import Prompt, PromptTemplate, parse_prompts, prompt_with_examples, Role
+from bodhilib.models import Prompt, PromptTemplate, Role, parse_prompts, prompt_with_examples
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 
@@ -78,14 +78,21 @@ def test_prompt_init_with_role_enum():
     assert prompt.role == Role.USER
 
 
-def test_prompt_init_with_invalid_role():
+@pytest.mark.parametrize(
+    ["role", "source", "invalid_field", "allowed_values"],
+    [
+        ("invalid", "input", "role", ["system", "ai", "user"]),
+        ("user", "invalid", "source", ["input", "output"]),
+    ],
+)
+def test_prompt_init_with_invalid_strenum(role, source, invalid_field, allowed_values):
     with pytest.raises(ValueError) as e:
-        Prompt(default_user_prompt, "invalid", "input")
+        Prompt(default_user_prompt, role, source)
     assert len(e.value.errors()) == 1
     error = e.value.errors()[0]
-    assert error["loc"] == ("role",)
+    assert error["loc"] == (invalid_field,)
     assert error["type"] == "value_error"
-    expected_message = "Invalid role value. Allowed values are ['system', 'ai', 'user']"
+    expected_message = f"Invalid value for {invalid_field.capitalize()}. Allowed values are {allowed_values}."
     assert error["msg"] == expected_message
 
 
