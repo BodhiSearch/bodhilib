@@ -3,6 +3,8 @@ import inspect
 
 from ._prompt import Prompt as Prompt
 from ._prompt import PromptInput as PromptInput
+from ._prompt import Role as Role
+from ._prompt import Source as Source
 from ._prompt import parse_prompts as parse_prompts
 from ._prompt import prompt_output as prompt_output
 from ._prompt import prompt_user as prompt_user

@@ -8,12 +8,28 @@ Source = Literal["input", "output"]
 
 
 class Prompt(BaseModel):
-    """Prompt encapsulating inputs to interact with LLM."""
+    """Prompt encapsulating input/output schema to interact with LLM service."""
 
     text: str
-    role: Role
-    source: Source
+    """The text or content or input component of the prompt."""
 
+    role: Role = "user"
+    """The role of the prompt.
+
+    Used for fine-grain control over role instructions to the LLM model.
+    Can be one of - "system", "ai", or "user".
+
+    Defaults to "user"."""
+
+    source: Source = "input"
+    """The source of the prompt, links to where it was generated.
+
+    If given as input by the user, then source="input",
+    or generated as response by the LLM service, then source="output".
+
+    Defaults to "input"."""
+
+    # overriding __init__ to provide positional argument construction for prompt. E.g. `Prompt("text")`
     def __init__(self, text: str, role: Optional[Role] = "user", source: Optional[Source] = "input"):
         """Initialize a prompt.
 

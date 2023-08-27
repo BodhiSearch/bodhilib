@@ -1,21 +1,22 @@
+#!/usr/bin/env python
 import os
 import sys
 from pathlib import Path
+from importlib import metadata
 
 docs_dir = Path(os.path.dirname(__file__))
-libs = docs_dir / ".." / ".." / "libs"
-# find all directories in libs
-for d in libs.iterdir():
-    src = d / "src"
-    sys.path.insert(0, str(src.resolve()))
+src_dir = docs_dir / ".." / ".." / "src"
+sys.path.insert(0, str(src_dir.resolve()))
 
 # -- Project information -----------------------------------------------------
-project = "bodhilib"
+project = "bodhilib.cohere"
 copyright = "2023, Amir Nagri"
 author = "Amir Nagri"
-release = "0.1.0"
+# TODO: changing to namespace might cause issue here
+PACKAGE_VERSION = metadata.version("bodhilib.cohere")
+version = release = PACKAGE_VERSION
 
-# -- General configuration ---------------------------------------------------
+# -- General configuration ---------------------------------------------
 extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
@@ -23,6 +24,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_copybutton",
+    "myst_parser",
 ]
 
 templates_path = ["_templates"]
@@ -45,13 +47,13 @@ autodoc_default_options = {
     "typehints": "description",
     "mock_imports": ["pydantic"],
     "members": True,
-    "private-members": False,
+    "private-members": True,
     "undoc-members": False,
 }
 autosummary_generate = True
 autodoc_pydantic_model_show_json = False
 html_theme_options = {
-    "repository_url": "https://github.com/BodhiSearch/bodhilib",
+    "repository_url": "https://github.com/BodhiSearch/bodhilib.cohere",
     "use_repository_button": True,
 }
 myst_enable_extensions = [
