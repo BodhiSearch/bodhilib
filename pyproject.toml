@@ -1,11 +1,12 @@
 # contains code style and formatting configuration for the complete project
 [tool.poetry]
-name = "bodhilib-mono"
+name = "bodhilib"
 version = "0.1.0"
 description = "intuitive and powerful library to work with LLMs"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
+readme = "README.md"
 packages = [
-  { include = "bodhilib", from = "libs/bodhilib/src" },
+  { include = "bodhilib", from = "src" },
   { include = "bodhilib", from = "libs/bodhilib.cohere/src" },
 ]
 
@@ -16,6 +17,7 @@ openai = "^0.27.8"
 pluggy = "^1.2.0"
 pydantic = "^1"
 python-dotenv = "^1.0.0"
+cohere = { version = "^4.21", extras = ["cohere"] }
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.3"
@@ -29,16 +31,17 @@ pytest-cov = "^4.1.0"
 pytest-socket = "^0.6.0"
 pytest-dotenv = "^0.5.2"
 
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry.plugins.bodhilib]
-openai = "bodhilib.openai"
-cohere = "bodhilib.cohere"
+"bodhilib.openai" = "bodhilib.openai"
+"bodhilib.cohere" = "bodhilib.cohere"
 
 [tool.pytest.ini_options]
-pythonpath = ["libs/bodhilib/src", "libs/bodhilib.cohere/src"]
-testpaths = [
-  "libs/bodhilib/tests",
-  "libs/bodhilib.cohere/tests_bodhilib_cohere",
-]
+pythonpath = ["src", "libs/bodhilib.cohere/src"]
+testpaths = ["tests", "libs/bodhilib.cohere/tests_bodhilib_cohere"]
 filterwarnings = ["error"]
 markers = [
   "all: tagged on all tests using hooks in conftest.py",
@@ -81,7 +84,7 @@ exclude = '''
 python_version = 3.8
 plugins = ['pydantic.mypy']
 exclude = ['test\_.*', 'conftest\.py', 'docs/conf\.py']
-mypy_path = ["libs/bodhilib/src", "libs/bodhilib.cohere/src"]
+mypy_path = ["src", "libs/bodhilib.cohere/src"]
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 explicit_package_bases = true

@@ -22,6 +22,7 @@ bodhilib.models package
        }
 
 .. py:function:: parse_prompts(prompts: PromptInput) -> List[Prompt]
+   :noindex:
 
 .. py:function:: parse_prompts(prompts: Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]) -> List[Prompt]
 
