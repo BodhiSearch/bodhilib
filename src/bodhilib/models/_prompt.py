@@ -1,10 +1,27 @@
 import itertools
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, no_type_check
 
 from pydantic import BaseModel, validator
+from typing_extensions import TypeAlias
 
-from ._common import StrEnumMixin, strenum_validator
+
+class StrEnumMixin:
+    """Mixin class for string enums, provides __str__ and __eq__ methods."""
+
+    @no_type_check
+    def __str__(self) -> str:
+        """Returns the string value of the string enum."""
+        return self.value
+
+    @no_type_check
+    def __eq__(self, other: Any) -> bool:
+        """Compares this string enum to other string enum or string values."""
+        if isinstance(other, str):
+            return self.value == other
+        elif isinstance(other, type(self)):
+            return self.value == other.value
+        return False
 
 
 class Role(StrEnumMixin, str, Enum):
@@ -81,14 +98,15 @@ class Prompt(BaseModel):
 
     @validator("role", pre=True, always=True)
     def validate_role(cls, value: Any) -> Role:
-        return strenum_validator(Role, value)
+        return _strenum_validator(Role, value)
 
     @validator("source", pre=True, always=True)
     def validate_source(cls, value: Any) -> Source:
-        return strenum_validator(Source, value)
+        return _strenum_validator(Source, value)
 
 
 PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
+"""Type alias for the input to parse_prompts function."""
 
 
 def parse_prompts(input: PromptInput) -> List[Prompt]:
@@ -122,3 +140,23 @@ def prompt_output(text: str) -> Prompt:
     Generates a prompt with source="output". Mainly by LLMs to generate output prompts.
     """
     return Prompt(text=text, role=Role.AI, source=Source.OUTPUT)
+
+
+# private members
+
+_EnumT: TypeAlias = TypeVar("EnumT", bound=Enum)
+"""TypeVar for Enum type."""
+
+
+def _strenum_validator(enum_cls: Type[_EnumT], value: Any) -> _EnumT:
+    """Converts a string value to an enum value."""
+    if isinstance(value, str):
+        try:
+            return enum_cls[value.upper()]
+        except KeyError as e:
+            allowed_values = [e.value for e in enum_cls]
+            raise ValueError(f"Invalid value for {enum_cls.__name__}. Allowed values are {allowed_values}.") from e
+    elif isinstance(value, enum_cls):
+        return value
+    else:
+        raise ValueError(f"Invalid type for value, {type(value)=}")

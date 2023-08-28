@@ -16,10 +16,18 @@ class Service(NamedTuple):
     """Encapsulates basic info of service provided by the plugin."""
 
     service_name: str
+    """Name of the service provided by the plugin. E.g. openai, cohere, anthropic, etc."""
     service_type: str
+    """Type of service provided by the plugin. E.g. llm, embed etc."""
     publisher: str
+    """Publisher identifier of the plugin. E.g. bodhilib, openai, <github-user> etc."""
     service_builder: Callable  # signature(**kwargs: Dict[str, Any])
+    """Callable which returns an instance of service.
+
+    Callable takes in `**kwargs: Dict[str, Any]` and returns an instance of service.
+    """
     version: str = ""
+    """Version of the plugin"""
 
 
 @hookspec

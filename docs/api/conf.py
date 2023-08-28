@@ -7,10 +7,8 @@ release = "0.1.0"
 # -- General configuration ---------------------------------------------------
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
     "sphinx.ext.intersphinx",
-    "sphinxcontrib.autodoc_pydantic",
     "sphinx_copybutton",
     "sphinx_rtd_theme",
 ]
@@ -38,12 +36,7 @@ autodoc_default_options = {
     "private-members": False,
     "undoc-members": False,
 }
-autosummary_generate = True
-autodoc_pydantic_model_show_json = False
 autoclass_content = "both"
-# rendering fields like `role (bodhilib.models._prompt.Role)`
-# switching fields off once figure out how to display objects from private modules with properly
-autodoc_pydantic_model_show_field_summary = False
 html_theme_options = {
     "collapse_navigation": False,
 }
