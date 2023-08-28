@@ -46,13 +46,6 @@ class Prompt(BaseModel):
 
     Defaults to :obj:`Source.INPUT`."""
 
-    _role_validator = validator("role", pre=True, always=True, allow_reuse=True)(
-        lambda cls, value: strenum_validator(Role, value)
-    )
-    _source_validator = validator("source", pre=True, always=True, allow_reuse=True)(
-        lambda cls, value: strenum_validator(Source, value)
-    )
-
     # overriding __init__ to provide positional argument construction for prompt. E.g. `Prompt("text")`
     def __init__(
         self,
@@ -85,6 +78,14 @@ class Prompt(BaseModel):
         role = role or Role.USER
         source = source or Source.INPUT
         super().__init__(text=text, role=role, source=source)
+
+    @validator("role", pre=True, always=True)
+    def validate_role(cls, value: Any) -> Role:
+        return strenum_validator(Role, value)
+
+    @validator("source", pre=True, always=True)
+    def validate_source(cls, value: Any) -> Source:
+        return strenum_validator(Source, value)
 
 
 PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
