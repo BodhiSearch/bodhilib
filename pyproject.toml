@@ -49,7 +49,6 @@ env_files = [".env.test"]
 
 [tool.poetry.group.docs.dependencies]
 autodoc-pydantic = "^1.9.0"
-esbonio = "^0.16.1"
 myst-nb = "^0.17.2"
 myst-parser = "^0.18.1"
 pydocstyle = { extras = ["toml"], version = "^6.3.0" }
