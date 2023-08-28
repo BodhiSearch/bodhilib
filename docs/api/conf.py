@@ -6,6 +6,8 @@ docs_dir = Path(os.path.dirname(__file__))
 libs = docs_dir / ".." / ".." / "libs"
 # find all directories in libs
 for d in libs.iterdir():
+    if not d.is_dir():
+        continue
     src = d / "src"
     sys.path.insert(0, str(src.resolve()))
 
