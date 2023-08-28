@@ -36,6 +36,9 @@ autodoc_default_options = {
     "private-members": False,
     "undoc-members": False,
 }
+autodoc_type_aliases = {
+    "PromptInput": "PromptInput",
+}
 autoclass_content = "both"
 html_theme_options = {
     "collapse_navigation": False,

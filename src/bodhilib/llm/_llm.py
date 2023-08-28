@@ -1,8 +1,33 @@
-import abc
-from typing import Any, Dict, Optional, cast
+from __future__ import annotations
 
+import abc
+import itertools
+from typing import Any, Dict, List, Optional, Union, cast
+
+from bodhilib.models import Prompt
 from bodhilib.plugin import PluginManager
-from bodhilib.models import Prompt, PromptInput
+from typing_extensions import TypeAlias
+
+PromptInput: TypeAlias = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
+"""Type alias for the input to parse_prompts function."""
+
+
+def parse_prompts(input: PromptInput) -> List[Prompt]:
+    """Parses from the PromptInput to List[Prompt].
+
+    Args:
+        input (:data:`PromptInput`): input to parse from
+    """
+    if isinstance(input, str):
+        return [Prompt(input)]
+    if isinstance(input, Prompt):
+        return [input]
+    if isinstance(input, dict):
+        return [Prompt(**input)]
+    if isinstance(input, list):
+        result = [parse_prompts(p) for p in input]
+        return list(itertools.chain(*result))
+    raise TypeError(f"Unknown prompt type: {type(input)}")
 
 
 class LLM(abc.ABC):
@@ -13,17 +38,11 @@ class LLM(abc.ABC):
         """Generate text using LLM with the given prompt.
 
         Args:
-            prompts: prompt to generate text from. Prompt can be any of the following::
-                - str: a string prompt
-                - Prompt: a :class:`.Prompt` object
-                - List[str]: a list of :obj:`str` prompts
-                - List[Prompt]: a list of :class:`.Prompt` objects
-                - Dict[str, Any]: a dict of prompt in keyword "prompt" and additional arguments
-                - List[Dict[str, Any]]: a list of dict of prompt in keyword "prompt" and additional arguments
-            **kwargs: additional arguments
+            prompts (:data:`PromptInput`): prompt to generate text from
+            **kwargs (Dict[str, Any]): additional arguments
 
         Returns:
-            Prompt: generated text as a Prompt object
+            :class:`bodhilib.models.Prompt`: generated text as a Prompt object
         """
         ...
 
@@ -38,6 +57,14 @@ def get_llm(
     **kwargs: Dict[str, Any],
 ) -> LLM:
     """Get an instance of LLM for the given service name and model.
+
+    Args:
+        service_name (str): name of the service
+        model (str): name of the model
+        api_key (Optional[str]): API key for the service
+        publisher (Optional[str]): publisher of the service
+        version (Optional[str]): version of the service
+        **kwargs (Dict[str, Any]): additional arguments for the LLM service
 
     Returns:
         LLM: instance of LLM

@@ -2,6 +2,8 @@
 import inspect
 
 from ._llm import LLM as LLM
+from ._llm import PromptInput as PromptInput
 from ._llm import get_llm as get_llm
+from ._llm import parse_prompts as parse_prompts
 
 __all__ = [name for name, obj in globals().items() if not (name.startswith("_") or inspect.ismodule(obj))]

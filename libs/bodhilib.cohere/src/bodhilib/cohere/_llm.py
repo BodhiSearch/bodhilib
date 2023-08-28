@@ -1,8 +1,8 @@
 """LLM implementation for Cohere."""
 from typing import Any, Dict, List, Optional
 
-from bodhilib.llm import LLM
-from bodhilib.models import Prompt, PromptInput, parse_prompts
+from bodhilib.llm import LLM, PromptInput, parse_prompts
+from bodhilib.models import Prompt
 
 import cohere
 

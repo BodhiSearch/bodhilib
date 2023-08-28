@@ -1,9 +1,7 @@
-import itertools
 from enum import Enum
-from typing import Any, Dict, List, Optional, Type, TypeVar, Union, no_type_check
+from typing import Any, Optional, Type, TypeVar, Union, no_type_check
 
 from pydantic import BaseModel, validator
-from typing_extensions import TypeAlias
 
 
 class StrEnumMixin:
@@ -105,24 +103,6 @@ class Prompt(BaseModel):
         return _strenum_validator(Source, value)
 
 
-PromptInput = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
-"""Type alias for the input to parse_prompts function."""
-
-
-def parse_prompts(input: PromptInput) -> List[Prompt]:
-    """Parses from the PromptInput to List[Prompt]."""
-    if isinstance(input, str):
-        return [Prompt(input)]
-    if isinstance(input, Prompt):
-        return [input]
-    if isinstance(input, dict):
-        return [Prompt(**input)]
-    if isinstance(input, list):
-        result = [parse_prompts(p) for p in input]
-        return list(itertools.chain(*result))
-    raise TypeError(f"Unknown prompt type: {type(input)}")
-
-
 def prompt_user(text: str) -> Prompt:
     """Factory method to generate user prompt from string.
 
@@ -144,7 +124,7 @@ def prompt_output(text: str) -> Prompt:
 
 # private members
 
-_EnumT: TypeAlias = TypeVar("EnumT", bound=Enum)
+_EnumT = TypeVar("_EnumT", bound=Enum)
 """TypeVar for Enum type."""
 
 
