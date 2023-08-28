@@ -25,6 +25,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinxcontrib.autodoc_pydantic",
     "sphinx_copybutton",
+    "sphinx_rtd_theme",
 ]
 
 templates_path = ["_templates"]
@@ -37,7 +38,7 @@ pygments_style = "sphinx"
 todo_include_todos = False
 
 # -- Options for HTML output -------------------------------------------------
-html_theme = "sphinx_book_theme"
+html_theme = "sphinx_rtd_theme"
 html_static_path = ["_static"]
 
 intersphinx_mapping = {
@@ -57,8 +58,7 @@ autoclass_content = "both"
 # switching fields off once figure out how to display objects from private modules with properly
 autodoc_pydantic_model_show_field_summary = False
 html_theme_options = {
-    "repository_url": "https://github.com/BodhiSearch/bodhilib",
-    "use_repository_button": True,
+    "collapse_navigation": False,
 }
 myst_enable_extensions = [
     "amsmath",
