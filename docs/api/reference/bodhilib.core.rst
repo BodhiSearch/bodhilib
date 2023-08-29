@@ -1,5 +1,5 @@
-bodhilib.core package
-=====================
+bodhilib.core
+=============
 
 .. automodule:: bodhilib.core
    :members:

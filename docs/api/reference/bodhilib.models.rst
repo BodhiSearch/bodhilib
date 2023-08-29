@@ -1,5 +1,5 @@
-bodhilib.models package
-=======================
+bodhilib.models
+===============
 
 .. automodule:: bodhilib.models
    :members:

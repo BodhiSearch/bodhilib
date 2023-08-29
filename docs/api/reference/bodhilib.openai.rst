@@ -1,5 +1,5 @@
-bodhilib.openai package
-=======================
+bodhilib.openai
+===============
 
 .. automodule:: bodhilib.openai
    :members:

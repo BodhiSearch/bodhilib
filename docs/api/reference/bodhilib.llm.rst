@@ -1,5 +1,5 @@
-bodhilib.llm package
-====================
+bodhilib.llm
+============
 
 .. data:: PromptInput
 
@@ -11,4 +11,3 @@ bodhilib.llm package
    :members:
    :undoc-members:
    :show-inheritance:
-   :inherited-members:

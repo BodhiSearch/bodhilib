@@ -1,5 +1,5 @@
-bodhilib.cohere package
-=======================
+bodhilib.cohere
+===============
 
 .. automodule:: bodhilib.cohere
    :members:

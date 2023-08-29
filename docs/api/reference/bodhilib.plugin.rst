@@ -1,5 +1,5 @@
-bodhilib.plugin package
-=======================
+bodhilib.plugin
+===============
 
 .. automodule:: bodhilib.plugin
    :members:

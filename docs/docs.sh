@@ -10,8 +10,9 @@ cd "${SCRIPT_DIR}"
 
 # Build the api documentation
 # rm -rf reference/_autosummary
-poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o api/reference ../src/bodhilib
-poetry run sphinx-apidoc --implicit-namespaces --separate --module-first -o api/reference ../libs/bodhilib.cohere/src/bodhilib
+poetry run sphinx-apidoc --implicit-namespaces --separate --module-first --templatedir api/_templates -o api/reference ../src/bodhilib
+poetry run sphinx-apidoc --implicit-namespaces --separate --module-first --templatedir api/_templates -o api/reference ../libs/bodhilib.cohere/src/bodhilib
+rm api/reference/modules.rst api/reference/bodhilib.rst
 
 # Build the documentation
 poetry run sphinx-build -a -E -j auto -n --color -W --keep-going -b html api api/_build/
