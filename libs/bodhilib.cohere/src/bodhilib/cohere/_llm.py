@@ -1,8 +1,8 @@
 """LLM implementation for Cohere."""
 from typing import Any, Dict, List, Optional
 
-from bodhilib.llm import LLM, PromptInput, parse_prompts
-from bodhilib.models import Prompt
+from bodhilib.llm import LLM
+from bodhilib.models import Prompt, prompt_output
 
 import cohere
 
@@ -16,12 +16,11 @@ class Cohere(LLM):
         self.aclient = cohere.AsyncClient(api_key=api_key)
         self.kwargs = kwargs
 
-    def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
-        parsed_prompts = parse_prompts(prompts)
-        input = self._to_prompt(parsed_prompts)
+    def _generate(self, prompts: List[Prompt], **kwargs: Dict[str, Any]) -> Prompt:
+        input = self._to_cohere_input(prompts)
         # TODO - pass kwargs
         result = self.client.generate(input, model=self.model)
-        return Prompt(result.generations[0].text, role="ai", source="output")
+        return prompt_output(result.generations[0].text)
 
-    def _to_prompt(self, prompts: List[Prompt]) -> str:
+    def _to_cohere_input(self, prompts: List[Prompt]) -> str:
         return "\n".join([p.text for p in prompts])

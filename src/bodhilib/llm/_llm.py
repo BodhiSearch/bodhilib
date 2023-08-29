@@ -33,16 +33,28 @@ def parse_prompts(input: PromptInput) -> List[Prompt]:
 class LLM(abc.ABC):
     """Abstract Base Class LLM defines the common interface implemented by all LLM implementations."""
 
-    @abc.abstractmethod
     def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
         """Generate text using LLM with the given prompt.
 
         Args:
-            prompts (:data:`PromptInput`): prompt to generate text from
-            **kwargs (Dict[str, Any]): additional arguments
+            prompts (:data:`PromptInput`): prompt input to the LLM service
+            **kwargs (Dict[str, Any]): additional pass through arguments for the LLM service
 
         Returns:
-            :class:`bodhilib.models.Prompt`: generated text as a Prompt object
+            :class:`~bodhilib.models.Prompt`: generated text as a Prompt object
+        """
+        prompts = parse_prompts(prompts)
+        return self._generate(prompts, **kwargs)
+
+    @abc.abstractmethod
+    def _generate(self, prompts: List[Prompt], **kwargs: Dict[str, Any]) -> Prompt:
+        """Generate text using LLM service with the given prompt list.
+
+        This method should be implemented by the LLM service plugin.
+
+        Args:
+            prompts (List[:class:`bodhilib.models.Prompt`]): prompt to generate text from
+            **kwargs (Dict[str, Any]): additional arguments
         """
         ...
 

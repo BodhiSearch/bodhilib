@@ -1,7 +1,7 @@
 """OpenAI LLM module."""
 from typing import Any, Dict, Iterable, List, NoReturn
 
-from bodhilib.llm import LLM, PromptInput, parse_prompts
+from bodhilib.llm import LLM
 from bodhilib.models import Prompt, prompt_output
 
 import openai
@@ -14,8 +14,7 @@ class OpenAIChat(LLM):
         self.model = model
         self.kwargs = kwargs
 
-    def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
-        parsed_prompts = parse_prompts(prompts)
+    def _generate(self, prompts: List[Prompt], **kwargs: Dict[str, Any]) -> Prompt:
         # list of parameters accepted by .create functions
         # ref: https://platform.openai.com/docs/api-reference/chat-completions/create
         # model:str, []messages[role['system', 'user', 'assistant', 'function'], content:str?,
@@ -29,9 +28,8 @@ class OpenAIChat(LLM):
         #       usage: [prompt_tokens: int, completion_tokens: int, total_tokens: int],
         varags = {**self.kwargs, **kwargs}
         varags = {k: v for k, v in varags.items() if v is not None}
-        completion = openai.ChatCompletion.create(
-            model=self.model, messages=self._to_messages(parsed_prompts), **varags
-        )
+        messages = self._to_messages(prompts)
+        completion = openai.ChatCompletion.create(model=self.model, messages=messages, **varags)
         response = completion.choices[0].message["content"]
         return prompt_output(response)
 
@@ -49,9 +47,8 @@ class OpenAIClassic(LLM):
         self.model = model
         self.kwargs = kwargs
 
-    def generate(self, prompts: PromptInput, **kwargs: Any) -> Prompt:
-        parsed_prompts = parse_prompts(prompts)
-        prompt = self._to_prompt(parsed_prompts)
+    def _generate(self, prompts: List[Prompt], **kwargs: Any) -> Prompt:
+        prompt = self._to_prompt(prompts)
         result = openai.Completion.create(model=self.model, prompt=prompt, **kwargs)
         response = result.choices[0]["text"]
         return prompt_output(response)
