@@ -34,7 +34,7 @@ class LLM(abc.ABC):
     """Abstract Base Class LLM defines the common interface implemented by all LLM implementations."""
 
     def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
-        """Base class :func:`~bodhilib.llm.LLM.generate` method interface common to all LLM service implementation
+        """Base class :func:`~bodhilib.llm.LLM.generate` method interface common to all LLM service implementation.
 
         Takes in :data:`PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.models.Prompt`
         object, to dict representation of Prompt. Returns the response from LLM service as
