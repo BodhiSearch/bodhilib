@@ -23,6 +23,6 @@ repos:
     rev: 6.3.0
     hooks:
       - id: pydocstyle
-        files: ^.*\/(src)\/.*
+        files: ^(.*\/)?src\/.*
         additional_dependencies:
           - 'pydocstyle[toml]'
