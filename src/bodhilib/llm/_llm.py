@@ -59,12 +59,13 @@ def get_llm(
     """Get an instance of LLM for the given service name and model.
 
     Args:
-        service_name (str): name of the service
-        model (str): name of the model
-        api_key (Optional[str]): API key for the service
-        publisher (Optional[str]): publisher of the service
+        service_name (str): name of the service, e.g. "openai", "cohere", "anthropic"
+        model (str): name of the model, e.g. "chat-gpt-3.5", "command", "claude-2"
+        api_key (Optional[str]): API key for the service, if the api_key is not provided,
+            it will be looked in the environment variables
+        publisher (Optional[str]): publisher or developer of the service plugin, e.g. "bodhilib", "<github-username>"
         version (Optional[str]): version of the service
-        **kwargs (Dict[str, Any]): additional arguments for the LLM service
+        **kwargs (Dict[str, Any]): pass through arguments for the LLM service, e.g. "temperature", "max_tokens", etc.
 
     Returns:
         LLM: instance of LLM
