@@ -9,7 +9,7 @@ from bodhilib.plugin import PluginManager
 from typing_extensions import TypeAlias
 
 PromptInput: TypeAlias = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
-"""Type alias for the input to parse_prompts function."""
+"""Documentation for typealias should be direcly edited in the rst file."""
 
 
 def parse_prompts(input: PromptInput) -> List[Prompt]:
