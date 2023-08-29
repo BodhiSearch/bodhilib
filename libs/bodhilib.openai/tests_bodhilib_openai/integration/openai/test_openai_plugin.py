@@ -1,5 +1,5 @@
 from bodhilib.llm import get_llm
-from bodhilib.openai import OpenAIChat, OpenAIClassic, bodhilib_list_services
+from bodhilib.openai import OpenAIChat, OpenAIText, bodhilib_list_services
 
 
 def test_openai_service_builder_for_chat():
@@ -9,7 +9,7 @@ def test_openai_service_builder_for_chat():
 
 def test_openai_service_builder_for_text():
     openai = get_llm("openai", "text-ada-002")
-    assert type(openai) is OpenAIClassic
+    assert type(openai) is OpenAIText
 
 
 def test_list_services():

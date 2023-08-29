@@ -57,8 +57,8 @@ class OpenAIChat(LLM):
         raise TypeError(f"'{type(self).__name__}' object is not callable, did you mean to call 'generate'?")
 
 
-class OpenAIClassic(LLM):
-    """OpenAI Classic API implementation for :class:`bodhilib.llm.LLM`."""
+class OpenAIText(LLM):
+    """OpenAI Text API implementation for :class:`bodhilib.llm.LLM`."""
 
     def __init__(self, model: str, **kwargs: Dict[str, Any]) -> None:
         self.model = model

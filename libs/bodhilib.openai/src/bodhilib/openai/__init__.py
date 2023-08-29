@@ -2,7 +2,7 @@
 import inspect
 
 from ._openai_llm import OpenAIChat as OpenAIChat
-from ._openai_llm import OpenAIClassic as OpenAIClassic
+from ._openai_llm import OpenAIText as OpenAIText
 from ._openai_plugin import bodhilib_list_services as bodhilib_list_services
 from ._openai_plugin import openai_llm_service_builder as openai_llm_service_builder
 

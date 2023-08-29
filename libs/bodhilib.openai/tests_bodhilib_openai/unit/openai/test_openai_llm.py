@@ -1,17 +1,17 @@
 from unittest.mock import patch
 
 import pytest
-from bodhilib.openai import OpenAIChat, OpenAIClassic
+from bodhilib.openai import OpenAIChat, OpenAIText
 from bodhilib.openai import openai_llm_service_builder
 
-classic_model = "text-ada-001"
+text_model = "text-ada-001"
 chat_model = "gpt-3.5-turbo"
 
 
-def test_get_llm_openai_classic():
-    llm = openai_llm_service_builder(service_name="openai", model=classic_model)
-    assert llm.model == classic_model
-    assert type(llm) is OpenAIClassic
+def test_get_llm_openai_text():
+    llm = openai_llm_service_builder(service_name="openai", model=text_model)
+    assert llm.model == text_model
+    assert type(llm) is OpenAIText
 
 
 def test_get_llm_openai_chat():
@@ -51,12 +51,12 @@ def test_chat_llm_generate_override_construct_params(mock_create):
 @patch("openai.Completion.create")
 def test_llm_generate_with_temperature(mock_create):
     mock_create.return_value.choices = [{"text": "Sunday"}]
-    chat = openai_llm_service_builder(service_name="openai", model=classic_model)
+    chat = openai_llm_service_builder(service_name="openai", model=text_model)
     prompt_text = "What comes after Monday?"
     response = chat.generate(prompt_text, temperature=0.5)
     assert response.text == "Sunday"
     mock_create.assert_called_once_with(
-        model=classic_model,
+        model=text_model,
         prompt=prompt_text,
         temperature=0.5,
     )
@@ -65,12 +65,12 @@ def test_llm_generate_with_temperature(mock_create):
 @patch("openai.Completion.create")
 def test_llm_generate_override_construct_params(mock_create):
     mock_create.return_value.choices = [{"text": "Sunday"}]
-    chat = openai_llm_service_builder(service_name="openai", model=classic_model, temperature=0.5)
+    chat = openai_llm_service_builder(service_name="openai", model=text_model, temperature=0.5)
     prompt_text = "What comes after Monday?"
     response = chat.generate(prompt_text, temperature=0.9)
     assert response.text == "Sunday"
     mock_create.assert_called_once_with(
-        model=classic_model,
+        model=text_model,
         prompt=prompt_text,
         temperature=0.9,
     )
@@ -97,8 +97,8 @@ def test_openai_chat_raise_error_when_called_using_callable():
     assert str(e.value) == "'OpenAIChat' object is not callable, did you mean to call 'generate'?"
 
 
-def test_openai_classic_raise_error_when_called_using_callable():
-    llm = openai_llm_service_builder(service_name="openai", model=classic_model)
+def test_openai_text_raise_error_when_called_using_callable():
+    llm = openai_llm_service_builder(service_name="openai", model=text_model)
     with pytest.raises(TypeError) as e:
         _ = llm()
-    assert str(e.value) == "'OpenAIClassic' object is not callable, did you mean to call 'generate'?"
+    assert str(e.value) == "'OpenAIText' object is not callable, did you mean to call 'generate'?"

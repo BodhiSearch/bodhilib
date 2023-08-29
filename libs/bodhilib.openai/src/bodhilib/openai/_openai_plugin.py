@@ -2,10 +2,11 @@
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from ._openai_llm import OpenAIChat, OpenAIClassic
 from bodhilib.plugin import Service, service_provider
 
 import openai
+
+from ._openai_llm import OpenAIChat, OpenAIText
 
 
 @service_provider
@@ -29,7 +30,7 @@ def openai_llm_service_builder(
     model: Optional[str] = None,
     api_key: Optional[str] = None,
     **kwargs: Dict[str, Any],
-) -> Union[OpenAIChat, OpenAIClassic]:
+) -> Union[OpenAIChat, OpenAIText]:
     """Returns an instance of LLM for the given arguments.
 
     Args:
@@ -64,4 +65,4 @@ def openai_llm_service_builder(
     if model.startswith("gpt"):
         return OpenAIChat(model, **params)
     else:
-        return OpenAIClassic(model, **params)
+        return OpenAIText(model, **params)

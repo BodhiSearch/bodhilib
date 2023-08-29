@@ -30,14 +30,14 @@ def test_openai_chat_generate_with_system_prompt(llm_gpt35_turbo):
 
 
 @pytest.mark.live
-def test_openai_classic_generate(llm_davinci):
+def test_openai_text_generate(llm_davinci):
     result = llm_davinci.generate("say hello\n")
     assert result.role == "ai"
     assert ("hello" in result.text.strip().lower()) or ("hi" in result.text.strip().lower())
 
 
 @pytest.mark.live
-def test_openai_classic_generate_with_system_prompt(llm_davinci):
+def test_openai_text_generate_with_system_prompt(llm_davinci):
     result = llm_davinci.generate([default_system_prompt, default_user_prompt])
     assert result.role == "ai"
     assert "tuesday" in result.text.strip().lower()
