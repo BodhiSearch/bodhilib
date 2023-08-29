@@ -33,8 +33,6 @@ autodoc_default_options = {
     "typehints": "description",
     "mock_imports": ["pydantic"],
     "members": True,
-    "private-members": False,
-    "undoc-members": False,
 }
 autodoc_type_aliases = {
     "PromptInput": "PromptInput",

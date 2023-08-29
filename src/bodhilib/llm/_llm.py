@@ -34,7 +34,11 @@ class LLM(abc.ABC):
     """Abstract Base Class LLM defines the common interface implemented by all LLM implementations."""
 
     def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
-        """Generate text using LLM with the given prompt.
+        """Base class :func:`~bodhilib.llm.LLM.generate` method interface common to all LLM service implementation
+
+        Takes in :data:`PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.models.Prompt`
+        object, to dict representation of Prompt. Returns the response from LLM service as
+        :class:`~bodhilib.models.Prompt` object with `source="output"`.
 
         Args:
             prompts (:data:`PromptInput`): prompt input to the LLM service
@@ -51,9 +55,11 @@ class LLM(abc.ABC):
         """Generate text using LLM service with the given prompt list.
 
         This method should be implemented by the LLM service plugin.
+        The PromptInput received in :func:`~bodhilib.llm.LLM.generate` is parsed into a list of
+        :class:`~bodhilib.models.Prompt` and passed to this method.
 
         Args:
-            prompts (List[:class:`bodhilib.models.Prompt`]): prompt to generate text from
+            prompts (List[:class:`~bodhilib.models.Prompt`]): prompt to pass to LLM service and receive response
             **kwargs (Dict[str, Any]): additional arguments
         """
         ...
