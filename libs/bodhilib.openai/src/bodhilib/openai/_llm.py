@@ -1,5 +1,5 @@
 """OpenAI LLM module."""
-from typing import Any, Dict, Iterable, List, NoReturn
+from typing import Any, Dict, Iterable, List, NoReturn, Optional
 
 from bodhilib.llm import LLM
 from bodhilib.models import Prompt, prompt_output
@@ -14,22 +14,39 @@ class OpenAIChat(LLM):
         self.model = model
         self.kwargs = kwargs
 
-    def _generate(self, prompts: List[Prompt], **kwargs: Dict[str, Any]) -> Prompt:
-        # list of parameters accepted by .create functions
-        # ref: https://platform.openai.com/docs/api-reference/chat-completions/create
-        # model:str, []messages[role['system', 'user', 'assistant', 'function'], content:str?,
-        #       name:str?(required for function call),
-        #       function_call[name:str, arguments:str]],
-        # functions, function_call, temperature, top_p, n, stream, stop, max_tokens, presence_penalty,
-        # frequency_penalty, logit_bias, user
-        # Returns:
-        # id: str, object: str, created: int, model: str,[]choices:[index:str,
-        #       message: [role, content, function_call: obj], finish_reason: str],
-        #       usage: [prompt_tokens: int, completion_tokens: int, total_tokens: int],
-        varags = {**self.kwargs, **kwargs}
-        varags = {k: v for k, v in varags.items() if v is not None}
+    def _generate(
+        self,
+        prompts: List[Prompt],
+        *,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+        n: Optional[int] = None,
+        stop: Optional[List[str]] = None,
+        max_tokens: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        user: Optional[str] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Prompt:
+        all_args = {
+            **self.kwargs,
+            "stream": stream,
+            "temperature": temperature,
+            "top_p": top_p,
+            "n": n,
+            "stop": stop,
+            "max_tokens": max_tokens,
+            "presence_penalty": presence_penalty,
+            "frequency_penalty": frequency_penalty,
+            "logit_bias": kwargs.get("logit_bias", None),
+            "user": user,
+            **kwargs,
+        }
+        all_args = {k: v for k, v in all_args.items() if v is not None}
         messages = self._to_messages(prompts)
-        completion = openai.ChatCompletion.create(model=self.model, messages=messages, **varags)
+        completion = openai.ChatCompletion.create(model=self.model, messages=messages, **all_args)
         response = completion.choices[0].message["content"]
         return prompt_output(response)
 
@@ -47,9 +64,43 @@ class OpenAIClassic(LLM):
         self.model = model
         self.kwargs = kwargs
 
-    def _generate(self, prompts: List[Prompt], **kwargs: Any) -> Prompt:
+    def _generate(
+        self,
+        prompts: List[Prompt],
+        *,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+        n: Optional[int] = None,
+        stop: Optional[List[str]] = None,
+        max_tokens: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        user: Optional[str] = None,
+        **kwargs: Any,
+    ) -> Prompt:
         prompt = self._to_prompt(prompts)
-        result = openai.Completion.create(model=self.model, prompt=prompt, **kwargs)
+        all_args = {
+            **self.kwargs,
+            "stream": stream,
+            "suffix": kwargs.pop("suffix", None),
+            "max_tokens": max_tokens,
+            "temperature": temperature,
+            "top_p": top_p,
+            "n": n,
+            "logprobs": kwargs.pop("logprobs", None),
+            "echo": kwargs.pop("echo", None),
+            "stop": stop,
+            "presence_penalty": presence_penalty,
+            "frequency_penalty": frequency_penalty,
+            "best_of": kwargs.pop("best_of", None),
+            "logit_bias": kwargs.get("logit_bias", None),
+            "user": user,
+            **kwargs,
+        }
+        all_args = {k: v for k, v in all_args.items() if v is not None}
+        result = openai.Completion.create(model=self.model, prompt=prompt, **all_args)
         response = result.choices[0]["text"]
         return prompt_output(response)
 

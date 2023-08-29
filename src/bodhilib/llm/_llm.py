@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import Any, Dict, List, Optional, Union, cast
+from typing import Any, Dict, List, Optional, Union, cast, no_type_check
 
 from bodhilib.models import Prompt
 from bodhilib.plugin import PluginManager
@@ -33,7 +33,22 @@ def parse_prompts(input: PromptInput) -> List[Prompt]:
 class LLM(abc.ABC):
     """Abstract Base Class LLM defines the common interface implemented by all LLM implementations."""
 
-    def generate(self, prompts: PromptInput, **kwargs: Dict[str, Any]) -> Prompt:
+    def generate(
+        self,
+        prompts: PromptInput,
+        *,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+        n: Optional[int] = None,
+        stop: Optional[List[str]] = None,
+        max_tokens: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        user: Optional[str] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Prompt:
         """Base class :func:`~bodhilib.llm.LLM.generate` method interface common to all LLM service implementation.
 
         Takes in :data:`PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.models.Prompt`
@@ -41,17 +56,56 @@ class LLM(abc.ABC):
         :class:`~bodhilib.models.Prompt` object with `source="output"`.
 
         Args:
-            prompts (:data:`PromptInput`): prompt input to the LLM service
-            **kwargs (Dict[str, Any]): additional pass through arguments for the LLM service
+            prompts (:data:`PromptInput`): input to the LLM service
+            stream (bool): whether to stream the response from the LLM service
+            temperature (Optional[float]): temperature or randomness of the generation
+            top_p (Optional[float]): token consideration probability top_p for the generation
+            top_k (Optional[int]): token consideration number top_k for the generation
+            n (Optional[int]): number of responses to generate
+            stop (Optional[List[str]]): list of stop tokens to stop the generation
+            max_tokens (Optional[int]): maximum number of tokens to generate
+            presence_penalty (Optional[float]): presence penalty for the generation, between -2 and 2
+            frequency_penalty (Optional[float]): frequency penalty for the generation, between -2 and 2
+            user (Optional[str]): user making the request, for monitoring purpose
+            kwargs (Dict[str, Any]): pass through arguments for the LLM service
 
         Returns:
             :class:`~bodhilib.models.Prompt`: generated text as a Prompt object
         """
         prompts = parse_prompts(prompts)
-        return self._generate(prompts, **kwargs)
+        all_args = {
+            "stream": stream,
+            "temperature": temperature,
+            "top_p": top_p,
+            "top_k": top_k,
+            "n": n,
+            "stop": stop,
+            "max_tokens": max_tokens,
+            "presence_penalty": presence_penalty,
+            "frequency_penalty": frequency_penalty,
+            "user": user,
+            **kwargs,
+        }
+        return self._generate(prompts, **all_args)  # type: ignore
 
+    @no_type_check
     @abc.abstractmethod
-    def _generate(self, prompts: List[Prompt], **kwargs: Dict[str, Any]) -> Prompt:
+    def _generate(
+        self,
+        prompts: List[Prompt],
+        *,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+        n: Optional[int] = None,
+        stop: Optional[List[str]] = None,
+        max_tokens: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        user: Optional[str] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Prompt:
         """Generate text using LLM service with the given prompt list.
 
         This method should be implemented by the LLM service plugin.
@@ -59,8 +113,21 @@ class LLM(abc.ABC):
         :class:`~bodhilib.models.Prompt` and passed to this method.
 
         Args:
-            prompts (List[:class:`~bodhilib.models.Prompt`]): prompt to pass to LLM service and receive response
-            **kwargs (Dict[str, Any]): additional arguments
+            prompts (List[:class:`~bodhilib.models.Prompt`]): list of prompts as input to the LLM service
+            stream (bool): whether to stream the response from the LLM service
+            temperature (Optional[float]): temperature or randomness of the generation
+            top_p (Optional[float]): token consideration probability top_p for the generation
+            top_k (Optional[int]): token consideration number top_k for the generation
+            n (Optional[int]): number of responses to generate
+            stop (Optional[List[str]]): list of stop tokens to stop the generation
+            max_tokens (Optional[int]): maximum number of tokens to generate
+            presence_penalty (Optional[float]): presence penalty for the generation, between -2 and 2
+            frequency_penalty (Optional[float]): frequency penalty for the generation, between -2 and 2
+            user (Optional[str]): user making the request, for monitoring purpose
+            kwargs (Dict[str, Any]): pass through arguments for the LLM service
+
+        Returns:
+            :class:`~bodhilib.models.Prompt`: generated text as a Prompt object
         """
         ...
 
