@@ -3,9 +3,7 @@ from unittest.mock import patch
 import pytest
 from bodhilib.openai import OpenAIChat, OpenAIText
 from bodhilib.openai import openai_llm_service_builder
-
-text_model = "text-ada-001"
-chat_model = "gpt-3.5-turbo"
+from tests_bodhilib_openai.utils import text_model, chat_model
 
 
 def test_get_llm_openai_text():

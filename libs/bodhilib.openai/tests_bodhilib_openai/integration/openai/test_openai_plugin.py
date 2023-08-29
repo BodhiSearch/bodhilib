@@ -1,14 +1,16 @@
 from bodhilib.llm import get_llm
 from bodhilib.openai import OpenAIChat, OpenAIText, bodhilib_list_services
 
+from tests_bodhilib_openai.utils import chat_model, text_model
+
 
 def test_openai_service_builder_for_chat():
-    openai = get_llm("openai", "gpt-3.5-turbo")
+    openai = get_llm("openai", chat_model)
     assert type(openai) is OpenAIChat
 
 
 def test_openai_service_builder_for_text():
-    openai = get_llm("openai", "text-ada-002")
+    openai = get_llm("openai", text_model)
     assert type(openai) is OpenAIText
 
 

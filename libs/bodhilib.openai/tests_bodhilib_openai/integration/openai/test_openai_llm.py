@@ -2,7 +2,7 @@ import pytest
 from bodhilib.llm import LLM, get_llm
 from bodhilib.models import Prompt, PromptTemplate
 
-from tests.prompt_utils import default_system_prompt, default_user_prompt
+from tests_bodhilib_openai.utils import chat_model, default_system_prompt, default_user_prompt
 
 
 @pytest.fixture
@@ -12,7 +12,7 @@ def llm_davinci() -> LLM:
 
 @pytest.fixture
 def llm_gpt35_turbo() -> LLM:
-    return get_llm("openai", "gpt-3.5-turbo")
+    return get_llm("openai", chat_model)
 
 
 @pytest.mark.live

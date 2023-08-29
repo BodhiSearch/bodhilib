@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import Any, Dict, List, Optional, Union, cast, no_type_check
+from typing import Any, Dict, Iterator, List, Optional, Union, cast, no_type_check
 
 from bodhilib.models import Prompt
 from bodhilib.plugin import PluginManager
@@ -48,7 +48,7 @@ class LLM(abc.ABC):
         frequency_penalty: Optional[float] = None,
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
-    ) -> Prompt:
+    ) -> Union[Prompt, Iterator[Prompt]]:
         """Base class :func:`~bodhilib.llm.LLM.generate` method interface common to all LLM service implementation.
 
         Takes in :data:`PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.models.Prompt`
@@ -70,7 +70,8 @@ class LLM(abc.ABC):
             kwargs (Dict[str, Any]): pass through arguments for the LLM service
 
         Returns:
-            :class:`~bodhilib.models.Prompt`: generated text as a Prompt object
+            :class:`~bodhilib.models.Prompt`: a Prompt object, if stream is False
+            Iterator[:class:`~bodhilib.models.Prompt`]: an iterator of Prompt objects, if stream is True
         """
         prompts = parse_prompts(prompts)
         all_args = {
@@ -105,7 +106,7 @@ class LLM(abc.ABC):
         frequency_penalty: Optional[float] = None,
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
-    ) -> Prompt:
+    ) -> Union[Prompt, Iterator[Prompt]]:
         """Generate text using LLM service with the given prompt list.
 
         This method should be implemented by the LLM service plugin.
@@ -127,7 +128,8 @@ class LLM(abc.ABC):
             kwargs (Dict[str, Any]): pass through arguments for the LLM service
 
         Returns:
-            :class:`~bodhilib.models.Prompt`: generated text as a Prompt object
+            :class:`~bodhilib.models.Prompt`: response as a Prompt object, if stream is False
+            Iterator[:class:`~bodhilib.models.Prompt`]: an iterator of Prompt objects, if stream is True
         """
         ...
 
