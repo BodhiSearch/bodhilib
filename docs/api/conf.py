@@ -21,6 +21,7 @@ source_suffix = [".rst", ".md", ".ipynb", ".myst"]
 master_doc = "index"
 pygments_style = "sphinx"
 todo_include_todos = False
+nitpick_ignore = [("py:class", "PromptInput"), ("py:class", "pydantic.main.BaseModel")]
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "sphinx_rtd_theme"
