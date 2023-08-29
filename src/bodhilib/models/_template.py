@@ -39,6 +39,7 @@ class PromptTemplate:
 
         Args:
             kwargs: all variables to be used for rendering the template
+
         Returns:
             Prompt: prompt generated from the template
         """
@@ -72,6 +73,9 @@ def prompt_with_examples(template: str, **kwargs: Dict[str, Any]) -> PromptTempl
         template: a `jinja2` compliant template string to loop through examples
         **kwargs: additional arguments to be used for rendering the template.
             Can also contain `role` and `source` to override the default values.
+
+    Returns:
+        PromptTemplate: configured prompt template to generate prompt with examples
     """
     # pop role from kwargs or get None
     role = kwargs.pop("role", None)
