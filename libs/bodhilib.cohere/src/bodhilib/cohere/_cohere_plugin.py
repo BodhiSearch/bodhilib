@@ -1,7 +1,7 @@
 """LLM implementation for Cohere."""
 import os
 from typing import Any, Dict, List, Optional
-from ._llm import Cohere
+from ._cohere_llm import Cohere
 
 from bodhilib.llm import LLM
 from bodhilib.plugin import Service, service_provider

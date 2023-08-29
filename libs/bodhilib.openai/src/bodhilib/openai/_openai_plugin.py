@@ -2,7 +2,7 @@
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib.openai import OpenAIChat, OpenAIClassic
+from ._openai_llm import OpenAIChat, OpenAIClassic
 from bodhilib.plugin import Service, service_provider
 
 import openai
