@@ -8,16 +8,17 @@ readme = "README.md"
 packages = [
   { include = "bodhilib", from = "src" },
   { include = "bodhilib", from = "libs/bodhilib.cohere/src" },
+  { include = "bodhilib", from = "libs/bodhilib.openai/src" },
 ]
 
 [tool.poetry.dependencies]
 python = "^3.8.1,<4"
 jinja2 = "^3.1.2"
-openai = "^0.27.8"
 pluggy = "^1.2.0"
 pydantic = "^1"
 python-dotenv = "^1.0.0"
 cohere = { version = "^4.21", extras = ["cohere"] }
+openai = { version = "^0.27.8", extras = ["openai"] }
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.3"
@@ -40,8 +41,8 @@ build-backend = "poetry.core.masonry.api"
 "bodhilib.cohere" = "bodhilib.cohere"
 
 [tool.pytest.ini_options]
-pythonpath = ["src", "libs/bodhilib.cohere/src"]
-testpaths = ["tests", "libs/bodhilib.cohere/tests_bodhilib_cohere"]
+pythonpath = ["src", "libs/bodhilib.cohere/src", "libs/bodhilib.openai/src"]
+testpaths = ["tests", "libs/bodhilib.cohere/tests_bodhilib_cohere", "libs/bodhilib.openai/tests_bodhilib_openai"]
 filterwarnings = ["error"]
 markers = [
   "all: tagged on all tests using hooks in conftest.py",
@@ -80,7 +81,7 @@ exclude = '''
 python_version = 3.8
 plugins = ['pydantic.mypy']
 exclude = ['test\_.*', 'conftest\.py', 'docs/conf\.py']
-mypy_path = ["src", "libs/bodhilib.cohere/src"]
+mypy_path = ["src", "libs/bodhilib.cohere/src", "libs/bodhilib.openai/src"]
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
 explicit_package_bases = true

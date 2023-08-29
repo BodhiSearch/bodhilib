@@ -10,8 +10,17 @@ cd "${SCRIPT_DIR}"
 
 # Build the api documentation
 # rm -rf reference/_autosummary
-poetry run sphinx-apidoc --implicit-namespaces --separate --module-first --templatedir api/_templates -o api/reference ../src/bodhilib
-poetry run sphinx-apidoc --implicit-namespaces --separate --module-first --templatedir api/_templates -o api/reference ../libs/bodhilib.cohere/src/bodhilib
+for plugin in ../libs/*; do
+  if [ -d "$plugin" ]; then
+    poetry run sphinx-apidoc --implicit-namespaces --separate --module-first --templatedir api/_templates -o api/reference "$plugin/src/bodhilib"
+    plugin_name=$(basename "$plugin")
+    last_two_lines=$(tail -n 2 "api/reference/${plugin_name}.rst")
+    if [[ "$last_two_lines" != *":inherited-members: generate"* || "$last_two_lines" != *":private-members: _generate"* ]]; then
+      echo -e "   :inherited-members: generate\n   :private-members: _generate" >> "api/reference/${plugin_name}.rst"
+    fi
+  fi
+done
+
 rm api/reference/modules.rst api/reference/bodhilib.rst
 
 # Build the documentation
