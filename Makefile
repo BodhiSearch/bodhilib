@@ -18,7 +18,7 @@ clean_docs:
 	rm -rf docs/api/_build/
 
 docs: clean_docs
-	docs/docs.sh
+	docs/docs.py
 
 run_docs:
 	poetry run python -m http.server -d docs/api/_build 8000
