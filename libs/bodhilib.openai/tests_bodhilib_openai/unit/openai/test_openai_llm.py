@@ -20,7 +20,7 @@ def test_get_llm_openai_chat():
 
 @patch("openai.ChatCompletion.create")
 def test_chat_llm_generate_with_temperature(mock_create):
-    mock_create.return_value.choices[0].message = {"content": "Sunday"}
+    mock_create.return_value = {"choices": [{"message": {"content": "Sunday"}}]}
     chat = openai_llm_service_builder(service_name="openai", model=chat_model)
     prompt_text = "What comes after Monday?"
     response = chat.generate(prompt_text, temperature=0.5)
@@ -34,7 +34,7 @@ def test_chat_llm_generate_with_temperature(mock_create):
 
 @patch("openai.ChatCompletion.create")
 def test_chat_llm_generate_override_construct_params(mock_create):
-    mock_create.return_value.choices[0].message = {"content": "Sunday"}
+    mock_create.return_value = {"choices": [{"message": {"content": "Sunday"}}]}
     chat = openai_llm_service_builder(service_name="openai", model=chat_model, temperature=0.5)
     prompt_text = "What comes after Monday?"
     response = chat.generate(prompt_text, temperature=0.9)
@@ -48,7 +48,7 @@ def test_chat_llm_generate_override_construct_params(mock_create):
 
 @patch("openai.Completion.create")
 def test_llm_generate_with_temperature(mock_create):
-    mock_create.return_value.choices = [{"text": "Sunday"}]
+    mock_create.return_value = {"choices": [{"text": "Sunday"}]}
     chat = openai_llm_service_builder(service_name="openai", model=text_model)
     prompt_text = "What comes after Monday?"
     response = chat.generate(prompt_text, temperature=0.5)
@@ -62,7 +62,7 @@ def test_llm_generate_with_temperature(mock_create):
 
 @patch("openai.Completion.create")
 def test_llm_generate_override_construct_params(mock_create):
-    mock_create.return_value.choices = [{"text": "Sunday"}]
+    mock_create.return_value = {"choices": [{"text": "Sunday"}]}
     chat = openai_llm_service_builder(service_name="openai", model=text_model, temperature=0.5)
     prompt_text = "What comes after Monday?"
     response = chat.generate(prompt_text, temperature=0.9)

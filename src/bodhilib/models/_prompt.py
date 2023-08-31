@@ -1,5 +1,6 @@
+import io
 from enum import Enum
-from typing import Any, Optional, Type, TypeVar, Union, no_type_check
+from typing import Any, Callable, Iterable, Iterator, Optional, Type, TypeVar, Union, no_type_check
 
 from pydantic import BaseModel, validator
 
@@ -140,3 +141,46 @@ def _strenum_validator(enum_cls: Type[_EnumT], value: Any) -> _EnumT:
         return value
     else:
         raise ValueError(f"Invalid type for value, {type(value)=}")
+
+
+T = TypeVar("T")
+
+
+class PromptStream(Iterator[Prompt]):
+    """Iterator over a stream of prompts.
+
+    Used by LLMs to wrap the stream response to an iterable over prompts.
+    """
+
+    def __init__(self, api_response: Iterable[T], transformer: Callable[[T], Prompt]):
+        """Initialize a prompt stream.
+
+        Args:
+            api_response (Iterable[T]): LLM API Response as an Iterable
+            transformer (Callable[[T], Prompt]): Transformer function to convert API response to Prompt
+        """
+        self.api_response = iter(api_response)
+        self.transformer = transformer
+        self.output = io.StringIO()
+        self.role: Optional[str] = None
+
+    def __iter__(self) -> Iterator[Prompt]:
+        """Returns the iterator object itself."""
+        return self
+
+    def __next__(self) -> Prompt:
+        """Returns the next item from the iterator as Prompt object."""
+        try:
+            chunk_response = next(self.api_response)
+        except StopIteration as e:
+            raise StopIteration from e
+        prompt = self.transformer(chunk_response)
+        if self.role is None:
+            self.role = prompt.role
+        self.output.write(prompt.text)
+        return prompt
+
+    @property
+    def text(self) -> str:
+        """Returns the text accumulated over the stream of responses."""
+        return self.output.getvalue()

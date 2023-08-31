@@ -1,11 +1,11 @@
 """LLM implementation for Cohere."""
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from bodhilib.llm import LLM
-from bodhilib.models import Prompt, prompt_output
+from bodhilib.models import Prompt, PromptStream, prompt_output
 
 import cohere
-from cohere.responses import StreamingGenerations
+from cohere.responses.generation import StreamingText
 
 
 class Cohere(LLM):
@@ -31,7 +31,7 @@ class Cohere(LLM):
         frequency_penalty: Optional[float] = None,
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
-    ) -> Union[Prompt, Iterable[Prompt]]:
+    ) -> Union[Prompt, PromptStream]:
         input = self._to_cohere_input(prompts)
         all_args = {
             "model": self.model,
@@ -55,7 +55,7 @@ class Cohere(LLM):
         all_args = {k: v for k, v in all_args.items() if v is not None}
         response = self.client.generate(input, **all_args)
         if "stream" in all_args and all_args["stream"]:
-            return _cohere_prompt_stream(response)
+            return PromptStream(response, _cohere_stream_to_prompt_transformer)
         text = response.generations[0].text
         return prompt_output(text)
 
@@ -63,9 +63,5 @@ class Cohere(LLM):
         return "\n".join([p.text for p in prompts])
 
 
-def _cohere_prompt_stream(response: StreamingGenerations) -> Iterable[Prompt]:
-    response_stream = iter(response)
-    for chunk in response_stream:
-        if chunk.is_finished:
-            break
-        yield prompt_output(chunk.text)
+def _cohere_stream_to_prompt_transformer(chunk: StreamingText) -> Prompt:
+    return prompt_output(chunk.text)

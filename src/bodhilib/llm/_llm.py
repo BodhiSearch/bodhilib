@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import abc
 import itertools
-from typing import Any, Dict, Iterator, List, Optional, Union, cast, no_type_check
+from typing import Any, Dict, List, Optional, Union, cast, no_type_check
 
-from bodhilib.models import Prompt
+from bodhilib.models import Prompt, PromptStream
 from bodhilib.plugin import PluginManager
 from typing_extensions import TypeAlias
 
@@ -48,7 +48,7 @@ class LLM(abc.ABC):
         frequency_penalty: Optional[float] = None,
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
-    ) -> Union[Prompt, Iterator[Prompt]]:
+    ) -> Union[Prompt, PromptStream]:
         """Base class :func:`~bodhilib.llm.LLM.generate` method interface common to all LLM service implementation.
 
         Takes in :data:`PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.models.Prompt`
@@ -106,7 +106,7 @@ class LLM(abc.ABC):
         frequency_penalty: Optional[float] = None,
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
-    ) -> Union[Prompt, Iterator[Prompt]]:
+    ) -> Union[Prompt, PromptStream]:
         """Generate text using LLM service with the given prompt list.
 
         This method should be implemented by the LLM service plugin.

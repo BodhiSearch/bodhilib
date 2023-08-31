@@ -2,6 +2,7 @@
 import inspect
 
 from ._prompt import Prompt as Prompt
+from ._prompt import PromptStream as PromptStream
 from ._prompt import Role as Role
 from ._prompt import Source as Source
 from ._prompt import StrEnumMixin as StrEnumMixin
