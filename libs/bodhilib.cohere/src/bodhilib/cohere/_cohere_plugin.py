@@ -3,7 +3,7 @@ import os
 from typing import Any, Dict, List, Optional
 
 from bodhilib.llm import LLM
-from bodhilib.plugin import Service, service_provider
+from bodhilib.plugin import LLMModel, Service, service_provider
 
 from ._cohere_llm import Cohere
 
@@ -59,3 +59,14 @@ def cohere_llm_service_builder(
             api_key = os.environ["COHERE_API_KEY"]
     # TODO filter for Cohere configs
     return Cohere(model=model, api_key=api_key, **kwargs)
+
+
+@service_provider
+def bodhilib_list_llm_models() -> List[LLMModel]:
+    """Plugin function to list all LLM models available by this service."""
+    return [
+        LLMModel("cohere", "command-light", "bodhilib"),
+        LLMModel("cohere", "command", "bodhilib"),
+        LLMModel("cohere", "base-light", "bodhilib"),
+        LLMModel("cohere", "base", "bodhilib"),
+    ]

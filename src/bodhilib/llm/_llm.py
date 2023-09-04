@@ -5,7 +5,7 @@ import itertools
 from typing import Any, Dict, List, Optional, Union, cast, no_type_check
 
 from bodhilib.models import Prompt, PromptStream
-from bodhilib.plugin import PluginManager, Service
+from bodhilib.plugin import LLMModel, PluginManager, Service
 from typing_extensions import TypeAlias
 
 PromptInput: TypeAlias = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
@@ -174,3 +174,9 @@ def list_llms() -> List[Service]:
     """List all LLM services installed and available."""
     manager = PluginManager.instance()
     return manager.list_services("llm")
+
+
+def list_models() -> List[LLMModel]:
+    """List all LLM models installed and available."""
+    manager = PluginManager.instance()
+    return manager.list_llm_models()

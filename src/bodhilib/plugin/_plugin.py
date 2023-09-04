@@ -43,6 +43,29 @@ def bodhilib_list_services() -> List[Service]:
     return []
 
 
+class LLMModel(NamedTuple):
+    """Encapsulates the models provided by the service."""
+
+    service_name: str
+    """Name of the service identifier. E.g. openai, cohere, anthropic, etc."""
+
+    model_name: str
+    """Name of the LLM model provided by the service."""
+
+    publisher: str
+    """Publisher identifier of the plugin. E.g. bodhilib, openai, <github-user> etc."""
+
+
+@hookspec
+def bodhilib_list_llm_models() -> List[LLMModel]:
+    """Return a list of LLM models supported by plugin.
+
+    Returns:
+        List[LLMModel]: list of LLM models supported by plugin
+    """
+    return []
+
+
 class PluginManager:
     """Searches for and loads bodhilib plugins."""
 
@@ -107,6 +130,14 @@ class PluginManager:
         if self.services is None:
             self.services = self._fetch_services()
         return [s for s in self.services if s.service_type == service_type]
+
+    def list_llm_models(self) -> List[LLMModel]:
+        """List all LLM models installed and available."""
+        logger.debug({"msg": "fetching plugins implementing list_llm_models"})
+        llm_models = list(itertools.chain(*self.pm.hook.bodhilib_list_llm_models()))
+        # filter out invalid LLM models
+        llm_models = [p for p in llm_models if isinstance(p, LLMModel)]
+        return llm_models
 
     def _fetch_services(self) -> List[Service]:
         logger.debug({"msg": "fetching services"})

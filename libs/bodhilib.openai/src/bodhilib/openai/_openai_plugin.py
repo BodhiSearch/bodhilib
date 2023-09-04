@@ -2,7 +2,7 @@
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib.plugin import Service, service_provider
+from bodhilib.plugin import LLMModel, Service, service_provider
 
 import openai
 
@@ -66,3 +66,12 @@ def openai_llm_service_builder(
         return OpenAIChat(model, **params)
     else:
         return OpenAIText(model, **params)
+
+
+# TODO: cache the response
+@service_provider
+def bodhilib_list_llm_models() -> List[LLMModel]:
+    """Plugin function to list all LLM models available by this service."""
+    models = openai.Model.list()
+    llm_models = [LLMModel("openai", m["id"], "bodhilib") for m in models.data]
+    return llm_models
