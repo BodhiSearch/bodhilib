@@ -33,6 +33,7 @@ class Cohere(LLM):
         **kwargs: Dict[str, Any],
     ) -> Union[Prompt, PromptStream]:
         input = self._to_cohere_input(prompts)
+        # TODO: better defaults, for e.g. max_tokens is just 300 by default
         all_args = {
             "model": self.model,
             "stream": stream,

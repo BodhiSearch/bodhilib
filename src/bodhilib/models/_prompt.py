@@ -103,6 +103,14 @@ class Prompt(BaseModel):
     def validate_source(cls, value: Any) -> Source:
         return _strenum_validator(Source, value)
 
+    def isstream(self) -> bool:
+        """To check if this is a prompt stream.
+
+        Returns:
+            bool: False as this is not a prompt stream.
+        """
+        return False
+
 
 def prompt_user(text: str) -> Prompt:
     """Factory method to generate user prompt from string.
@@ -179,6 +187,14 @@ class PromptStream(Iterator[Prompt]):
             self.role = prompt.role
         self.output.write(prompt.text)
         return prompt
+
+    def isstream(self) -> bool:
+        """To check if this is a prompt stream.
+
+        Returns:
+            bool: False as this is not a prompt stream.
+        """
+        return True
 
     @property
     def text(self) -> str:

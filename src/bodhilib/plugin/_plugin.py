@@ -83,7 +83,8 @@ class PluginManager:
         **kwargs: Dict[str, Any],
     ) -> Any:
         """Get an instance of service for the given service and type."""
-        self.services = self.services or self._fetch_services()
+        if self.services is None:
+            self.services = self._fetch_services()
         for service in self.services:
             if service.service_name == service_name and service.service_type == service_type:
                 all_args = {
@@ -100,6 +101,12 @@ class PluginManager:
                 component = service.service_builder(**all_args)
                 return component
         raise ValueError(f"Unknown service: {service_name}, available services: {self.services}")
+
+    def list_services(self, service_type: str) -> List[Service]:
+        """List all services of type service_type installed and available."""
+        if self.services is None:
+            self.services = self._fetch_services()
+        return [s for s in self.services if s.service_type == service_type]
 
     def _fetch_services(self) -> List[Service]:
         logger.debug({"msg": "fetching services"})
