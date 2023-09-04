@@ -2,7 +2,7 @@
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
 from bodhilib.llm import LLM
-from bodhilib.models import Prompt, PromptStream, prompt_output
+from bodhilib.models import Prompt, PromptStream, Role, prompt_output
 
 import openai
 from openai.openai_response import OpenAIResponse
@@ -54,7 +54,8 @@ class OpenAIChat(LLM):
         return prompt_output(content)
 
     def _to_messages(self, prompts: List[Prompt]) -> List[Dict[str, str]]:
-        return [{"role": p.role, "content": p.text} for p in prompts]
+        role_lookup = {Role.SYSTEM.value: "system", Role.AI.value: "assistant", Role.USER.value: "user"}
+        return [{"role": role_lookup[p.role.value], "content": p.text} for p in prompts]
 
     def __call__(self, *args: Iterable[Any], **kwargs: Dict[str, Any]) -> NoReturn:
         raise TypeError(f"'{type(self).__name__}' object is not callable, did you mean to call 'generate'?")
