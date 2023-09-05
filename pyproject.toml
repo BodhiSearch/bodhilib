@@ -1,7 +1,7 @@
 # contains code style and formatting configuration for the complete project
 [tool.poetry]
 name = "bodhilib"
-version = "0.1.0"
+version = "0.1.2"
 description = "intuitive and powerful library to work with LLMs"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
 readme = "README.md"
@@ -42,7 +42,11 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "libs/bodhilib.cohere/src", "libs/bodhilib.openai/src"]
-testpaths = ["tests", "libs/bodhilib.cohere/tests_bodhilib_cohere", "libs/bodhilib.openai/tests_bodhilib_openai"]
+testpaths = [
+  "tests",
+  "libs/bodhilib.cohere/tests_bodhilib_cohere",
+  "libs/bodhilib.openai/tests_bodhilib_openai",
+]
 filterwarnings = ["error"]
 markers = [
   "all: tagged on all tests using hooks in conftest.py",
