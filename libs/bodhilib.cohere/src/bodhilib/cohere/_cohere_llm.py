@@ -1,4 +1,6 @@
 """LLM implementation for Cohere."""
+from __future__ import annotations
+
 from typing import Any, Dict, List, Optional, Union
 
 from bodhilib.llm import LLM

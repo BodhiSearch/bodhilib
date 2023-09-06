@@ -1,4 +1,6 @@
 """module for file data loader plugin for bodhilib."""
+from __future__ import annotations
+
 import os
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional
@@ -38,7 +40,7 @@ class FileLoader(DataLoader):
         dir: Optional[PathLike] = None,
         recursive: bool = False,
     ) -> None:
-        """Add a file or directory resource to the data loader.
+        """Add a file or directory resource to the data loader with given :data:`~PathLike` location.
 
         Args:
             files (Optional[List[PathLike]]): A list of file paths to add.

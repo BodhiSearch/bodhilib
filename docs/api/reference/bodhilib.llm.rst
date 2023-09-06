@@ -15,6 +15,8 @@ bodhilib.llm
       - a serialized :class:`~bodhilib.models.Prompt` object as dict, e.g. `{"text": "hello", "role": "user", "source": "input"}`
       - a list of serialized :class:`~bodhilib.models.Prompt` objects as dicts
 
+.. autodata:: bodhilib.llm._llm.T
+
 .. automodule:: bodhilib.llm
    :members:
    :undoc-members:

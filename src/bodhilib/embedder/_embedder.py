@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, cast
 
@@ -12,7 +14,7 @@ class Embedder(abc.ABC):
     """
 
     def embed(self, text: TextLike) -> List[float]:
-        """Embed the text using the embedder service.
+        """Embed the :data:`~TextLike` using the embedder service.
 
         Args:
             text (TextLike): text or text like to embed
@@ -21,7 +23,7 @@ class Embedder(abc.ABC):
         return embeddings
 
     def embeds(self, texts: Iterable[TextLike]) -> Iterable[List[float]]:
-        """Embed a list of texts using the embedder service.
+        """Embed a list of :data:`~TextLike` using the embedder service.
 
         Args:
             texts (List[TextLike]): list of text or text like to embed
@@ -34,7 +36,7 @@ class Embedder(abc.ABC):
 
     @abc.abstractmethod
     def _embed(self, texts: Iterable[str]) -> Iterable[List[float]]:
-        """Embed a list of texts using the embedder service.
+        """Embed a list of strings using the embedder service.
 
         Args:
             texts (List[str]): list of texts to embed
@@ -48,6 +50,7 @@ class Embedder(abc.ABC):
 
 
 T = TypeVar("T", bound=Embedder)
+"""TypeVar for Embedder."""
 
 
 def get_embedder(
@@ -62,11 +65,18 @@ def get_embedder(
 
     Args:
         service_name (str): name of the service, e.g. "sentence-transformers" etc.
-        oftype (Optional[Type[T]]): if the type is known, pass the oftype argument,
-            the embedder is cast to oftype and returned for better IDE support.
+        oftype (Optional[Type[T]]): if the type of embedder is known, pass the type in argument `oftype`,
+            the embedder is cast to `oftype` and returned for better IDE support.
         publisher (Optional[str]): publisher or developer of the embedder plugin, e.g. "bodhilib","<github-username>"
         version (Optional[str]): version of the embedder
         **kwargs (Dict[str, Any]): pass through arguments for the embedder, e.g. dimension etc.
+
+    Returns:
+        T (:data:`~bodhilib.embedder._embedder.T` | :class:`~Embedder`):
+            an instance of Embedder service of type `oftype`, if oftype is passed, else of type :class:`~Embedder`
+
+    Raises:
+        TypeError: if the type of embedder is not oftype
     """
     if oftype is None:
         return_type: Type[Any] = Embedder

@@ -1,4 +1,6 @@
 """:mod:`bodhilib.sentence_transformers` module defines classes and methods for embedder using sentence-transformer."""
+from __future__ import annotations
+
 from typing import Any, Dict, Iterable, List, Optional
 
 from bodhilib.embedder import Embedder
@@ -8,10 +10,7 @@ from sentence_transformers import SentenceTransformer
 
 
 class SentenceTransformerEmbedder(Embedder):
-    """Sentence Transformer Embedder.
-
-    This embedder uses the `sentence-transformers' library to embed texts.
-    """
+    """Embedder using sentence-transformer library."""
 
     def __init__(self, model: Optional[str] = None, **kwargs: Dict[str, Any]) -> None:
         if model is None:

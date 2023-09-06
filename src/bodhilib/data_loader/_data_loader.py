@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import abc
 from typing import Any, Dict, Iterator, List, Optional, Type, TypeVar, cast
 
@@ -21,6 +23,7 @@ class DataLoader(abc.ABC):
 
 
 T = TypeVar("T", bound=DataLoader)
+"""TypeVar for DataLoader."""
 
 
 def get_data_loader(
@@ -38,15 +41,18 @@ def get_data_loader(
 
     Args:
         service_name (str): name of the service, e.g. "file", "notion", "s3"
-        oftype (Optional[Type[T]]): if the type is known, pass the oftype argument,
-            the data loader is cast to oftype and returned for better IDE support.
+        oftype (Optional[Type[T]]): if the type of data loader is known, pass the type in argument `oftype`,
+            the data loader is cast to `oftype` and returned for better IDE support.
         publisher (Optional[str]): publisher or developer of the data loader plugin, e.g. "bodhilib","<github-username>"
         version (Optional[str]): version of the data loader
         **kwargs (Dict[str, Any]): pass through arguments for the data loader, e.g. aws_access_key_id, notion_db etc.
 
     Returns:
-        DataLoader: an instance of DataLoader service of type :data:`oftype`, if oftype is provided,
-            else of type :class:`~DataLoader`
+        T (:data:`~bodhilib.data_loader._data_loader.T` | :class:`~DataLoader`):
+            an instance of DataLoader service of type `oftype`, if oftype is passed, else of type :class:`~DataLoader`
+
+    Raises:
+        TypeError: if the type of data loader is not oftype
     """
     if oftype is None:
         return_type: Type[Any] = DataLoader

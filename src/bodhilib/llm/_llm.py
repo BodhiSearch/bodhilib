@@ -135,6 +135,7 @@ class LLM(abc.ABC):
 
 
 T = TypeVar("T", bound=LLM)
+"""TypeVar for LLM."""
 
 
 def get_llm(
@@ -154,13 +155,19 @@ def get_llm(
         model (str): name of the model, e.g. "chat-gpt-3.5", "command", "claude-2"
         api_key (Optional[str]): API key for the service, if the api_key is not provided,
             it will be looked in the environment variables
+        oftype (Optional[Type[T]]): if the type of LLM is known, pass the type in argument `oftype`,
+            the LLM is cast to `oftype` and returned for better IDE support.
         publisher (Optional[str]): publisher or developer of the service plugin, e.g. "bodhilib", "<github-username>"
         version (Optional[str]): version of the service
         **kwargs (Dict[str, Any]): pass through arguments for the LLM service, e.g. "temperature", "max_tokens", etc.
 
     Returns:
-        LLM: an instance of LLM service of type :data:`oftype`, if oftype is provided,
+        T (:data:`~bodhilib.llm._llm.T` | :class:`~LLM`):
+            an instance of LLM service of type `oftype`, if oftype is passed,
             else of type :class:`~LLM`
+
+    Raises:
+        TypeError: if the type of LLM is not oftype
     """
     if oftype is None:
         return_type: Type[Any] = LLM

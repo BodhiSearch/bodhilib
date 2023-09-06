@@ -1,4 +1,6 @@
 """OpenAI LLM module."""
+from __future__ import annotations
+
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
 from bodhilib.llm import LLM

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Protocol, Union
 
 from pydantic import BaseModel, Field
+from typing_extensions import TypeAlias
 
 
 class Document(BaseModel):
@@ -27,15 +28,15 @@ class SupportsText(Protocol):
         """Return the text representation of the object."""
 
 
-TextLike = Union[str, SupportsText]
+TextLike: TypeAlias = Union[str, SupportsText]
 """TextLike is either a string or a Document."""
 
-PathLike = Union[str, Path]
+PathLike: TypeAlias = Union[str, Path]
 """PathLike is either a path to a resource as string or pathlib.Path."""
 
 
 def to_text(text: TextLike) -> str:
-    """Converts a TextLike to string."""
+    """Converts a :data:`~TextLike` to string."""
     if isinstance(text, str):
         return text
     if hasattr(text, "text"):

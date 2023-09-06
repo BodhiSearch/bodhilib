@@ -1,4 +1,5 @@
-"""Plugin related code for bodhilib."""
+from __future__ import annotations
+
 import itertools
 import sys
 from typing import Any, Callable, List, NamedTuple, Optional, Type, TypeVar, cast
@@ -67,6 +68,9 @@ def bodhilib_list_llm_models() -> List[LLMModel]:
 
 
 T = TypeVar("T")
+"""TypeVar for Component (one of sub-class of :class:`~bodhilib.llm.LLM`, :class:`~bodhilib.embedder.Embedder`,
+:class:`~bodhilib.data_loader.DataLoader`).
+Used for type hinting in :meth:`~bodhilib.plugin.PluginManager.get` method."""
 
 
 class PluginManager:
@@ -107,7 +111,24 @@ class PluginManager:
         version: Optional[str] = None,
         **kwargs: Any,
     ) -> T:
-        """Get an instance of service for the given service and type."""
+        """Get an instance of service for the given service and type.
+
+        Args:
+            service_name (str): name of the service, e.g. "openai", "cohere", "anthropic"
+            service_type (str): type of the service, e.g. "llm", "embedder", "data_loader"
+            oftype (Optional[Type[T]]): if the type of service is known, pass the type in argument `oftype`,
+                the service is cast to `oftype` and returned for better IDE support.
+            publisher (Optional[str]): publisher or developer of the service plugin, e.g. "bodhilib","<github-username>"
+            version (Optional[str]): version of the service
+            **kwargs (Dict[str, Any]): pass through arguments for the service, e.g. "temperature", "max_tokens", etc.
+
+        Returns:
+            T (:data:`~bodhilib.plugin._plugin.T` | :class:`~Any`):
+                an instance of service of type `oftype`, if oftype is passed, else of type :class:`~typing.Any`
+
+        Raises:
+            TypeError: if the type of service is not oftype
+        """
         if oftype is None:
             return_type: Type[Any] = type(Any)
         else:

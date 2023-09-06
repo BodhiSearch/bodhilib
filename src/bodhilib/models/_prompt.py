@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import io
 from enum import Enum
 from typing import Any, Callable, Iterable, Iterator, Optional, Type, TypeVar, Union, no_type_check
@@ -152,6 +154,7 @@ def _strenum_validator(enum_cls: Type[_EnumT], value: Any) -> _EnumT:
 
 
 T = TypeVar("T")
+"""TypeVar for LLM Response Type."""
 
 
 class PromptStream(Iterator[Prompt]):
@@ -164,7 +167,7 @@ class PromptStream(Iterator[Prompt]):
         """Initialize a prompt stream.
 
         Args:
-            api_response (Iterable[T]): LLM API Response as an Iterable
+            api_response (Iterable[T]): LLM API Response of generic type :data:`~bodhilib.models._prompt.T` as Iterable
             transformer (Callable[[T], Prompt]): Transformer function to convert API response to Prompt
         """
         self.api_response = iter(api_response)

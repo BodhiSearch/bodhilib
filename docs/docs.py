@@ -3,20 +3,36 @@
 import glob
 import os
 import subprocess
+from pathlib import Path
 
 
 def main() -> None:
     # Get the current script directory
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+    script_dir = Path(__file__).parent.absolute()
     os.chdir(script_dir)
+    output_path = "api/reference"
+    src_path = script_dir / ".." / "src" / "bodhilib"
+    subprocess.run(
+        [
+            "poetry",
+            "run",
+            "sphinx-apidoc",
+            "--implicit-namespaces",
+            "--separate",
+            "--module-first",
+            "--templatedir",
+            "api/_templates",
+            "-o",
+            output_path,
+            src_path,
+        ]
+    )
 
     # Build the api documentation
-    lib_dir = os.path.join("..", "libs")
+    lib_dir = script_dir / ".." / "libs"
     for plugin in glob.glob(os.path.join(lib_dir, "*")):
         if os.path.isdir(plugin):
-            src_path = os.path.join(plugin, "src", "bodhilib")
-            output_path = "api/reference"
-
+            src_path = Path(plugin) / "src" / "bodhilib"
             # Run sphinx-apidoc
             subprocess.run(
                 [
@@ -46,7 +62,7 @@ def main() -> None:
             "-a",
             "-E",
             "-j",
-            "auto",
+            "1",
             "-n",
             "--color",
             "-W",
