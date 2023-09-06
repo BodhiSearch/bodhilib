@@ -32,7 +32,7 @@ build: clean install
 	poetry build
 
 clean_docs:
-	rm -rf docs/_build/
+	rm -rf docs/_build/html docs/_build/linkcheck
 
 docs: clean_docs
 	docs/docs.py

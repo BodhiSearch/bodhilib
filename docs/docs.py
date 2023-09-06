@@ -53,6 +53,9 @@ def main() -> None:
     os.remove("reference/modules.rst")
     os.remove("reference/bodhilib.rst")
 
+    # generate doctrees
+    subprocess.run(["make", "html"])
+
     # Build the documentation
     subprocess.run(
         [
@@ -70,12 +73,12 @@ def main() -> None:
             "-b",
             "html",
             ".",
-            "_build/",
+            "_build/html",
         ]
     )
 
     # Check links in the documentation
-    subprocess.run(["poetry", "run", "sphinx-build", "-b", "linkcheck", ".", "_build/linkcheck/"])
+    subprocess.run(["poetry", "run", "sphinx-build", "-b", "linkcheck", ".", "_build/linkcheck"])
 
 
 if __name__ == "__main__":
