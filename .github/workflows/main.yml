@@ -1,0 +1,103 @@
+name: Bodhilib CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - v*
+  workflow_dispatch:
+    branches:
+      - main
+    inputs:
+      release:
+        description: 'Create a release? (yes/no)'
+        required: false
+        default: 'no'
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python with Poetry
+        uses: './.github/actions/setup'
+        with:
+          python-version: 3.8
+          cache-key: ${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-poetry-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
+      - name: Check poetry files
+        shell: bash
+        run: |
+          make check
+      - name: Pre-commit
+        uses: pre-commit/action@v3.0.0
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python with Poetry
+        uses: './.github/actions/setup'
+        with:
+          python-version: 3.8
+          cache-key: ${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-poetry-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
+      - name: Copy .env.ci to .env.test
+        run: cp .env.ci .env.test
+      - name: Run tests
+        run: make test
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: htmlcov
+
+  release:
+    needs: [pre-commit, test]
+    if: github.event.inputs.release == 'yes'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python with Poetry
+        uses: './.github/actions/setup'
+        with:
+          python-version: 3.8
+          cache-key: ${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-poetry-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
+      - name: Get current version
+        id: current-version
+        run: |
+          echo "CURRENT_VERSION=$(poetry version --short)" >> $GITHUB_ENV
+      - name: Build package
+        run: make build
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'dist/*'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ env.CURRENT_VERSION }}
+          commit: main
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+          print-hash: true
+      - name: Bump patch version
+        run: |
+          IFS='.' read -ra ADDR <<< "$CURRENT_VERSION"
+          new_patch=$(( ${ADDR[2]} + 1 ))
+          NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch"
+          poetry version "$NEW_VERSION"
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<github-actions@users.noreply.github.com>"
+          git add pyproject.toml
+          git commit -m "[Github Workflows] bumping up the patch version to ${NEW_VERSION}"
+          git push
