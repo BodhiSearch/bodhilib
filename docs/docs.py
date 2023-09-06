@@ -10,7 +10,7 @@ def main() -> None:
     # Get the current script directory
     script_dir = Path(__file__).parent.absolute()
     os.chdir(script_dir)
-    output_path = "api/reference"
+    output_path = "reference"
     src_path = script_dir / ".." / "src" / "bodhilib"
     subprocess.run(
         [
@@ -21,7 +21,7 @@ def main() -> None:
             "--separate",
             "--module-first",
             "--templatedir",
-            "api/_templates",
+            "_templates",
             "-o",
             output_path,
             src_path,
@@ -43,15 +43,15 @@ def main() -> None:
                     "--separate",
                     "--module-first",
                     "--templatedir",
-                    "api/_templates",
+                    "_templates",
                     "-o",
                     output_path,
                     src_path,
                 ]
             )
     # Remove unnecessary files
-    os.remove("api/reference/modules.rst")
-    os.remove("api/reference/bodhilib.rst")
+    os.remove("reference/modules.rst")
+    os.remove("reference/bodhilib.rst")
 
     # Build the documentation
     subprocess.run(
@@ -69,13 +69,13 @@ def main() -> None:
             "--keep-going",
             "-b",
             "html",
-            "api",
-            "api/_build/",
+            ".",
+            "_build/",
         ]
     )
 
     # Check links in the documentation
-    subprocess.run(["poetry", "run", "sphinx-build", "-b", "linkcheck", "api", "api/_build/linkcheck/"])
+    subprocess.run(["poetry", "run", "sphinx-build", "-b", "linkcheck", ".", "_build/linkcheck/"])
 
 
 if __name__ == "__main__":

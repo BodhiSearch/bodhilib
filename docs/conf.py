@@ -2,8 +2,8 @@ from pathlib import Path
 
 import toml
 
-API_DIR = Path(__file__).parent.absolute()
-PROJ_DIR = API_DIR / ".." / ".."
+DOCS_DIR = Path(__file__).parent.absolute()
+PROJ_DIR = DOCS_DIR / ".."
 with open(PROJ_DIR / "pyproject.toml") as f:
     pyproj_file = toml.load(f)
 
