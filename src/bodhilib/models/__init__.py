@@ -2,10 +2,13 @@
 import inspect
 
 from ._document import Document as Document
+from ._document import Node as Node
 from ._document import PathLike as PathLike
 from ._document import SupportsText as SupportsText
 from ._document import TextLike as TextLike
+from ._document import supportstext as supportstext
 from ._document import to_text as to_text
+from ._document import to_document as to_document
 from ._prompt import Prompt as Prompt
 from ._prompt import PromptStream as PromptStream
 from ._prompt import Role as Role
