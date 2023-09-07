@@ -8,10 +8,10 @@ from pathlib import Path
 
 def main() -> None:
     # Get the current script directory
-    script_dir = Path(__file__).parent.absolute()
-    os.chdir(script_dir)
+    docs_dir = Path(__file__).parent.absolute()
+    os.chdir(docs_dir)
     output_path = "reference"
-    src_path = script_dir / ".." / "src" / "bodhilib"
+    src_path = docs_dir / ".." / "src" / "bodhilib"
     subprocess.run(
         [
             "poetry",
@@ -29,7 +29,7 @@ def main() -> None:
     )
 
     # Build the api documentation
-    lib_dir = script_dir / ".." / "libs"
+    lib_dir = docs_dir / ".." / "libs"
     for plugin in glob.glob(os.path.join(lib_dir, "*")):
         if os.path.isdir(plugin):
             src_path = Path(plugin) / "src" / "bodhilib"
@@ -63,6 +63,7 @@ def main() -> None:
             "run",
             "sphinx-build",
             "-a",
+            "-T",
             "-E",
             "-j",
             "1",
