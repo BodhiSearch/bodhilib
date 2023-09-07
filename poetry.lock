@@ -338,13 +338,13 @@ test = ["coverage (>=4.2)", "flake8 (>=3.0.4)", "path.py (>=11.5.0)", "pytest (>
 
 [[package]]
 name = "cohere"
-version = "4.22"
+version = "4.23"
 description = ""
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "cohere-4.22-py3-none-any.whl", hash = "sha256:e09cc3967c34a15cde63e29783c05bfe80617b2a60817ad1d13c12845f6e71b9"},
-    {file = "cohere-4.22.tar.gz", hash = "sha256:aa235ea8d598bde03c2a5c6671f2785b6707a6f297c765ea87422f62f19a9021"},
+    {file = "cohere-4.23-py3-none-any.whl", hash = "sha256:72f88cc9835674e8da5ff4cabbebaf38fb7f6e5d79d9b79cd6b65000d46c66b7"},
+    {file = "cohere-4.23.tar.gz", hash = "sha256:d1f62ac0f4758da9ba216b2626ad7134a1ced5f7217e48d4d9e81555025b7794"},
 ]
 
 [package.dependencies]
@@ -2042,19 +2042,19 @@ files = [
 
 [[package]]
 name = "setuptools"
-version = "68.1.2"
+version = "68.2.0"
 description = "Easily download, build, install, upgrade, and uninstall Python packages"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "setuptools-68.1.2-py3-none-any.whl", hash = "sha256:3d8083eed2d13afc9426f227b24fd1659489ec107c0e86cec2ffdde5c92e790b"},
-    {file = "setuptools-68.1.2.tar.gz", hash = "sha256:3d4dfa6d95f1b101d695a6160a7626e15583af71a5f52176efa5d39a054d475d"},
+    {file = "setuptools-68.2.0-py3-none-any.whl", hash = "sha256:af3d5949030c3f493f550876b2fd1dd5ec66689c4ee5d5344f009746f71fd5a8"},
+    {file = "setuptools-68.2.0.tar.gz", hash = "sha256:00478ca80aeebeecb2f288d3206b0de568df5cd2b8fada1209843cc9a8d88a48"},
 ]
 
 [package.extras]
-docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5,<=7.1.2)", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (==0.8.3)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
+docs = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "pygments-github-lexers (==0.0.5)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-favicon", "sphinx-hoverxref (<2)", "sphinx-inline-tabs", "sphinx-lint", "sphinx-notfound-page (>=1,<2)", "sphinx-reredirects", "sphinxcontrib-towncrier"]
 testing = ["build[virtualenv]", "filelock (>=3.4.0)", "flake8-2020", "ini2toml[lite] (>=0.9)", "jaraco.develop (>=7.21)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pip (>=19.1)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-checkdocs (>=2.4)", "pytest-cov", "pytest-enabler (>=2.2)", "pytest-mypy (>=0.9.1)", "pytest-perf", "pytest-ruff", "pytest-timeout", "pytest-xdist", "tomli-w (>=1.0.0)", "virtualenv (>=13.0.0)", "wheel"]
-testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
+testing-integration = ["build[virtualenv]", "filelock (>=3.4.0)", "jaraco.envs (>=2.2)", "jaraco.path (>=3.2.0)", "packaging", "pytest", "pytest-enabler", "pytest-xdist", "tomli", "virtualenv (>=13.0.0)", "wheel"]
 
 [[package]]
 name = "snowballstemmer"
@@ -2458,13 +2458,13 @@ telegram = ["requests"]
 
 [[package]]
 name = "transformers"
-version = "4.33.0"
+version = "4.33.1"
 description = "State-of-the-art Machine Learning for JAX, PyTorch and TensorFlow"
 optional = false
 python-versions = ">=3.8.0"
 files = [
-    {file = "transformers-4.33.0-py3-none-any.whl", hash = "sha256:c3b7f818e90c4361bb50ad541ab94e28329aa0d97a1c45ffafa5a8b693bc73ec"},
-    {file = "transformers-4.33.0.tar.gz", hash = "sha256:9e894dc62cfb02d92c1201e57219765b53be6486a306db8b60414e93fc2e39a5"},
+    {file = "transformers-4.33.1-py3-none-any.whl", hash = "sha256:0630c2d26448d7c6cb78435e6c43910c89e99387badea6be1f565ffa3f093f1d"},
+    {file = "transformers-4.33.1.tar.gz", hash = "sha256:744265e9f0724d22c229938f28376af54abce730ef647f35bd1685abf49912a4"},
 ]
 
 [package.dependencies]
@@ -2729,4 +2729,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1,<4"
-content-hash = "631284054ab661d3d8e8f3f314f6def1f81b73c7e4009c98bd8a47549de0b36c"
+content-hash = "6b003351471dc52811c99559c06ec150ff94ad224ad2c84566276ed11c4c4ec8"
