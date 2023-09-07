@@ -1,9 +1,17 @@
+import sys
 from pathlib import Path
 
 import toml
 
 DOCS_DIR = Path(__file__).parent.absolute()
 PROJ_DIR = DOCS_DIR / ".."
+LIBS_DIR = PROJ_DIR / "libs"
+for plugin_dir in LIBS_DIR.glob("*"):
+    plugin_dir = plugin_dir / "src"
+    sys.path.insert(0, str(plugin_dir))
+SRC_DIR = PROJ_DIR / "src"
+sys.path.insert(0, str(SRC_DIR))
+
 with open(PROJ_DIR / "pyproject.toml") as f:
     pyproj_file = toml.load(f)
 

@@ -79,9 +79,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/html
-docs/_build/linkcheck
-docs/_build/docs/
+docs/_build/
 **/jupyter_execute/
 
 # PyBuilder
