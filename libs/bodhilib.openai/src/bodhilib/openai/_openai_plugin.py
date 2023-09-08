@@ -53,7 +53,7 @@ def openai_llm_service_builder(
     if service_name != "openai":
         raise ValueError(f"Unknown service: {service_name=}")
     if service_type != "llm":
-        raise ValueError(f"Service type not supported: {service_type=}, supported service types: llm")
+        raise ValueError(f"Service type not supported: {service_type=}, supported service types: 'llm'")
     if model is None:
         raise ValueError("model is not set")
     if api_key is None:

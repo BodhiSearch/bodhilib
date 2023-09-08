@@ -75,8 +75,6 @@ def get_data_loader(
         version=version,
         **kwargs,
     )
-    if not isinstance(data_loader, return_type):
-        raise TypeError(f"Expected data loader type={type(data_loader)} to be oftype={return_type}")
     return cast(T, data_loader)
 
 

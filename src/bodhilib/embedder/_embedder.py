@@ -53,7 +53,6 @@ class Embedder(abc.ABC):
     @abc.abstractmethod
     def dimension(self) -> int:
         """Dimension of the embeddings."""
-        ...
 
 
 T = TypeVar("T", bound=Embedder)
@@ -99,8 +98,6 @@ def get_embedder(
         version=version,
         **kwargs,
     )
-    if not isinstance(embedder, return_type):
-        raise TypeError(f"Expected embedder type={type(embedder)} to be {return_type=}")
     return cast(T, embedder)
 
 

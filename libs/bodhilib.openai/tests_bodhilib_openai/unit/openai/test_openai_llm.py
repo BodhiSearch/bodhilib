@@ -1,9 +1,10 @@
 from unittest.mock import patch
 
 import pytest
-from bodhilib.openai import OpenAIChat, OpenAIText
-from bodhilib.openai import openai_llm_service_builder
-from tests_bodhilib_openai.utils import text_model, chat_model
+from bodhilib.openai import OpenAIChat, OpenAIText, bodhilib_list_services, openai_llm_service_builder
+from bodhilib.plugin import Service
+
+from tests_bodhilib_openai.utils import chat_model, text_model
 
 
 def test_get_llm_openai_text():
@@ -74,6 +75,12 @@ def test_llm_generate_override_construct_params(mock_create):
     )
 
 
+def test_openai_list_services():
+    services = bodhilib_list_services()
+    assert len(services) == 1
+    assert services[0] == Service("openai", "llm", "bodhilib", openai_llm_service_builder, "0.1.0")
+
+
 def test_get_llm_openai_raise_error_when_api_key_is_not_set(monkeypatch):
     with monkeypatch.context() as m:
         m.delenv("OPENAI_API_KEY", raising=False)
@@ -82,10 +89,23 @@ def test_get_llm_openai_raise_error_when_api_key_is_not_set(monkeypatch):
     assert str(e.value) == "environment variable OPENAI_API_KEY is not set"
 
 
-def test_unknown_service_name_raise_error():
+@pytest.mark.parametrize(
+    ["service_name", "service_type", "model", "error_message"],
+    [
+        ("unknown", "llm", "chat-gpt-3.5-turbo", "Unknown service: service_name='unknown'"),
+        (
+            "openai",
+            "unknown",
+            "chat-gpt-3.5-turbo",
+            "Service type not supported: service_type='unknown', supported service types: 'llm'",
+        ),
+        ("openai", "llm", None, "model is not set"),
+    ],
+)
+def test_openai_service_builder_raises_error(service_name, service_type, model, error_message):
     with pytest.raises(ValueError) as e:
-        _ = openai_llm_service_builder(service_name="unknown", model="unknown-model")
-    assert str(e.value) == "Unknown service: service_name='unknown'"
+        _ = openai_llm_service_builder(service_name=service_name, service_type=service_type, model=model)
+    assert str(e.value) == error_message
 
 
 def test_openai_chat_raise_error_when_called_using_callable():
@@ -100,3 +120,9 @@ def test_openai_text_raise_error_when_called_using_callable():
     with pytest.raises(TypeError) as e:
         _ = llm()
     assert str(e.value) == "'OpenAIText' object is not callable, did you mean to call 'generate'?"
+
+
+def test_openai_bodhilib_list_services():
+    services = bodhilib_list_services()
+    assert len(services) == 1
+    assert services[0] == Service("openai", "llm", "bodhilib", openai_llm_service_builder, "0.1.0")

@@ -131,7 +131,6 @@ class LLM(abc.ABC):
             :class:`~bodhilib.models.Prompt`: response as a Prompt object, if stream is False
             Iterator[:class:`~bodhilib.models.Prompt`]: an iterator of Prompt objects, if stream is True
         """
-        ...
 
 
 T = TypeVar("T", bound=LLM)
@@ -185,8 +184,6 @@ def get_llm(
         api_key=api_key,
         **kwargs,
     )
-    if not isinstance(llm, return_type):
-        raise TypeError(f"Expected llm type={type(llm)} to be oftype={return_type}")
     return cast(T, llm)
 
 

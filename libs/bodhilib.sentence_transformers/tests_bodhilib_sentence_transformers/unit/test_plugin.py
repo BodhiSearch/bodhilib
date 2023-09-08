@@ -45,3 +45,16 @@ def test_embedder_calls_sentence_transformer(mock_class):
 
     mock_instance.encode.assert_called_once_with(["foo", "bar"])
     assert list(result) == [[1, 2, 3], [4, 5, 6]]
+
+
+@pytest.mark.parametrize(
+    ["dimension", "error_message"],
+    [(None, "Dimension of the model is None."), ("0", "Unknown type for dimension, type=<class 'str'>")],
+)
+@patch("bodhilib.sentence_transformers.SentenceTransformer")
+def test_embedder_dimension_raises_error(mock_class, dimension, error_message):
+    mock_instance = mock_class.return_value
+    mock_instance.get_sentence_embedding_dimension.return_value = dimension
+    with pytest.raises(ValueError) as e:
+        _ = sentence_transformer_builder(service_name="sentence_transformers", service_type="embedder").dimension
+    assert str(e.value) == error_message
