@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import reprlib
 from typing import Any, Dict, Optional, Protocol, Union
 
 from pydantic import BaseModel, Field
@@ -22,6 +23,10 @@ class Document(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
     """Metadata associated with the document. e.g. filename, dirname, url etc."""
 
+    def __repr__(self) -> str:
+        """Returns a string representation of the document."""
+        return f"Document(text={reprlib.repr(self.text)}, metadata={reprlib.repr(self.metadata)})"
+
 
 class Node(BaseModel):
     """Chunk defines the basic interface for a processible resource.
@@ -34,6 +39,10 @@ class Node(BaseModel):
 
     parent: Optional[Document] = None
     """Metadata associated with the document. e.g. filename, dirname, url etc."""
+
+    def __repr__(self) -> str:
+        """Returns a string representation of the document."""
+        return f"Node(text={reprlib.repr(self.text)}, parent={reprlib.repr(self.parent)})"
 
 
 class SupportsText(Protocol):
