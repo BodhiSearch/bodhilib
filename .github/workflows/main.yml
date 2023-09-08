@@ -33,6 +33,7 @@ jobs:
           make check
 
   pre-commit:
+    needs: [prepare]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -46,6 +47,7 @@ jobs:
         uses: pre-commit/action@v3.0.0
 
   test:
+    needs: [prepare]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
