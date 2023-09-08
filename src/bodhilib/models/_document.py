@@ -53,6 +53,11 @@ TextLike: TypeAlias = Union[str, SupportsText]
 """TextLike is either a string or a Document."""
 
 
+def istextlike(obj: object) -> bool:
+    """Returns True if the object is a :data:`~TextLike`."""
+    return isinstance(obj, str) or supportstext(obj)
+
+
 def to_document(textlike: TextLike) -> Document:
     """Converts a :data:`~TextLike` to :class:`~Document`."""
     if isinstance(textlike, Document):

@@ -1,8 +1,7 @@
 import re
-from typing import Callable, Iterable, List, Optional, Tuple
+from typing import Callable, Iterable, List, Optional, Tuple, Iterator
 
 from bodhilib.models import Document, Node
-
 from ._splitter import Splitter
 
 
@@ -46,7 +45,10 @@ class TextSplitter(Splitter):
             eow_patterns = [r"\s", r"-", r":", r"\.", r"\?", r"\!", r"\n"]
         self.word_splitter = _build_word_splitter(eow_patterns)
 
-    def _split(self, docs: Iterable[Document]) -> Iterable[Node]:
+    def _split(self, docs: Iterable[Document]) -> List[Node]:
+        return list(self._split_generator(docs))
+
+    def _split_generator(self, docs: Iterable[Document]) -> Iterator[Node]:
         for doc in docs:
             current_words: List[str] = []
             sentences = self.sentence_splitter(doc.text)

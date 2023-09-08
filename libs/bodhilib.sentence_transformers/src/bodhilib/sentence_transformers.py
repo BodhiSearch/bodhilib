@@ -1,7 +1,7 @@
 """:mod:`bodhilib.sentence_transformers` module defines classes and methods for embedder using sentence-transformer."""
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, List, Optional
 
 from bodhilib.embedder import Embedder
 from bodhilib.logging import logger
@@ -19,11 +19,11 @@ class SentenceTransformerEmbedder(Embedder):
         self.model_name = model
         self.model: Optional[SentenceTransformer] = None
 
-    def _embed(self, texts: Iterable[str]) -> Iterable[List[float]]:
+    def _embed(self, texts: List[str]) -> List[List[float]]:
         if self.model is None:
             self.model = SentenceTransformer(self.model_name)
-        embeddings: List = self.model.encode(list(texts)).tolist()
-        return iter(embeddings)
+        embeddings: List[List[float]] = self.model.encode(list(texts)).tolist()
+        return embeddings
 
     @property
     def dimension(self) -> int:

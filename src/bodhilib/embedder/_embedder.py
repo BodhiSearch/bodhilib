@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, cast
 
-from bodhilib.models import TextLike, to_text
+from bodhilib.models import TextLike, to_text, istextlike
 from bodhilib.plugin import PluginManager, Service
 
 
@@ -19,10 +19,17 @@ class Embedder(abc.ABC):
         Args:
             text (TextLike): text or text like to embed
         """
-        embeddings: List[float] = next(iter(self.embeds([text])))
+        if isinstance(text, list):
+            raise ValueError("Input text is of type list, did you mean to call `embeds`?")
+        if not istextlike(text):
+            raise ValueError(
+                "Expecting input `text` to be TextLike (a string or have attribute `text`), but is of type"
+                f" {type(text)}"
+            )
+        embeddings: List[float] = self.embeds([text])[0]
         return embeddings
 
-    def embeds(self, texts: Iterable[TextLike]) -> Iterable[List[float]]:
+    def embeds(self, texts: Iterable[TextLike]) -> List[List[float]]:
         """Embed a list of :data:`~TextLike` using the embedder service.
 
         Args:
@@ -32,10 +39,10 @@ class Embedder(abc.ABC):
             Iterable[List[float]]: iterable of embeddings
         """
         input = [to_text(text) for text in texts]
-        return self._embed(iter(input))
+        return self._embed(input)
 
     @abc.abstractmethod
-    def _embed(self, texts: Iterable[str]) -> Iterable[List[float]]:
+    def _embed(self, texts: List[str]) -> List[List[float]]:
         """Embed a list of strings using the embedder service.
 
         Args:

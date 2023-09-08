@@ -12,11 +12,11 @@ class Splitter(abc.ABC):
     The shorter text are then used to create embeddings.
     """
 
-    def split(self, texts: Iterable[TextLike]) -> Iterable[Node]:
+    def split(self, texts: Iterable[TextLike]) -> List[Node]:
         """Split a :data:`~bodhilib.models.TextLike` into :class:`~Node`."""
         docs: List[Document] = [to_document(text) for text in texts]
         return self._split(docs)
 
     @abc.abstractmethod
-    def _split(self, docs: Iterable[Document]) -> Iterable[Node]:
+    def _split(self, docs: Iterable[Document]) -> List[Node]:
         """Split a :class:`~bodhilib.models.Document` into :class:`~Node`."""
