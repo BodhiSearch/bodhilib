@@ -24,6 +24,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Set up Python with Poetry
         uses: './.github/actions/setup'
+        with:
+          setup-only: 'true'
 
   pre-commit:
     needs: [prepare]

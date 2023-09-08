@@ -29,6 +29,11 @@ inputs:
     required: false
     default: '.'
 
+  setup-only:
+    description: Only setup the environment if cache does not exists
+    required: false
+    default: 'false'
+
 runs:
   using: composite
   steps:
@@ -50,11 +55,11 @@ runs:
         echo "POETRY_CACHE_HIT=$CACHE_HIT" >> $GITHUB_ENV
         echo "POETRY_CACHE_HIT=$CACHE_HIT"
     - uses: actions/setup-python@v4
-      if: env.POETRY_CACHE_HIT == 'false'
+      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
       with:
         python-version: ${{ inputs.python-version }}
     - uses: actions/cache@v3
-      if: env.POETRY_CACHE_HIT == 'false'
+      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
       id: cache-pip
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MIN: '15'
@@ -67,8 +72,8 @@ runs:
         key: poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
     - run: pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
       shell: bash
-      if: env.POETRY_CACHE_HIT == 'false'
+      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
     - run: ${{ inputs.install-command }}
       working-directory: ${{ inputs.working-directory }}
       shell: bash
-      if: env.POETRY_CACHE_HIT == 'false'
+      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
