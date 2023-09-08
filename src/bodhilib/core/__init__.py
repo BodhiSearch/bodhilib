@@ -1,5 +1,6 @@
 """Contains constants and common functions used by bodhilib."""
 import inspect
+from ._version import __version__ as __version__
 
 #: str: current package name, used by plugin and logger to namespace operations
 package_name = "bodhilib"
