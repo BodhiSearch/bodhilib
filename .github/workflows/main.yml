@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python with Poetry
         uses: './.github/actions/setup'
         with:
@@ -32,7 +32,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python with Poetry
         uses: './.github/actions/setup'
       - name: Check poetry files
@@ -47,7 +47,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python with Poetry
         uses: './.github/actions/setup'
       - name: Copy .env.ci to .env.test
@@ -69,7 +69,7 @@ jobs:
       contents: write
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python with Poetry
         uses: './.github/actions/setup'
       - name: Get current version
