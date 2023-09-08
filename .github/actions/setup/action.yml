@@ -36,7 +36,8 @@ runs:
       id: poetry-cache-key
       shell: bash
       run: |
-        echo "::set-output name=cache-key::poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}"
+        echo "POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}" >> $GITHUB_ENV
+        echo "POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}"
     - name: Check Poetry cache
       id: check-poetry-cache
       shell: bash
@@ -44,10 +45,12 @@ runs:
         GH_TOKEN: ${{ github.token }}
       run: |
         gh extension install actions/gh-actions-cache
-        KEY=${{ steps.poetry-cache-key.outputs.cache-key }}
+        KEY=${{ env.POETRY_CACHE_KEY }}
         CACHE_HIT=$(gh actions-cache list --key $KEY | grep -q $KEY && echo 'true' || echo 'false')
         echo "POETRY_CACHE_HIT=$CACHE_HIT" >> $GITHUB_ENV
+        echo "POETRY_CACHE_HIT=$CACHE_HIT"
     - uses: actions/setup-python@v4
+      if: ${{ env.POETRY_CACHE_HIT}} != 'true'
       with:
         python-version: ${{ inputs.python-version }}
     - uses: actions/cache@v3
