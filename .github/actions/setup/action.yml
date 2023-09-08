@@ -24,10 +24,6 @@ inputs:
     required: false
     default: make install
 
-  cache-key:
-    description: Cache key to use for manual handling of caching
-    required: true
-    default: ${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
   working-directory:
     description: Directory to run install-command in
     required: false
@@ -59,7 +55,7 @@ runs:
           ~/.cache/pypoetry/virtualenvs
           ~/.cache/pypoetry/cache
           ~/.cache/pypoetry/artifacts
-        key: poetry-${{ inputs.cache-key }}
+        key: poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
     - run: ${{ inputs.install-command }}
       working-directory: ${{ inputs.working-directory }}
       shell: bash
