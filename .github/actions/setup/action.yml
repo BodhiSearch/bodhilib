@@ -50,7 +50,7 @@ runs:
         echo "POETRY_CACHE_HIT=$CACHE_HIT" >> $GITHUB_ENV
         echo "POETRY_CACHE_HIT=$CACHE_HIT"
     - uses: actions/setup-python@v4
-      if: ${{ env.POETRY_CACHE_HIT}} != 'true'
+      if: env.POETRY_CACHE_HIT != 'true'
       with:
         python-version: ${{ inputs.python-version }}
     - uses: actions/cache@v3
