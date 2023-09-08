@@ -7,6 +7,7 @@ inputs:
   python-version:
     description: Python version, supporting MAJOR.MINOR only
     required: true
+    default: 3.8.18
 
   pipx-version:
     description: Pipx version
@@ -21,16 +22,16 @@ inputs:
   install-command:
     description: Command run for installing dependencies
     required: false
-    default: poetry install
+    default: make install
 
   cache-key:
     description: Cache key to use for manual handling of caching
     required: true
-
+    default: ${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
   working-directory:
     description: Directory to run install-command in
     required: false
-    default: ''
+    default: '.'
 
 runs:
   using: composite
@@ -49,7 +50,6 @@ runs:
         key: pip-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}
     - run: pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
       shell: bash
-
     - uses: actions/cache@v3
       id: cache-poetry
       env:
@@ -59,8 +59,7 @@ runs:
           ~/.cache/pypoetry/virtualenvs
           ~/.cache/pypoetry/cache
           ~/.cache/pypoetry/artifacts
-        key: poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-poetry-${{ inputs.poetry-version }}-${{ inputs.cache-key }}-${{ hashFiles('poetry.lock') }}
-
+        key: poetry-${{ inputs.cache-key }}
     - run: ${{ inputs.install-command }}
       working-directory: ${{ inputs.working-directory }}
       shell: bash
