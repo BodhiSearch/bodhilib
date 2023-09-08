@@ -20,7 +20,7 @@ check:
 	poetry lock --check
 
 install:
-	poetry install
+	poetry install --compile
 
 lint: install
 	poetry run pre-commit run --all-files
