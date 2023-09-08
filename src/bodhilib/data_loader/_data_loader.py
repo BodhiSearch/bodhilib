@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, Iterator, List, Optional, Type, TypeVar, cast
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Type, TypeVar, cast
 
 from bodhilib.models import Document
 from bodhilib.plugin import PluginManager, Service
 
 
-class DataLoader(abc.ABC):
+class DataLoader(Iterable[Document], abc.ABC):
     """Abstract base class for data loaders.
 
     A data loader should inherit from this class and implement the abstract methods.
@@ -19,7 +19,14 @@ class DataLoader(abc.ABC):
 
     @abc.abstractmethod
     def __iter__(self) -> Iterator[Document]:
-        """Returns the document iterator."""
+        """Returns the document iterator.
+
+        It is for the sub-class to ensure the `__iter__` method returns a new instance of iterator
+        """
+
+    def load(self) -> List[Document]:
+        """Returns the document as list."""
+        return list(self)
 
 
 T = TypeVar("T", bound=DataLoader)

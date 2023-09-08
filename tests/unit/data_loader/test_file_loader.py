@@ -4,6 +4,11 @@ import pytest
 from bodhilib.data_loader import get_data_loader
 
 
+@pytest.fixture
+def file_loader():
+    return get_data_loader("file")
+
+
 def _tmpfile(tmpdir, filename, content):
     tmpfilepath = f"{tmpdir}/{filename}"
     tmpfile = open(tmpfilepath, "w")
@@ -12,75 +17,81 @@ def _tmpfile(tmpdir, filename, content):
     return tmpfilepath
 
 
-def test_file_loader_loads_dir_recursively(tmpdir):
-    _tmpfile(tmpdir, "test1.txt", "hello world!")
-    tmpdir2 = tempfile.mkdtemp(dir=tmpdir)
-    _tmpfile(tmpdir2, "test2.txt", "world hello!")
+@pytest.fixture
+def tmp_loader_dir():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        _tmpfile(tmpdir, "test1.txt", "hello world!")
+        _tmpfile(tmpdir, "test2.txt", "world hello!")
+        tmpdir2 = tempfile.mkdtemp(dir=tmpdir, prefix="tmpdir2")
+        _tmpfile(tmpdir2, "test3.txt", "hey world!")
+        yield tmpdir
 
+
+def test_file_loader_recursive_true(file_loader, tmp_loader_dir):
     # initialize file loader and add dir as resource with recusive=True
-    file_loader = get_data_loader("file")
-    file_loader.add_resource(dir=tmpdir, recursive=True)
+    file_loader.add_resource(dir=tmp_loader_dir, recursive=True)
 
     # iterate over documents and check if they are loaded correctly
     dociter = iter(file_loader)
     doc = next(dociter)
     assert doc.text == "hello world!"
     assert doc.metadata["filename"] == "test1.txt"
-    assert doc.metadata["dirname"] == tmpdir
+    assert doc.metadata["dirname"] == tmp_loader_dir
     doc = next(dociter)
     assert doc.text == "world hello!"
     assert doc.metadata["filename"] == "test2.txt"
-    assert doc.metadata["dirname"] == tmpdir2
+    assert doc.metadata["dirname"] == tmp_loader_dir
+    doc = next(dociter)
+    assert doc.text == "hey world!"
+    assert doc.metadata["filename"] == "test3.txt"
+    assert doc.metadata["dirname"].startswith(tmp_loader_dir + "/tmpdir2")
 
     with pytest.raises(StopIteration):
         next(dociter)
 
 
-def test_file_loader_loads_all_files_in_dir(tmpdir):
-    _tmpfile(tmpdir, "test1.txt", "hello world!")
-    tmpdir2 = tempfile.mkdtemp(dir=tmpdir)
-    _tmpfile(tmpdir2, "test2.txt", "world hello!")
-
-    file_loader = get_data_loader("file")
-    file_loader.add_resource(dir=tmpdir, recursive=False)
+def test_file_loader_loads_recursive_false(file_loader, tmp_loader_dir):
+    file_loader.add_resource(dir=tmp_loader_dir, recursive=False)
 
     dociter = iter(file_loader)
     doc = next(dociter)
     assert doc.text == "hello world!"
     assert doc.metadata["filename"] == "test1.txt"
-
-    with pytest.raises(StopIteration):
-        next(dociter)
-
-
-def test_file_loader_loads_given_files(tmpdir):
-    tmpfile1 = _tmpfile(tmpdir, "test1.txt", "hello world!")
-    tmpfile2 = _tmpfile(tmpdir, "test2.txt", "world hello!")
-    file_loader = get_data_loader("file")
-    file_loader.add_resource(file=tmpfile1, recursive=False)
-    file_loader.add_resource(file=tmpfile2, recursive=False)
-    dociter = iter(file_loader)
-    doc = next(dociter)
-    assert doc.text == "hello world!"
-    assert doc.metadata["filename"] == "test1.txt"
-    assert doc.metadata["dirname"] == tmpdir
+    assert doc.metadata["dirname"] == tmp_loader_dir
     doc = next(dociter)
     assert doc.text == "world hello!"
     assert doc.metadata["filename"] == "test2.txt"
-    assert doc.metadata["dirname"] == tmpdir
+    assert doc.metadata["dirname"] == tmp_loader_dir
 
     with pytest.raises(StopIteration):
         next(dociter)
 
 
-def test_file_loader_loads_given_file(tmpdir):
-    tmpfile1 = _tmpfile(tmpdir, "test1.txt", "hello world!")
-    file_loader = get_data_loader("file")
-    file_loader.add_resource(file=tmpfile1, recursive=False)
+def test_file_loader_loads_given_files(file_loader, tmp_loader_dir):
+    file_loader.add_resource(file=f"{tmp_loader_dir}/test1.txt")
     dociter = iter(file_loader)
     doc = next(dociter)
     assert doc.text == "hello world!"
     assert doc.metadata["filename"] == "test1.txt"
-    assert doc.metadata["dirname"] == tmpdir
+    assert doc.metadata["dirname"] == tmp_loader_dir
+
     with pytest.raises(StopIteration):
         next(dociter)
+
+
+def test_file_loader_loads_method(file_loader, tmp_loader_dir):
+    file_loader.add_resource(dir=tmp_loader_dir, recursive=True)
+    docs = file_loader.load()
+    assert len(docs) == 3
+    doc = docs[0]
+    assert doc.text == "hello world!"
+    assert doc.metadata["filename"] == "test1.txt"
+    assert doc.metadata["dirname"] == tmp_loader_dir
+    doc = docs[1]
+    assert doc.text == "world hello!"
+    assert doc.metadata["filename"] == "test2.txt"
+    assert doc.metadata["dirname"] == tmp_loader_dir
+    doc = docs[2]
+    assert doc.text == "hey world!"
+    assert doc.metadata["filename"] == "test3.txt"
+    assert doc.metadata["dirname"].startswith(tmp_loader_dir + "/tmpdir2")
