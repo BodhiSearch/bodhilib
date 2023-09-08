@@ -7,7 +7,7 @@ inputs:
   python-version:
     description: Python version, supporting MAJOR.MINOR only
     required: true
-    default: "3.8"
+    default: '3.8'
 
   pipx-version:
     description: Pipx version
@@ -32,11 +32,26 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Set the cache key
+      id: poetry-cache-key
+      shell: bash
+      run: |
+        echo "::set-output name=cache-key::poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}"
+    - name: Check Poetry cache
+      id: check-poetry-cache
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        gh extension install actions/gh-actions-cache
+        KEY=${{ steps.poetry-cache-key.outputs.cache-key }}
+        CACHE_HIT=$(gh actions-cache list --key $KEY | grep -q $KEY && echo 'true' || echo 'false')
+        echo "cache-hit=$CACHE_HIT" >> $GITHUB_OUTPUT
     - uses: actions/setup-python@v4
       with:
         python-version: ${{ inputs.python-version }}
-
     - uses: actions/cache@v3
+      if: steps.check-poetry-cache.outputs.cache-hit != 'true'
       id: cache-pip
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MIN: '15'
@@ -49,6 +64,8 @@ runs:
         key: poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
     - run: pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
       shell: bash
+      if: steps.check-poetry-cache.outputs.cache-hit != 'true'
     - run: ${{ inputs.install-command }}
       working-directory: ${{ inputs.working-directory }}
       shell: bash
+      if: steps.check-poetry-cache.outputs.cache-hit != 'true'
