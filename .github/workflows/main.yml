@@ -17,7 +17,7 @@ on:
         default: 'no'
 
 jobs:
-  pre-commit:
+  prepare: # This job is for preparing the environment and caching it to speed up later jobs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -31,6 +31,17 @@ jobs:
         shell: bash
         run: |
           make check
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Set up Python with Poetry
+        uses: './.github/actions/setup'
+        with:
+          python-version: 3.8
+          cache-key: ${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-poetry-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
       - name: Pre-commit
         uses: pre-commit/action@v3.0.0
 
