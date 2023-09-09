@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, Iterable, List, Optional, Type, TypeVar, cast
+from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
-from bodhilib.models import TextLike, to_text, istextlike
+from bodhilib.models import TextLike, istextlike, to_text
 from bodhilib.plugin import PluginManager, Service
 
 
@@ -13,33 +13,28 @@ class Embedder(abc.ABC):
     An embedder should inherit from this class and implement the abstract methods.
     """
 
-    def embed(self, text: TextLike) -> List[float]:
-        """Embed the :data:`~TextLike` using the embedder service.
+    def embed(self, texts: List[TextLike]) -> List[List[float]]:
+        """Embed the a list of :data:`~TextLike` using the embedder service.
 
         Args:
-            text (TextLike): text or text like to embed
-        """
-        if isinstance(text, list):
-            raise ValueError("Input text is of type list, did you mean to call `embeds`?")
-        if not istextlike(text):
-            raise ValueError(
-                "Expecting input `text` to be TextLike (a string or have attribute `text`), but is of type"
-                f" {type(text)}"
-            )
-        embeddings: List[float] = self.embeds([text])[0]
-        return embeddings
-
-    def embeds(self, texts: Iterable[TextLike]) -> List[List[float]]:
-        """Embed a list of :data:`~TextLike` using the embedder service.
-
-        Args:
-            texts (List[TextLike]): list of text or text like to embed
+            text (List[TextLike]): a list of :data:`~TextLike` objects to embed
 
         Returns:
-            Iterable[List[float]]: iterable of embeddings
+            List[List[float]]: list of embeddings
         """
-        input = [to_text(text) for text in texts]
-        return self._embed(input)
+        if not isinstance(texts, list):
+            raise ValueError(
+                f"Expecting input `texts` to be a list of TextLike, but is of type {type(texts)}. Did you forget to"
+                " pass it as a list?"
+            )
+        if not all(istextlike(t) for t in texts):
+            raise ValueError(
+                "Expecting input `texts` to be a list of TextLike items (a string or have attribute `text`), "
+                "but some elements of the list are not TextLike"
+            )
+        input = [to_text(t) for t in texts]
+        embeddings: List[List[float]] = self._embed(input)
+        return embeddings
 
     @abc.abstractmethod
     def _embed(self, texts: List[str]) -> List[List[float]]:

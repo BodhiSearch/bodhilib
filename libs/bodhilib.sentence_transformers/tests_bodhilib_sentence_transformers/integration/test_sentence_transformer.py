@@ -1,16 +1,16 @@
 import pytest
-from bodhilib.embedder import get_embedder
+from bodhilib.embedder import Embedder, get_embedder
 from bodhilib.sentence_transformers import SentenceTransformerEmbedder, sentence_transformer_builder
 
 
 @pytest.fixture
-def embedder():
+def embedder() -> SentenceTransformerEmbedder:
     return sentence_transformer_builder(service_name="sentence_transformers")
 
 
 @pytest.mark.live
-def test_sentence_transformer_embeddings(embedder):
-    embeddings = list(embedder.embeds(["foo", "bar"]))
+def test_sentence_transformer_embeddings(embedder: Embedder):
+    embeddings = list(embedder.embed(["foo", "bar"]))
     assert len(embeddings) == 2
     assert len(embeddings[0]) == 384
     assert len(embeddings[1]) == 384
