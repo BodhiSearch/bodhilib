@@ -9,4 +9,8 @@ def test_document_repr():
 def test_node_repr():
     parent = Document(text="World Hello!" * 30, metadata={"filename": "test.txt"})
     node = Node(text="Hello World!" * 30, parent=parent)
-    assert repr(node) == "Node(text='Hello World!...!Hello World!', parent=Document(text...: 'test.txt'}))"
+    assert (
+        repr(node)
+        == "Node(text='Hello World!...!Hello World!', parent=Document(text='World Hello!...!World Hello!',"
+        " metadata={'filename': 'test.txt'}))"
+    )

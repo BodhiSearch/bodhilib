@@ -42,7 +42,7 @@ class Node(BaseModel):
 
     def __repr__(self) -> str:
         """Returns a string representation of the document."""
-        return f"Node(text={reprlib.repr(self.text)}, parent={reprlib.repr(self.parent)})"
+        return f"Node(text={reprlib.repr(self.text)}, parent={repr(self.parent)})"
 
 
 class SupportsText(Protocol):
