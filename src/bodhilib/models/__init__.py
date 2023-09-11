@@ -1,6 +1,7 @@
 """Contains model classes used by bohilib as inputs and outputs to operations."""
 import inspect
 
+from ._document import Distance as Distance
 from ._document import Document as Document
 from ._document import Node as Node
 from ._document import PathLike as PathLike

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 from enum import Enum
-from typing import Any, Callable, Iterable, Iterator, Optional, Type, TypeVar, Union, no_type_check
+from typing import Any, Callable, Iterable, Iterator, List, Optional, Type, TypeVar, Union, no_type_check
 
 from pydantic import BaseModel, validator
 
@@ -23,6 +23,11 @@ class StrEnumMixin:
         elif isinstance(other, type(self)):
             return self.value == other.value
         return False
+
+    @no_type_check
+    @classmethod
+    def membersstr(cls) -> List[str]:
+        return [e.value for e in cls.__members__.values()]
 
 
 class Role(StrEnumMixin, str, Enum):

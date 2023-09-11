@@ -1,14 +1,25 @@
 from __future__ import annotations
 
-from pathlib import Path
 import reprlib
-from typing import Any, Dict, Optional, Protocol, Union
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Protocol, Union
 
 from pydantic import BaseModel, Field
 from typing_extensions import TypeAlias
 
+from ._prompt import StrEnumMixin
+
 PathLike: TypeAlias = Union[str, Path]
 """PathLike is either a path to a resource as string or pathlib.Path."""
+
+
+class Distance(StrEnumMixin, str, Enum):
+    """Vector Distance Method."""
+
+    COSINE = "cosine"
+    EUCLIDEAN = "euclidean"
+    DOT_PRODUCT = "dot_product"
 
 
 class Document(BaseModel):
@@ -29,10 +40,16 @@ class Document(BaseModel):
 
 
 class Node(BaseModel):
-    """Chunk defines the basic interface for a processible resource.
+    """Node defines the basic data structure for a processible resource.
 
-    Primarily contains text (content) and metadata.
+    It contains a unique identifier, content text, metadata associated with its sources,
+    and embeddings.
     """
+
+    id: Optional[str] = None
+    """Unique identifier for the node.
+
+    Generated during the document split operation, or retrieved from doc/vector database at the time of query."""
 
     text: str
     """Text content of the document."""
@@ -40,9 +57,14 @@ class Node(BaseModel):
     parent: Optional[Document] = None
     """Metadata associated with the document. e.g. filename, dirname, url etc."""
 
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    """Metadata associated with the node. This is also copied over from parent when splitting Document."""
+
+    embeddings: Optional[List[float]] = None
+
     def __repr__(self) -> str:
         """Returns a string representation of the document."""
-        return f"Node(text={reprlib.repr(self.text)}, parent={repr(self.parent)})"
+        return f"Node(id={self.id}, text={reprlib.repr(self.text)}, parent={repr(self.parent)})"
 
 
 class SupportsText(Protocol):

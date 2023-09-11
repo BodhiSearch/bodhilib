@@ -11,6 +11,6 @@ def test_node_repr():
     node = Node(text="Hello World!" * 30, parent=parent)
     assert (
         repr(node)
-        == "Node(text='Hello World!...!Hello World!', parent=Document(text='World Hello!...!World Hello!',"
+        == "Node(id=None, text='Hello World!...!Hello World!', parent=Document(text='World Hello!...!World Hello!',"
         " metadata={'filename': 'test.txt'}))"
     )
