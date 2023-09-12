@@ -16,6 +16,9 @@ from ._splitter import Splitter as Splitter
 from ._vectordb import VectorDB as VectorDB
 from ._vectordb import VectorDBError as VectorDBError
 from ._vectordb import get_vector_db as get_vector_db
+from ._version import __version__ as __version__
+
+package_name = "bodhilib"
 
 __all__ = [name for name, obj in globals().items() if not (name.startswith("_") or inspect.ismodule(obj))]
 
