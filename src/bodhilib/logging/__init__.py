@@ -7,3 +7,5 @@ from ._logging import init_logger
 logger = init_logger()
 
 __all__ = [name for name, obj in globals().items() if not (name.startswith("_") or inspect.ismodule(obj))]
+
+del inspect

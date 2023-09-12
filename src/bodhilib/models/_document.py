@@ -60,7 +60,7 @@ class Node(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
     """Metadata associated with the node. This is also copied over from parent when splitting Document."""
 
-    embeddings: Optional[List[float]] = None
+    embedding: Optional[List[float]] = None
 
     def __repr__(self) -> str:
         """Returns a string representation of the document."""

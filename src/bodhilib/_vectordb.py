@@ -1,7 +1,8 @@
 import abc
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from bodhilib.models import Distance, Node
+from bodhilib.plugin import PluginManager
 
 
 class VectorDBError(Exception):
@@ -108,3 +109,33 @@ class VectorDB(abc.ABC):
         Raises:
             VectorDBError: Wraps any database delete error raised by the underlying client.
         """
+
+
+T = TypeVar("T", bound=VectorDB)
+"""TypeVar for VectorDB."""
+
+
+def get_vector_db(
+    service_name: str,
+    *,
+    oftype: Optional[Type[T]] = None,
+    publisher: Optional[str] = None,
+    version: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+) -> T:
+    """Get an instance of VectorDB for the given service name."""
+    if oftype is None:
+        return_type: Type[Any] = VectorDB
+    else:
+        return_type = oftype
+
+    manager = PluginManager.instance()
+    vectordb: T = manager.get(
+        service_name=service_name,
+        service_type="vector_db",
+        oftype=return_type,
+        publisher=publisher,
+        version=version,
+        **kwargs,
+    )
+    return cast(T, vectordb)

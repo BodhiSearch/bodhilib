@@ -1,1 +1,9 @@
-""":mod:`bodhiext.data_loader` bodhiext top package for data loaders."""
+""":mod:`bodhiext.data_loader` bodhiext package for data loaders."""
+import inspect
+
+from ._file import FileLoader as FileLoader
+from ._plugin import bodhilib_list_services as bodhilib_list_services
+
+__all__ = [name for name, obj in globals().items() if not (name.startswith("_") or inspect.ismodule(obj))]
+
+del inspect

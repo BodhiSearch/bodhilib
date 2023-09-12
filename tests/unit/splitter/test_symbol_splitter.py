@@ -1,7 +1,7 @@
 import itertools
 
 import pytest
-from bodhilib.splitter._text_splitter import _build_sentence_splitter, _build_symbol_splitter
+from bodhiext.splitter._text_splitter import _build_sentence_splitter, _build_symbol_splitter
 
 from tests.unit.splitter.test_text_splitter import _generate_sentence
 

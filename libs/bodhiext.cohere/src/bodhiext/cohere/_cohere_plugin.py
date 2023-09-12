@@ -17,7 +17,7 @@ def bodhilib_list_services() -> List[Service]:
         Service(
             service_name="cohere",
             service_type="llm",
-            publisher="bodhilib",
+            publisher="bodhiext",
             service_builder=cohere_llm_service_builder,
             version="0.1.0",
         )

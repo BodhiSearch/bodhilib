@@ -47,20 +47,22 @@ class Qdrant(VectorDB):
             self.client = client
             return
         try:
-            self.client = QdrantClient(
-                location=location,
-                url=url,
-                port=port,
-                grpc_port=grpc_port,
-                prefer_grpc=prefer_grpc,
-                https=https,
-                api_key=api_key,
-                prefix=prefix,
-                timeout=timeout,
-                host=host,
-                path=path,
+            args = {
+                "location": location,
+                "url": url,
+                "port": port,
+                "grpc_port": grpc_port,
+                "prefer_grpc": prefer_grpc,
+                "https": https,
+                "api_key": api_key,
+                "prefix": prefix,
+                "timeout": timeout,
+                "host": host,
+                "path": path,
                 **kwargs,
-            )
+            }
+            args = {key: value for key, value in args.items() if value is not None}
+            self.client = QdrantClient(**args)
         except (ValueError, RuntimeError) as e:
             raise VectorDBError(e) from e
 
@@ -122,8 +124,9 @@ class Qdrant(VectorDB):
             for node in nodes:
                 if node.id is None:
                     node.id = str(uuid.uuid4())
+
             points: List[PointStruct] = [
-                PointStruct(id=node.id, vector=node.embeddings, payload={"text": node.text, **node.metadata})
+                PointStruct(id=node.id, vector=node.embedding, payload={"text": node.text, **node.metadata})
                 for node in nodes
             ]
             _ = self.client.upsert(collection_name, points=points)
@@ -132,11 +135,18 @@ class Qdrant(VectorDB):
             raise VectorDBError(e) from e
 
     def query(
-        self, collection_name: str, embedding: List[float], filter: Optional[Dict[str, Any]], **kwargs: Dict[str, Any]
+        self,
+        collection_name: str,
+        embedding: List[float],
+        filter: Optional[Dict[str, Any]] = None,
+        **kwargs: Dict[str, Any],
     ) -> List[Node]:
         try:
-            qdrant_filter = _mongodb_to_qdrant_filter(filter)
-            query_filter = Filter(**qdrant_filter)
+            if filter:
+                qdrant_filter = _mongodb_to_qdrant_filter(filter)
+                query_filter = Filter(**qdrant_filter)
+            else:
+                query_filter = None
             results = self.client.search(collection_name, embedding, query_filter=query_filter, **kwargs)
             return _to_nodes(results)
         except (ValueError, RuntimeError) as e:
@@ -181,7 +191,7 @@ def bodhilib_list_services() -> List[Service]:
         Service(
             service_name="qdrant",
             service_type="vector_db",
-            publisher="bodhilib",
+            publisher="bodhiext",
             service_builder=qdrant_service_builder,
             version=__version__,
         )
@@ -255,7 +265,7 @@ def _to_nodes(results: List[ScoredPoint]) -> List[Node]:
         node = Node(
             id=result.id,
             text=text,
-            embeddings=result.vector,
+            embedding=result.vector,
             metadata=result.payload,
         )
         nodes.append(node)

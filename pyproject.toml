@@ -45,9 +45,11 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.plugins.bodhilib]
+"bodhiext.data_loader" = "bodhiext.data_loader"
+"bodhiext.splitter" = "bodhiext.splitter"
+
 "bodhiext.openai" = "bodhiext.openai"
 "bodhiext.cohere" = "bodhiext.cohere"
-"bodhiext.file_loader" = "bodhiext.data_loader.file"
 "bodhiext.sentence_transformers" = "bodhiext.sentence_transformers"
 "bodhiext.qdrant" = "bodhiext.qdrant"
 

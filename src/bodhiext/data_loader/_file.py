@@ -8,7 +8,6 @@ from typing import Any, Callable, Dict, Iterator, List, Optional
 from bodhilib import DataLoader
 from bodhilib.logging import logger
 from bodhilib.models import Document, PathLike
-from bodhilib.plugin import Service, service_provider
 
 LoaderCallable = Callable[[Path], List[Document]]
 
@@ -108,7 +107,7 @@ def file_loader_service_builder(
     *,
     service_name: Optional[str] = "file",
     service_type: Optional[str] = "data_loader",
-    publisher: Optional[str] = "bodhilib",
+    publisher: Optional[str] = "bodhiext",
     **kwargs: Dict[str, Any],
 ) -> FileLoader:
     """Return a file data loader service builder for the plugin to build and return :class:`~FileLoader`."""
@@ -116,20 +115,6 @@ def file_loader_service_builder(
         raise ValueError(f"Unknown service: {service_name=}")
     if service_type != "data_loader":
         raise ValueError(f"Service type not supported: {service_type=}, supported service types: data_loader")
-    if publisher is not None and publisher != "bodhilib":
+    if publisher is not None and publisher != "bodhiext":
         raise ValueError(f"Unknown publisher: {publisher=}")
     return FileLoader()
-
-
-@service_provider
-def bodhilib_list_services() -> List[Service]:
-    """Return a list of services supported by the file plugin."""
-    return [
-        Service(
-            service_name="file",
-            service_type="data_loader",
-            publisher="bodhilib",
-            service_builder=file_loader_service_builder,
-            version="0.1.0",
-        )
-    ]

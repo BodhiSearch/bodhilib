@@ -12,7 +12,11 @@ from ._llm import get_llm as get_llm
 from ._llm import list_llms as list_llms
 from ._llm import list_models as list_models
 from ._llm import parse_prompts as parse_prompts
+from ._splitter import Splitter as Splitter
 from ._vectordb import VectorDB as VectorDB
 from ._vectordb import VectorDBError as VectorDBError
+from ._vectordb import get_vector_db as get_vector_db
 
 __all__ = [name for name, obj in globals().items() if not (name.startswith("_") or inspect.ismodule(obj))]
+
+del inspect

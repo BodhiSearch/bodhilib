@@ -22,3 +22,5 @@ from ._template import PromptTemplate as PromptTemplate
 from ._template import prompt_with_examples as prompt_with_examples
 
 __all__ = [name for name, obj in globals().items() if not (name.startswith("_") or inspect.ismodule(obj))]
+
+del inspect

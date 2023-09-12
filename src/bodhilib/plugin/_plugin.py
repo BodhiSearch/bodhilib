@@ -146,7 +146,7 @@ class PluginManager:
             if service.service_name == service_name and service.service_type == service_type:
                 component = service.service_builder(**all_args)
                 if not isinstance(component, return_type):
-                    raise TypeError(f"Expecting {service_type} of type {oftype}, but got {type(component)}")
+                    raise TypeError(f'Expecting {service_type} of type "{oftype}", but got "{type(component)}"')
                 return cast(T, component)
         raise ValueError(f"Unknown service: {service_name}, available services: {self.services}")
 

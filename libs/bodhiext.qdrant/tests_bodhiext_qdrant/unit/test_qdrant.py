@@ -145,7 +145,7 @@ def test_qdrant_insert_calls_client(mock_client_class):
     mock_client = mock_client_class.return_value
     mock_client.upsert.return_value = UpdateResult(operation_id=1, status="acknowledged")
     qdrant = Qdrant(client=mock_client)
-    nodes = [Node(id="1", text="test node", embeddings=[1.0, 2.0, 3.0], metadata={"filename": "foo.txt"})]
+    nodes = [Node(id="1", text="test node", embedding=[1.0, 2.0, 3.0], metadata={"filename": "foo.txt"})]
     result = qdrant.upsert(
         "test_collection",
         nodes,
@@ -164,7 +164,7 @@ def test_qdrant_insert_raises_error(mock_client_class, error):
     mock_client.upsert.side_effect = error
     qdrant = Qdrant(client=mock_client)
     with pytest.raises(VectorDBError) as e:
-        _ = qdrant.upsert("test_collection", [Node(id="1", text="test node", embeddings=[1.0, 2.0, 3.0])])
+        _ = qdrant.upsert("test_collection", [Node(id="1", text="test node", embedding=[1.0, 2.0, 3.0])])
     assert str(e.value) == "test error"
 
 
@@ -201,7 +201,7 @@ def test_qdrant_query_calls_client(
     mock_client.search.return_value = stub_result
     qdrant = Qdrant(client=mock_client)
     result = qdrant.query(collection_name, [1.0, 2.0, 3.0], docs_filter, **extra_args)
-    assert result == [Node(id="1", text="test node", embeddings=[1.0, 2.0, 3.0], metadata={"filename": "foo.txt"})]
+    assert result == [Node(id="1", text="test node", embedding=[1.0, 2.0, 3.0], metadata={"filename": "foo.txt"})]
     mock_client.search.assert_called_once_with(
         collection_name, [1.0, 2.0, 3.0], query_filter=Filter(**qdrant_filter), **expected_args
     )

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import textwrap
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from bodhilib.logging import logger
+from bodhilib.models import TextLike
 
 from ._prompt import Prompt, Role, Source
 
@@ -48,6 +49,7 @@ class PromptTemplate:
         if self.engine == "default":
             return Prompt(self.template.format(**{**self.kwargs, **kwargs}), role=self.role, source=self.source)
         if self.engine == "jinja2":
+            # TODO: remove this check
             try:
                 import jinja2  # noqa: F401
             except ImportError as e:
@@ -61,7 +63,7 @@ class PromptTemplate:
             from jinja2 import Template
 
             template = Template(textwrap.dedent(self.template))
-            result = template.render(self.kwargs)
+            result = template.render({**self.kwargs, **kwargs})
             return Prompt(result, role=self.role, source=self.source)
         raise ValueError(f"Unknown engine {self.engine}")
 
@@ -83,3 +85,22 @@ def prompt_with_examples(template: str, **kwargs: Dict[str, Any]) -> PromptTempl
     role = kwargs.pop("role", None)
     source = kwargs.pop("source", None)
     return PromptTemplate(template, role=role, source=source, engine="jinja2", **kwargs)  # type: ignore
+
+
+def prompt_with_extractive_qna(template: str, contexts: List[TextLike], **kwargs: Dict[str, Any]) -> PromptTemplate:
+    """Factory method to generate a prompt template for extractive QnA.
+
+    Args:
+        template: a `jinja2` compliant template string to loop through examples
+        **kwargs: additional arguments to be used for rendering the template.
+            Can also contain `role` and `source` to override the default values.
+
+    Returns:
+        PromptTemplate: configured prompt template to generate prompt with examples
+    """
+    # pop role from kwargs or get None
+    role = kwargs.pop("role", None)
+    source = kwargs.pop("source", None)
+    return PromptTemplate(
+        template, role=role, source=source, engine="jinja2", contexts=contexts, **kwargs  # type: ignore
+    )

@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 import pytest
 from bodhiext.openai import OpenAIChat, OpenAIText, bodhilib_list_services, openai_llm_service_builder
+from bodhilib import get_llm
 from bodhilib.plugin import Service
 
 from tests_bodhiext_openai.utils import chat_model, text_model
@@ -17,6 +18,16 @@ def test_get_llm_openai_chat():
     llm = openai_llm_service_builder(service_name="openai", model=chat_model)
     assert llm.model == chat_model
     assert type(llm) is OpenAIChat
+
+
+def test_openai_service_builder_for_chat():
+    openai = get_llm("openai", chat_model)
+    assert type(openai) is OpenAIChat
+
+
+def test_openai_service_builder_for_text():
+    openai = get_llm("openai", text_model)
+    assert type(openai) is OpenAIText
 
 
 @patch("openai.ChatCompletion.create")
@@ -78,7 +89,7 @@ def test_llm_generate_override_construct_params(mock_create):
 def test_openai_list_services():
     services = bodhilib_list_services()
     assert len(services) == 1
-    assert services[0] == Service("openai", "llm", "bodhilib", openai_llm_service_builder, "0.1.0")
+    assert services[0] == Service("openai", "llm", "bodhiext", openai_llm_service_builder, "0.1.0")
 
 
 def test_get_llm_openai_raise_error_when_api_key_is_not_set(monkeypatch):
@@ -125,4 +136,4 @@ def test_openai_text_raise_error_when_called_using_callable():
 def test_openai_bodhilib_list_services():
     services = bodhilib_list_services()
     assert len(services) == 1
-    assert services[0] == Service("openai", "llm", "bodhilib", openai_llm_service_builder, "0.1.0")
+    assert services[0] == Service("openai", "llm", "bodhiext", openai_llm_service_builder, "0.1.0")

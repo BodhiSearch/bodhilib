@@ -1,22 +1,5 @@
 import pytest
-from bodhilib import get_llm
-from bodhiext.openai import (
-    OpenAIChat,
-    OpenAIText,
-    bodhilib_list_llm_models,
-)
-
-from tests_bodhiext_openai.utils import chat_model, text_model
-
-
-def test_openai_service_builder_for_chat():
-    openai = get_llm("openai", chat_model)
-    assert type(openai) is OpenAIChat
-
-
-def test_openai_service_builder_for_text():
-    openai = get_llm("openai", text_model)
-    assert type(openai) is OpenAIText
+from bodhiext.openai import bodhilib_list_llm_models
 
 
 @pytest.mark.live

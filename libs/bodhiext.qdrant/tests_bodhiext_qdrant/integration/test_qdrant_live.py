@@ -71,7 +71,7 @@ def test_qdrant_delete_collection(qdrant_fixture, request):
 @pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
 def test_qdrant_insert_node(qdrant_fixture, request):
     qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
-    nodes = [Node(id=None, embeddings=EMBEDDING, text="test", metadata={"filename": "foo.txt"})]
+    nodes = [Node(id=None, embedding=EMBEDDING, text="test", metadata={"filename": "foo.txt"})]
     result = qdrant_client.upsert(TEST_COLLECTION, nodes)
     assert result is not None
     assert len(result) == 1
@@ -88,8 +88,8 @@ def test_qdrant_insert_node(qdrant_fixture, request):
 @pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
 def test_qdrant_query(qdrant_fixture, request):
     qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
-    foo = Node(id=None, embeddings=EMBEDDING, text="foo", metadata={"filename": "foo.txt"})
-    bar = Node(id=None, embeddings=EMBEDDING, text="bar", metadata={"filename": "bar.txt"})
+    foo = Node(id=None, embedding=EMBEDDING, text="foo", metadata={"filename": "foo.txt"})
+    bar = Node(id=None, embedding=EMBEDDING, text="bar", metadata={"filename": "bar.txt"})
     nodes = [
         foo,
         bar,

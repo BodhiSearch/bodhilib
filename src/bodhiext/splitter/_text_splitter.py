@@ -1,8 +1,8 @@
 import re
-from typing import Callable, Iterable, List, Optional, Tuple, Iterator
+from typing import Callable, Iterable, Iterator, List, Optional, Tuple
 
 from bodhilib.models import Document, Node
-from ._splitter import Splitter
+from bodhilib import Splitter
 
 
 class TextSplitter(Splitter):
@@ -10,6 +10,7 @@ class TextSplitter(Splitter):
 
     def __init__(
         self,
+        *,
         max_len: int = 512,
         min_len: int = 128,
         overlap: int = 16,

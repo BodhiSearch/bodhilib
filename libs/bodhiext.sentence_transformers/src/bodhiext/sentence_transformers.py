@@ -67,7 +67,7 @@ def bodhilib_list_services() -> List[Service]:
         Service(
             service_name="sentence_transformers",
             service_type="embedder",
-            publisher="bodhilib",
+            publisher="bodhiext",
             service_builder=sentence_transformer_builder,
             version="0.1.0",
         )

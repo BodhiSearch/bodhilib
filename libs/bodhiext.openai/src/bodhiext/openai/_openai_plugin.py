@@ -18,7 +18,7 @@ def bodhilib_list_services() -> List[Service]:
         Service(
             service_name="openai",
             service_type="llm",
-            publisher="bodhilib",
+            publisher="bodhiext",
             service_builder=openai_llm_service_builder,
             version="0.1.0",
         )

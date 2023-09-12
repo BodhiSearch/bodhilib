@@ -1,6 +1,6 @@
 import pytest
 from bodhilib.models import Document
-from bodhilib.splitter import TextSplitter
+from bodhiext.splitter import TextSplitter
 
 
 @pytest.fixture

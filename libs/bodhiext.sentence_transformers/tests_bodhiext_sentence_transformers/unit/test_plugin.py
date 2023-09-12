@@ -1,15 +1,40 @@
 from unittest.mock import patch
 
 import pytest
+from bodhiext.sentence_transformers import (
+    SentenceTransformerEmbedder,
+    bodhilib_list_services,
+    sentence_transformer_builder,
+)
+from bodhilib import get_embedder
 from bodhilib.plugin import Service
-from bodhiext.sentence_transformers import bodhilib_list_services, sentence_transformer_builder
 
 
 def test_sentence_transformer_bodhilib_list_services():
     service_listing = bodhilib_list_services()
     assert service_listing == [
-        Service("sentence_transformers", "embedder", "bodhilib", sentence_transformer_builder, "0.1.0")
+        Service("sentence_transformers", "embedder", "bodhiext", sentence_transformer_builder, "0.1.0")
     ]
+
+
+def test_sentence_transformer_get_embedder():
+    embedder = get_embedder("sentence_transformers", offtype=SentenceTransformerEmbedder)
+    assert isinstance(embedder, SentenceTransformerEmbedder)
+
+
+class _TestEmbedder:
+    ...
+
+
+def test_sentence_transformer_get_embedder_raises_error_if_not_of_given_oftype():
+    with pytest.raises(TypeError) as e:
+        _ = get_embedder("sentence_transformers", oftype=_TestEmbedder)
+    expected = (
+        'Expecting embedder of type "<class'
+        " 'tests_bodhiext_sentence_transformers.unit.test_plugin._TestEmbedder'>\", but got"
+        " \"<class 'bodhiext.sentence_transformers.SentenceTransformerEmbedder'>\""
+    )
+    assert str(e.value) == expected
 
 
 @pytest.mark.parametrize(
