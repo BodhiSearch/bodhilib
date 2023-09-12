@@ -1,9 +1,13 @@
 bodhilib.models
 ===============
 
+.. data:: SupportsText
+
+   Protocol for objects that support the `text` attribute
+
 .. data:: TextLike
 
-   Type alias for Union of :class:`str` and :class:`~bodhilib.models.SupportsText`
+   Type alias for Union of :class:`str` and protocol :data:`~bodhilib.models.SupportsText`
 
 .. data:: PathLike
 

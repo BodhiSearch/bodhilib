@@ -5,11 +5,10 @@ import os
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterator, List, Optional
 
+from bodhilib import DataLoader
 from bodhilib.logging import logger
 from bodhilib.models import Document, PathLike
 from bodhilib.plugin import Service, service_provider
-
-from bodhilib.data_loader import DataLoader
 
 LoaderCallable = Callable[[Path], List[Document]]
 

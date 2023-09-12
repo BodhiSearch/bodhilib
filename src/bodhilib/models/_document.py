@@ -76,7 +76,7 @@ class SupportsText(Protocol):
 
 
 def supportstext(obj: object) -> bool:
-    """Returns True if the object supports :class:`~SupportText` protocol."""
+    """Returns True if the object supports :class:`~bodhilib.models.SupportsText` protocol."""
     return hasattr(obj, "text")
 
 

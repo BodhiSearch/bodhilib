@@ -55,7 +55,7 @@ def get_data_loader(
         **kwargs (Dict[str, Any]): pass through arguments for the data loader, e.g. aws_access_key_id, notion_db etc.
 
     Returns:
-        T (:data:`~bodhilib.data_loader._data_loader.T` | :class:`~DataLoader`):
+        T (:data:`~bodhilib._data_loader.T` | :class:`~DataLoader`):
             an instance of DataLoader service of type `oftype`, if oftype is passed, else of type :class:`~DataLoader`
 
     Raises:

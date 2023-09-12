@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from bodhilib.llm import list_llms
+from bodhilib import list_llms
 from bodhilib.plugin import LLMModel, PluginManager, Service
 
 

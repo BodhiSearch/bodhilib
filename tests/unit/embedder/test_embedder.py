@@ -1,7 +1,7 @@
 from typing import List
 
 import pytest
-from bodhilib.embedder import Embedder
+from bodhilib import Embedder
 
 
 class _TestEmbedder(Embedder):

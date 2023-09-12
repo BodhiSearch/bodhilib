@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib.llm import LLM
+from bodhilib import LLM
 from bodhilib.models import Prompt, PromptStream, prompt_output
 
 import cohere
@@ -11,7 +11,7 @@ from cohere.responses.generation import StreamingText
 
 
 class Cohere(LLM):
-    """Cohere API implementation for :class:`bodhilib.llm.LLM`."""
+    """Cohere API implementation for :class:`~bodhilib.LLM`."""
 
     def __init__(self, model: str, api_key: Optional[str], **kwargs: Dict[str, Any]):
         self.model = model

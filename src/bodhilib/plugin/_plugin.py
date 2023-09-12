@@ -68,8 +68,8 @@ def bodhilib_list_llm_models() -> List[LLMModel]:
 
 
 T = TypeVar("T")
-"""TypeVar for Component (one of sub-class of :class:`~bodhilib.llm.LLM`, :class:`~bodhilib.embedder.Embedder`,
-:class:`~bodhilib.data_loader.DataLoader`).
+"""TypeVar for Component (one of sub-class of :class:`~bodhilib.LLM`, :class:`~bodhilib.Embedder`,
+:class:`~bodhilib.DataLoader`).
 Used for type hinting in :meth:`~bodhilib.plugin.PluginManager.get` method."""
 
 

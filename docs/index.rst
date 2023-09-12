@@ -5,6 +5,7 @@ Welcome to bodhilib's documentation!
    :maxdepth: 2
    :glob:
 
+   reference/bodhilib
    reference/bodhilib.*
    reference/bodhiext.*
 

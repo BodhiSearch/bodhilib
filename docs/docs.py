@@ -52,7 +52,6 @@ def main() -> None:
             )
     # Remove unnecessary files
     os.remove("reference/modules.rst")
-    os.remove("reference/bodhilib.rst")
     os.remove("reference/bodhiext.rst")
     os.remove("reference/bodhiext.data_loader.rst")
 

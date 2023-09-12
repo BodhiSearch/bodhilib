@@ -1,4 +1,4 @@
-from bodhilib.llm import parse_prompts
+from bodhilib import parse_prompts
 from bodhilib.models import Prompt
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt

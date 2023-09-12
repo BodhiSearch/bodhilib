@@ -39,9 +39,9 @@ master_doc = "index"
 pygments_style = "sphinx"
 todo_include_todos = False
 nitpick_ignore = [
-    ("py:class", "bodhilib.data_loader._data_loader.T"),
-    ("py:class", "bodhilib.embedder._embedder.T"),
-    ("py:class", "bodhilib.llm._llm.T"),
+    ("py:class", "bodhilib._data_loader.T"),
+    ("py:class", "bodhilib._embedder.T"),
+    ("py:class", "bodhilib._llm.T"),
     ("py:class", "bodhilib.plugin._plugin.T"),
     ("py:class", "bodhilib.models._prompt.T"),
     ("py:class", "PathLike"),
@@ -50,6 +50,7 @@ nitpick_ignore = [
     ("py:class", "pydantic.main.BaseModel"),
     ("py:class", "T"),
     ("py:data", "T"),
+    ("py:class", "qdrant_client.qdrant_client.QdrantClient"),
 ]
 
 # -- Options for HTML output -------------------------------------------------

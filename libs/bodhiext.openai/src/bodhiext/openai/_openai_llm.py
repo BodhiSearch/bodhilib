@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
-from bodhilib.llm import LLM
+from bodhilib import LLM
 from bodhilib.models import Prompt, PromptStream, Role, prompt_output
 
 import openai
@@ -11,7 +11,7 @@ from openai.openai_response import OpenAIResponse
 
 
 class OpenAIChat(LLM):
-    """OpenAI Chat API implementation for :class:`bodhilib.llm.LLM`."""
+    """OpenAI Chat API implementation for :class:`bodhilib.LLM`."""
 
     def __init__(self, model: str, **kwargs: Dict[str, Any]) -> None:
         self.model = model
@@ -64,7 +64,7 @@ class OpenAIChat(LLM):
 
 
 class OpenAIText(LLM):
-    """OpenAI Text API implementation for :class:`bodhilib.llm.LLM`."""
+    """OpenAI Text API implementation for :class:`bodhilib.LLM`."""
 
     def __init__(self, model: str, **kwargs: Dict[str, Any]) -> None:
         self.model = model

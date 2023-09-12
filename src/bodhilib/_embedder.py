@@ -14,10 +14,10 @@ class Embedder(abc.ABC):
     """
 
     def embed(self, texts: List[TextLike]) -> List[List[float]]:
-        """Embed the a list of :data:`~TextLike` using the embedder service.
+        """Embed the a list of :data:`~bodhilib.models.TextLike` using the embedder service.
 
         Args:
-            text (List[TextLike]): a list of :data:`~TextLike` objects to embed
+            text (List[TextLike]): a list of :data:`~bodhilib.models.TextLike` objects to embed
 
         Returns:
             List[List[float]]: list of embeddings
@@ -73,7 +73,7 @@ def get_embedder(
         **kwargs (Dict[str, Any]): pass through arguments for the embedder, e.g. dimension etc.
 
     Returns:
-        T (:data:`~bodhilib.embedder._embedder.T` | :class:`~Embedder`):
+        T (:data:`~bodhilib._embedder.T` | :class:`~Embedder`):
             an instance of Embedder service of type `oftype`, if oftype is passed, else of type :class:`~Embedder`
 
     Raises:

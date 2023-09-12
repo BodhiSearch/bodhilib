@@ -1,9 +1,9 @@
 from unittest.mock import Mock, patch
 
 import pytest
-from bodhilib.models import Distance, Node
 from bodhiext.qdrant import Qdrant
-from bodhilib.vectordb import VectorDBError
+from bodhilib import VectorDBError
+from bodhilib.models import Distance, Node
 from qdrant_client.http.models import (
     CollectionDescription,
     Filter,

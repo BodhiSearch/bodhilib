@@ -93,12 +93,18 @@ class VectorDB(abc.ABC):
             List of record ids for the inserted embeddings.
 
         Raises:
-            ValueError: If the length of embeddings and nodes do not match.
-            VectorDBError: Wraps any error raised by the underlying database.
+            VectorDBError: Wraps any database delete error raised by the underlying client.
         """
 
     @abc.abstractmethod
     def query(
         self, collection_name: str, embedding: List[float], filter: Optional[Dict[str, Any]], **kwargs: Dict[str, Any]
     ) -> List[Node]:
-        """Search for the nearest vectors in the database."""
+        """Search for the nearest vectors in the database.
+
+        Returns:
+            List of nodes with metadata.
+
+        Raises:
+            VectorDBError: Wraps any database delete error raised by the underlying client.
+        """

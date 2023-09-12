@@ -1,5 +1,5 @@
 import pytest
-from bodhilib.llm import get_llm
+from bodhilib import get_llm
 from bodhiext.openai import (
     OpenAIChat,
     OpenAIText,

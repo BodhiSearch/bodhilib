@@ -1,7 +1,7 @@
 import tempfile
 
 import pytest
-from bodhilib.data_loader import get_data_loader
+from bodhilib import get_data_loader
 
 
 @pytest.fixture

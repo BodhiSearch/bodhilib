@@ -1,5 +1,11 @@
-bodhilib.llm
-============
+bodhilib
+========
+
+.. automodule:: bodhilib
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :special-members: __iter__
 
 .. data:: PromptInput
 
@@ -15,9 +21,8 @@ bodhilib.llm
       - a serialized :class:`~bodhilib.models.Prompt` object as dict, e.g. `{"text": "hello", "role": "user", "source": "input"}`
       - a list of serialized :class:`~bodhilib.models.Prompt` objects as dicts
 
-.. autodata:: bodhilib.llm._llm.T
+.. autodata:: bodhilib._data_loader.T
 
-.. automodule:: bodhilib.llm
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. autodata:: bodhilib._embedder.T
+
+.. autodata:: bodhilib._llm.T

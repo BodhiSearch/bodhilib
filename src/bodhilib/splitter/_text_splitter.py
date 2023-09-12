@@ -6,7 +6,7 @@ from ._splitter import Splitter
 
 
 class TextSplitter(Splitter):
-    """Splitter splits a :class:`~bodhilib.models.Document` into :class:`~Node` based on sentence and word splits."""
+    """Splitter splits a :class:`~bodhilib.models.Document` into :class:`~bodhilib.models.Node`."""
 
     def __init__(
         self,
@@ -19,13 +19,13 @@ class TextSplitter(Splitter):
         r"""Initializing splitter to split text based on sentence and word splits.
 
         Args:
-            max_len (int, optional): Maximum number of words in split text. Defaults to 512.
-            min_len (int, optional): Minimum number of words in split text. Defaults to 128.
-            overlap (int, optional): Number of words to overlap between splits. Defaults to 16.
-            eos_patterns (Optional[List[str]], optional): List of patterns to split sentences.
+            max_len (Optional[int]): Maximum number of words in split text. Defaults to 512.
+            min_len (Optional[int]): Minimum number of words in split text. Defaults to 128.
+            overlap (Optional[int]): Number of words to overlap between splits. Defaults to 16.
+            eos_patterns (Optional[List[str]]): List of patterns to split sentences.
                 The patterns should be regex. E.g. `[r"\n", r"\."]`.
                 Defaults to `[r"\.", r"\?", r"\!", r"\n"]`.
-            eow_patterns (Optional[List[str]], optional): List of patterns to split words.
+            eow_patterns (Optional[List[str]]): List of patterns to split words.
                 The patterns should be regex. E.g. `[r"\s", r"\-"]`.
                 Defaults to `[r"\s", r"\-", r"\:", r"\.", r"\?", r"\!", r"\n"]`.
         """

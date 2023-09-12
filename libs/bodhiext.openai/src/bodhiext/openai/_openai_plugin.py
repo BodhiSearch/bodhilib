@@ -70,7 +70,6 @@ def openai_llm_service_builder(
         return OpenAIText(model, **params)
 
 
-# TODO: cache the response
 @service_provider
 def bodhilib_list_llm_models() -> List[LLMModel]:
     """Plugin function to list all LLM models available by this service."""

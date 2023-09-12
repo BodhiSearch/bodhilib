@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-from bodhilib.llm import LLM
+from bodhilib import LLM
 from bodhilib.plugin import LLMModel, Service, service_provider
 
 from ._cohere_llm import Cohere
@@ -32,7 +32,7 @@ def cohere_llm_service_builder(
     api_key: Optional[str] = None,
     **kwargs: Dict[str, Any],
 ) -> LLM:
-    """Returns an instance of Cohere LLM service implementing :class:`bodhilib.llm.LLM`.
+    """Returns an instance of Cohere LLM service implementing :class:`bodhilib.LLM`.
 
     Args:
         service_name: service name to wrap, should be "cohere"
@@ -40,7 +40,7 @@ def cohere_llm_service_builder(
         model: Cohere model identifier
         api_key: api key for Cohere service, if not set, it will be read from environment variable COHERE_API_KEY
     Returns:
-        LLM: a service instance implementing :class:`bodhilib.llm.LLM` for the given service and model
+        LLM: a service instance implementing :class:`bodhilib.LLM` for the given service and model
     Raises:
         ValueError: if service_name is not "cohere"
         ValueError: if service_type is not "llm"

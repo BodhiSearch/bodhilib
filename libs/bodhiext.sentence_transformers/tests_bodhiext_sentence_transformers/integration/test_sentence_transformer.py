@@ -1,6 +1,6 @@
 import pytest
-from bodhilib.embedder import Embedder, get_embedder
 from bodhiext.sentence_transformers import SentenceTransformerEmbedder, sentence_transformer_builder
+from bodhilib import Embedder, get_embedder
 
 
 @pytest.fixture

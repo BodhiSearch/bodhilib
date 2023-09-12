@@ -49,7 +49,7 @@ class LLM(abc.ABC):
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> Union[Prompt, PromptStream]:
-        """Base class :func:`~bodhilib.llm.LLM.generate` method interface common to all LLM service implementation.
+        """Base class :func:`~bodhilib.LLM.generate` method interface common to all LLM service implementation.
 
         Takes in :data:`PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.models.Prompt`
         object, to dict representation of Prompt. Returns the response from LLM service as
@@ -110,7 +110,7 @@ class LLM(abc.ABC):
         """Generate text using LLM service with the given prompt list.
 
         This method should be implemented by the LLM service plugin.
-        The PromptInput received in :func:`~bodhilib.llm.LLM.generate` is parsed into a list of
+        The PromptInput received in :func:`~bodhilib.LLM.generate` is parsed into a list of
         :class:`~bodhilib.models.Prompt` and passed to this method.
 
         Args:
@@ -161,7 +161,7 @@ def get_llm(
         **kwargs (Dict[str, Any]): pass through arguments for the LLM service, e.g. "temperature", "max_tokens", etc.
 
     Returns:
-        T (:data:`~bodhilib.llm._llm.T` | :class:`~LLM`):
+        T (:data:`~bodhilib._llm.T` | :class:`~LLM`):
             an instance of LLM service of type `oftype`, if oftype is passed,
             else of type :class:`~LLM`
 
@@ -193,6 +193,7 @@ def list_llms() -> List[Service]:
     return manager.list_services("llm")
 
 
+# TODO: Delete this implementation
 def list_models() -> List[LLMModel]:
     """List all LLM models installed and available."""
     manager = PluginManager.instance()
