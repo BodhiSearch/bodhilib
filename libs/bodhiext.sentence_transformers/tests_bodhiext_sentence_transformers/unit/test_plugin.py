@@ -59,13 +59,15 @@ class EmbeddingList(list):
         return self
 
 
+@pytest.mark.parametrize(["pass_as_client"], [(False,), (True,)])
 @patch("bodhiext.sentence_transformers.SentenceTransformer")
-def test_embedder_calls_sentence_transformer(mock_class):
+def test_embedder_calls_sentence_transformer(mock_class, pass_as_client):
     mock_instance = mock_class.return_value
     stub_embeddings = EmbeddingList([[1, 2, 3], [4, 5, 6]])
     mock_instance.encode.return_value = stub_embeddings
-
-    embedder = sentence_transformer_builder(service_name="sentence_transformers", service_type="embedder")
+    client = mock_instance if pass_as_client else None
+    args = {"service_name": "sentence_transformers", "service_type": "embedder", "client": client}
+    embedder = sentence_transformer_builder(**args)
     result = embedder.embed(["foo", "bar"])
 
     mock_instance.encode.assert_called_once_with(["foo", "bar"])
