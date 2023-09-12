@@ -7,10 +7,11 @@ authors = ["Amir Nagri <amir.nagri@proton.me>"]
 readme = "README.md"
 packages = [
   { include = "bodhilib", from = "src" },
-  { include = "bodhilib", from = "libs/bodhilib.cohere/src" },
-  { include = "bodhilib", from = "libs/bodhilib.openai/src" },
-  { include = "bodhilib", from = "libs/bodhilib.sentence_transformers/src" },
-  { include = "bodhilib", from = "libs/bodhilib.qdrant/src" },
+  { include = "bodhiext", from = "src" },
+  { include = "bodhiext", from = "libs/bodhiext.cohere/src" },
+  { include = "bodhiext", from = "libs/bodhiext.openai/src" },
+  { include = "bodhiext", from = "libs/bodhiext.sentence_transformers/src" },
+  { include = "bodhiext", from = "libs/bodhiext.qdrant/src" },
 ]
 
 [tool.poetry.dependencies]
@@ -43,26 +44,26 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.plugins.bodhilib]
-"bodhilib.openai" = "bodhilib.openai"
-"bodhilib.cohere" = "bodhilib.cohere"
-"bodhilib.file_loader" = "bodhilib.data_loader.file"
-"bodhilib.sentence_transformers" = "bodhilib.sentence_transformers"
-"bodhilib.qdrant" = "bodhilib.qdrant"
+"bodhiext.openai" = "bodhiext.openai"
+"bodhiext.cohere" = "bodhiext.cohere"
+"bodhiext.file_loader" = "bodhiext.data_loader.file"
+"bodhiext.sentence_transformers" = "bodhiext.sentence_transformers"
+"bodhiext.qdrant" = "bodhiext.qdrant"
 
 [tool.pytest.ini_options]
 pythonpath = [
   "src",
-  "libs/bodhilib.cohere/src",
-  "libs/bodhilib.openai/src",
-  "libs/bodhilib.sentence_transformers/src",
-  "libs/bodhilib.qdrant/src",
+  "libs/bodhiext.cohere/src",
+  "libs/bodhiext.openai/src",
+  "libs/bodhiext.sentence_transformers/src",
+  "libs/bodhiext.qdrant/src",
 ]
 testpaths = [
   "tests",
-  "libs/bodhilib.cohere/tests_bodhilib_cohere",
-  "libs/bodhilib.openai/tests_bodhilib_openai",
-  "libs/bodhilib.sentence_transformers/tests_bodhilib_sentence_transformers",
-  "libs/bodhilib.qdrant/tests_bodhilib_qdrant",
+  "libs/bodhiext.cohere/tests_bodhiext_cohere",
+  "libs/bodhiext.openai/tests_bodhiext_openai",
+  "libs/bodhiext.sentence_transformers/tests_bodhiext_sentence_transformers",
+  "libs/bodhiext.qdrant/tests_bodhiext_qdrant",
 ]
 filterwarnings = ["error", "ignore::DeprecationWarning:httpx._content"]
 markers = [
@@ -104,10 +105,10 @@ plugins = ['pydantic.mypy']
 exclude = '(?x)(test\_.*|conftest\.py|docs/.*/conf\.py)'
 mypy_path = [
   "src",
-  "libs/bodhilib.cohere/src",
-  "libs/bodhilib.openai/src",
-  "libs/bodhilib.sentence_transformers/src",
-  "libs/bodhilib.qdrant/src",
+  "libs/bodhiext.cohere/src",
+  "libs/bodhiext.openai/src",
+  "libs/bodhiext.sentence_transformers/src",
+  "libs/bodhiext.qdrant/src",
 ]
 disallow_incomplete_defs = true
 disallow_untyped_defs = true

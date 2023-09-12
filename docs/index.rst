@@ -6,6 +6,7 @@ Welcome to bodhilib's documentation!
    :glob:
 
    reference/bodhilib.*
+   reference/bodhiext.*
 
 Indices and tables
 ==================

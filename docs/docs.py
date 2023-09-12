@@ -29,10 +29,11 @@ def main() -> None:
     )
 
     # Build the api documentation
-    lib_dir = docs_dir / ".." / "libs"
-    for plugin in glob.glob(os.path.join(lib_dir, "*")):
-        if os.path.isdir(plugin):
-            src_path = Path(plugin) / "src" / "bodhilib"
+    libs_root = glob.glob(os.path.join(docs_dir / ".." / "libs", "*"))
+    exts_src = [Path(lib_root) / "src" / "bodhiext" for lib_root in libs_root]
+    exts_src.insert(0, docs_dir / ".." / "src" / "bodhiext")
+    for ext_src in exts_src:
+        if os.path.isdir(ext_src):
             # Run sphinx-apidoc
             subprocess.run(
                 [
@@ -46,12 +47,14 @@ def main() -> None:
                     "_templates",
                     "-o",
                     output_path,
-                    src_path,
+                    ext_src.absolute(),
                 ]
             )
     # Remove unnecessary files
     os.remove("reference/modules.rst")
     os.remove("reference/bodhilib.rst")
+    os.remove("reference/bodhiext.rst")
+    os.remove("reference/bodhiext.data_loader.rst")
 
     # generate doctrees
     subprocess.run(["make", "html"])

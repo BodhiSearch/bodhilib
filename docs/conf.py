@@ -61,7 +61,7 @@ intersphinx_mapping = {
 }
 autodoc_default_options = {
     "typehints": "description",
-    "mock_imports": ["torch", "pydantic"],
+    "mock_imports": ["torch", "pydantic", "qdrant_client"],
     "members": True,
 }
 autodoc_type_aliases = {

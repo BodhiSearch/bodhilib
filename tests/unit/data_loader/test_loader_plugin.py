@@ -11,6 +11,6 @@ def test_loader_raises_type_error_if_not_of_given_type():
         _ = get_data_loader("file", oftype=_TestLoader)
     expected = (
         "Expecting data_loader of type <class 'tests.unit.data_loader.test_loader_plugin._TestLoader'>, but got <class"
-        " 'bodhilib.data_loader.file.FileLoader'>"
+        " 'bodhiext.data_loader.file.FileLoader'>"
     )
     assert str(e.value) == expected
