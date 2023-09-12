@@ -7,12 +7,12 @@ from tests_bodhiext_openai.utils import chat_model, default_system_prompt, defau
 
 @pytest.fixture
 def llm_davinci() -> LLM:
-    return get_llm("openai", "text-davinci-003")
+    return get_llm("openai_text", "text-davinci-003")
 
 
 @pytest.fixture
 def llm_gpt35_turbo() -> LLM:
-    return get_llm("openai", chat_model)
+    return get_llm("openai_chat", chat_model)
 
 
 @pytest.mark.live

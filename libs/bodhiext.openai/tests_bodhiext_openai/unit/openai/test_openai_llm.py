@@ -1,41 +1,52 @@
 from unittest.mock import patch
 
 import pytest
-from bodhiext.openai import OpenAIChat, OpenAIText, bodhilib_list_services, openai_llm_service_builder
+from bodhiext.openai import OpenAIChat, OpenAIText, bodhilib_list_services
+from bodhiext.openai._openai_plugin import openai_chat_service_builder, openai_text_service_builder
+from bodhiext.openai._version import __version__
 from bodhilib import get_llm
 from bodhilib.plugin import Service
 
 from tests_bodhiext_openai.utils import chat_model, text_model
 
 
-def test_get_llm_openai_text():
-    llm = openai_llm_service_builder(service_name="openai", model=text_model)
-    assert llm.model == text_model
+@pytest.fixture
+def openai_chat() -> OpenAIChat:
+    return get_llm("openai_chat", chat_model)
+
+
+@pytest.fixture
+def openai_text() -> OpenAIChat:
+    return get_llm("openai_text", text_model)
+
+
+def test_openai_service_builder_text():
+    llm = openai_text_service_builder(service_name="openai_text", model=text_model)
+    assert llm.kwargs["model"] == text_model
     assert type(llm) is OpenAIText
 
 
-def test_get_llm_openai_chat():
-    llm = openai_llm_service_builder(service_name="openai", model=chat_model)
-    assert llm.model == chat_model
+def test_openai_service_builder_chat():
+    llm = openai_chat_service_builder(service_name="openai_chat", model=chat_model)
+    assert llm.kwargs["model"] == chat_model
     assert type(llm) is OpenAIChat
 
 
-def test_openai_service_builder_for_chat():
-    openai = get_llm("openai", chat_model)
+def test_openai_get_llm_openai_chat():
+    openai = get_llm("openai_chat", chat_model)
     assert type(openai) is OpenAIChat
 
 
-def test_openai_service_builder_for_text():
-    openai = get_llm("openai", text_model)
+def test_openai_get_llm_openai_text():
+    openai = get_llm("openai_text", text_model)
     assert type(openai) is OpenAIText
 
 
 @patch("openai.ChatCompletion.create")
-def test_chat_llm_generate_with_temperature(mock_create):
+def test_chat_llm_generate_with_temperature(mock_create, openai_chat):
     mock_create.return_value = {"choices": [{"message": {"content": "Sunday"}}]}
-    chat = openai_llm_service_builder(service_name="openai", model=chat_model)
     prompt_text = "What comes after Monday?"
-    response = chat.generate(prompt_text, temperature=0.5)
+    response = openai_chat.generate(prompt_text, temperature=0.5)
     assert response.text == "Sunday"
     mock_create.assert_called_once_with(
         model=chat_model,
@@ -45,11 +56,10 @@ def test_chat_llm_generate_with_temperature(mock_create):
 
 
 @patch("openai.ChatCompletion.create")
-def test_chat_llm_generate_override_construct_params(mock_create):
+def test_chat_llm_generate_override_construct_params(mock_create, openai_chat):
     mock_create.return_value = {"choices": [{"message": {"content": "Sunday"}}]}
-    chat = openai_llm_service_builder(service_name="openai", model=chat_model, temperature=0.5)
     prompt_text = "What comes after Monday?"
-    response = chat.generate(prompt_text, temperature=0.9)
+    response = openai_chat.generate(prompt_text, temperature=0.9)
     assert response.text == "Sunday"
     mock_create.assert_called_once_with(
         model=chat_model,
@@ -59,11 +69,10 @@ def test_chat_llm_generate_override_construct_params(mock_create):
 
 
 @patch("openai.Completion.create")
-def test_llm_generate_with_temperature(mock_create):
+def test_llm_generate_with_temperature(mock_create, openai_text):
     mock_create.return_value = {"choices": [{"text": "Sunday"}]}
-    chat = openai_llm_service_builder(service_name="openai", model=text_model)
     prompt_text = "What comes after Monday?"
-    response = chat.generate(prompt_text, temperature=0.5)
+    response = openai_text.generate(prompt_text, temperature=0.5)
     assert response.text == "Sunday"
     mock_create.assert_called_once_with(
         model=text_model,
@@ -73,11 +82,10 @@ def test_llm_generate_with_temperature(mock_create):
 
 
 @patch("openai.Completion.create")
-def test_llm_generate_override_construct_params(mock_create):
+def test_llm_generate_override_construct_params(mock_create, openai_text):
     mock_create.return_value = {"choices": [{"text": "Sunday"}]}
-    chat = openai_llm_service_builder(service_name="openai", model=text_model, temperature=0.5)
     prompt_text = "What comes after Monday?"
-    response = chat.generate(prompt_text, temperature=0.9)
+    response = openai_text.generate(prompt_text, temperature=0.9)
     assert response.text == "Sunday"
     mock_create.assert_called_once_with(
         model=text_model,
@@ -88,52 +96,90 @@ def test_llm_generate_override_construct_params(mock_create):
 
 def test_openai_list_services():
     services = bodhilib_list_services()
-    assert len(services) == 1
-    assert services[0] == Service("openai", "llm", "bodhiext", openai_llm_service_builder, "0.1.0")
+    assert len(services) == 2
+    assert services[0] == Service("openai_chat", "llm", "bodhiext", openai_chat_service_builder, __version__)
+    assert services[1] == Service("openai_text", "llm", "bodhiext", openai_text_service_builder, __version__)
 
 
-def test_get_llm_openai_raise_error_when_api_key_is_not_set(monkeypatch):
+@pytest.mark.parametrize(["service_name", "model"], [("openai_chat", chat_model), ("openai_text", text_model)])
+def test_get_llm_openai_raise_error_when_api_key_is_not_set(monkeypatch, service_name, model):
     with monkeypatch.context() as m:
         m.delenv("OPENAI_API_KEY", raising=False)
         with pytest.raises(ValueError) as e:
-            _ = openai_llm_service_builder(service_name="openai", model=chat_model)
+            _ = get_llm(service_name=service_name, model=model)
     assert str(e.value) == "environment variable OPENAI_API_KEY is not set"
 
 
 @pytest.mark.parametrize(
-    ["service_name", "service_type", "model", "error_message"],
+    ["builder", "service_name", "service_type", "model", "error_message"],
     [
-        ("unknown", "llm", "chat-gpt-3.5-turbo", "Unknown service: service_name='unknown'"),
         (
-            "openai",
+            openai_chat_service_builder,
             "unknown",
-            "chat-gpt-3.5-turbo",
-            "Service type not supported: service_type='unknown', supported service types: 'llm'",
+            "llm",
+            "gpt-3.5-turbo",
+            (
+                "Unknown params: service_name='unknown', service_type='llm', supported params:"
+                " service_name='openai_chat', service_type='llm'"
+            ),
         ),
-        ("openai", "llm", None, "model is not set"),
+        (
+            openai_chat_service_builder,
+            "openai_chat",
+            "unknown",
+            "gpt-3.5-turbo",
+            (
+                "Unknown params: service_name='openai_chat', service_type='unknown', supported params:"
+                " service_name='openai_chat', service_type='llm'"
+            ),
+        ),
+        (
+            openai_text_service_builder,
+            "unknown",
+            "llm",
+            "text-ada-002",
+            (
+                "Unknown params: service_name='unknown', service_type='llm', supported params:"
+                " service_name='openai_text', service_type='llm'"
+            ),
+        ),
+        (
+            openai_text_service_builder,
+            "openai_text",
+            "unknown",
+            "text-ada-002",
+            (
+                "Unknown params: service_name='openai_text', service_type='unknown', supported params:"
+                " service_name='openai_text', service_type='llm'"
+            ),
+        ),
     ],
 )
-def test_openai_service_builder_raises_error(service_name, service_type, model, error_message):
+def test_openai_service_builder_raises_error(builder, service_name, service_type, model, error_message):
     with pytest.raises(ValueError) as e:
-        _ = openai_llm_service_builder(service_name=service_name, service_type=service_type, model=model)
+        _ = builder(service_name=service_name, service_type=service_type, model=model)
     assert str(e.value) == error_message
 
 
-def test_openai_chat_raise_error_when_called_using_callable():
-    llm = openai_llm_service_builder(service_name="openai", model=chat_model)
+@pytest.mark.parametrize(
+    ["builder", "service_name", "model", "error_message"],
+    [
+        (
+            openai_chat_service_builder,
+            "openai_chat",
+            chat_model,
+            "'OpenAIChat' object is not callable, did you mean to call 'generate'?",
+        ),
+        (
+            openai_text_service_builder,
+            "openai_text",
+            text_model,
+            "'OpenAIText' object is not callable, did you mean to call 'generate'?",
+        ),
+    ],
+)
+def test_openai_chat_raise_error_when_called_using_callable(builder, service_name, model, error_message):
+    llm = builder(service_name=service_name, model=model)
     with pytest.raises(TypeError) as e:
         _ = llm()
-    assert str(e.value) == "'OpenAIChat' object is not callable, did you mean to call 'generate'?"
-
-
-def test_openai_text_raise_error_when_called_using_callable():
-    llm = openai_llm_service_builder(service_name="openai", model=text_model)
-    with pytest.raises(TypeError) as e:
-        _ = llm()
-    assert str(e.value) == "'OpenAIText' object is not callable, did you mean to call 'generate'?"
-
-
-def test_openai_bodhilib_list_services():
-    services = bodhilib_list_services()
-    assert len(services) == 1
-    assert services[0] == Service("openai", "llm", "bodhiext", openai_llm_service_builder, "0.1.0")
+    assert str(e.value) == error_message

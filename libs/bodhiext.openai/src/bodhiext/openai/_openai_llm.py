@@ -13,8 +13,7 @@ from openai.openai_response import OpenAIResponse
 class OpenAIChat(LLM):
     """OpenAI Chat API implementation for :class:`bodhilib.LLM`."""
 
-    def __init__(self, model: str, **kwargs: Dict[str, Any]) -> None:
-        self.model = model
+    def __init__(self, **kwargs: Dict[str, Any]) -> None:
         self.kwargs = kwargs
 
     def _generate(
@@ -48,8 +47,10 @@ class OpenAIChat(LLM):
             **kwargs,
         }
         all_args = {k: v for k, v in all_args.items() if v is not None}
+        if "model" not in all_args:
+            raise ValueError("parameter model is required")
         messages = self._to_messages(prompts)
-        response = openai.ChatCompletion.create(model=self.model, messages=messages, **all_args)
+        response = openai.ChatCompletion.create(messages=messages, **all_args)
         if "stream" in all_args and all_args["stream"]:
             return PromptStream(response, _chat_response_to_prompt_transformer)
         content = response["choices"][0]["message"]["content"]
@@ -66,8 +67,7 @@ class OpenAIChat(LLM):
 class OpenAIText(LLM):
     """OpenAI Text API implementation for :class:`bodhilib.LLM`."""
 
-    def __init__(self, model: str, **kwargs: Dict[str, Any]) -> None:
-        self.model = model
+    def __init__(self, **kwargs: Dict[str, Any]) -> None:
         self.kwargs = kwargs
 
     def _generate(
@@ -106,7 +106,9 @@ class OpenAIText(LLM):
             **kwargs,
         }
         all_args = {k: v for k, v in all_args.items() if v is not None}
-        response = openai.Completion.create(model=self.model, prompt=prompt, **all_args)
+        if "model" not in all_args:
+            raise ValueError("parameter model is required")
+        response = openai.Completion.create(prompt=prompt, **all_args)
         if "stream" in all_args and all_args["stream"]:
             return PromptStream(response, _text_response_to_prompt_transfromer)
         return _text_response_to_prompt_transfromer(response)
