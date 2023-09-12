@@ -3,10 +3,8 @@ from __future__ import annotations
 import logging
 import os
 
-from bodhilib.core import package_name
 
-
-def init_logger() -> logging.Logger:
+def init_logger(package_name: str) -> logging.Logger:
     """Initialize logger for bodhilib.
 
     Returns the default logger if BODHILIB_LOG_LEVEL is not set, else returns a logger with
