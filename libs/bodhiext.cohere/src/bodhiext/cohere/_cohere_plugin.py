@@ -7,6 +7,8 @@ from typing import Any, Dict, List, Optional
 from bodhilib import LLM
 from bodhilib.plugin import LLMModel, Service, service_provider
 
+import cohere
+
 from ._cohere_llm import Cohere
 
 
@@ -28,6 +30,7 @@ def cohere_llm_service_builder(
     *,
     service_name: Optional[str] = None,
     service_type: Optional[str] = "llm",
+    client: Optional[cohere.Client] = None,
     model: Optional[str] = None,
     api_key: Optional[str] = None,
     **kwargs: Dict[str, Any],
@@ -37,6 +40,7 @@ def cohere_llm_service_builder(
     Args:
         service_name: service name to wrap, should be "cohere"
         service_type: service type of the implementation, should be "llm"
+        client: Cohere client instance, if not set, it will be created using other parameters
         model: Cohere model identifier
         api_key: api key for Cohere service, if not set, it will be read from environment variable COHERE_API_KEY
     Returns:
@@ -48,18 +52,17 @@ def cohere_llm_service_builder(
         ValueError: if api_key is not set, and environment variable COHERE_API_KEY is not set
     """
     # TODO use pydantic for parameter validation
-    if service_name != "cohere":
-        raise ValueError(f"Unknown service: {service_name=}")
-    if service_type != "llm":
-        raise ValueError(f"Unknown service type: {service_type=}")
-    if model is None:
-        raise ValueError("model is not set")
+    if service_name != "cohere" or service_type != "llm":
+        raise ValueError(
+            f"Unknown params: {service_name=}, {service_type=}, supported params: service_name='cohere',"
+            " service_type='llm'"
+        )
     if api_key is None:
         if os.environ.get("COHERE_API_KEY") is None:
             raise ValueError("environment variable COHERE_API_KEY is not set")
         else:
             api_key = os.environ["COHERE_API_KEY"]
-    return Cohere(model=model, api_key=api_key, **kwargs)
+    return Cohere(client=client, model=model, api_key=api_key, **kwargs)
 
 
 @service_provider

@@ -87,6 +87,7 @@ class LLM(abc.ABC):
             "user": user,
             **kwargs,
         }
+        all_args = {k: v for k, v in all_args.items() if v is not None}
         return self._generate(prompts, **all_args)  # type: ignore
 
     @no_type_check

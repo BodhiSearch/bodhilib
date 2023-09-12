@@ -19,9 +19,20 @@ def test_cohere_bodhilib_list_services():
 @pytest.mark.parametrize(
     ["kwargs", "error_msg"],
     [
-        ({}, "Unknown service: service_name=None"),
-        ({"service_name": "cohere", "service_type": "vectordb"}, "Unknown service type: service_type='vectordb'"),
-        ({"service_name": "cohere"}, "model is not set"),
+        (
+            {},
+            (
+                "Unknown params: service_name=None, service_type='llm', supported params: service_name='cohere',"
+                " service_type='llm'"
+            ),
+        ),
+        (
+            {"service_name": "cohere", "service_type": "vectordb"},
+            (
+                "Unknown params: service_name='cohere', service_type='vectordb', supported params:"
+                " service_name='cohere', service_type='llm'"
+            ),
+        ),
     ],
 )
 def test_cohere_llm_service_builder_validations(kwargs, error_msg):
