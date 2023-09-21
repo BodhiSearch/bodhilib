@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
-from bodhilib import LLM
+from bodhilib import LLM, PromptInput, prompt_input_to_prompts
 from bodhilib.models import Prompt, PromptStream, Role, prompt_output
 
 import openai
@@ -16,9 +16,9 @@ class OpenAIChat(LLM):
     def __init__(self, **kwargs: Dict[str, Any]) -> None:
         self.kwargs = kwargs
 
-    def _generate(
+    def generate(
         self,
-        prompts: List[Prompt],
+        prompt_input: PromptInput,
         *,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
@@ -32,6 +32,7 @@ class OpenAIChat(LLM):
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> Union[Prompt, PromptStream]:
+        prompts = prompt_input_to_prompts(prompt_input)
         all_args = {
             **self.kwargs,
             "stream": stream,
@@ -70,9 +71,9 @@ class OpenAIText(LLM):
     def __init__(self, **kwargs: Dict[str, Any]) -> None:
         self.kwargs = kwargs
 
-    def _generate(
+    def generate(
         self,
-        prompts: List[Prompt],
+        prompt_input: PromptInput,
         *,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
@@ -86,6 +87,7 @@ class OpenAIText(LLM):
         user: Optional[str] = None,
         **kwargs: Any,
     ) -> Union[Prompt, PromptStream]:
+        prompts = prompt_input_to_prompts(prompt_input)
         prompt = self._to_prompt(prompts)
         all_args = {
             **self.kwargs,

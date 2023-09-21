@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib import LLM
+from bodhilib import LLM, PromptInput, prompt_input_to_prompts
 from bodhilib.models import Prompt, PromptStream, prompt_output
 
 import cohere
@@ -39,9 +39,9 @@ class Cohere(LLM):
             args = {k: v for k, v in self.kwargs.items() if k in allowed_args}
             self.client = cohere.Client(**args)
 
-    def _generate(
+    def generate(
         self,
-        prompts: List[Prompt],
+        prompt_input: PromptInput,
         *,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
@@ -55,6 +55,7 @@ class Cohere(LLM):
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> Union[Prompt, PromptStream]:
+        prompts = prompt_input_to_prompts(prompt_input)
         if len(prompts) == 0:
             raise ValueError("Prompt is empty")
         input = self._to_cohere_prompt(prompts)
