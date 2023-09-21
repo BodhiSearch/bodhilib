@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-from bodhilib.plugin import LLMModel, Service, service_provider
+from bodhilib.plugin import Service, service_provider
 
 import openai
 
@@ -101,14 +101,6 @@ def openai_chat_service_builder(
     all_args: Dict[str, Any] = {"model": model, "api_key": api_key, **kwargs}
     all_args = {k: v for k, v in all_args.items() if v is not None}
     return OpenAIChat(**all_args)
-
-
-@service_provider
-def bodhilib_list_llm_models() -> List[LLMModel]:
-    """Plugin function to list all LLM models available by this service."""
-    models = openai.Model.list()
-    llm_models = [LLMModel("openai", m["id"], "bodhilib") for m in models.data]
-    return llm_models
 
 
 def _set_openai_api_key(api_key: Optional[str]) -> None:
