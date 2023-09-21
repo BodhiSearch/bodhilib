@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Literal, Optional
 from bodhilib.logging import logger
 from bodhilib.models import TextLike
 
-from ._prompt import Prompt, Role, Source
+from ._models import Prompt, Role, Source
 
 Engine = Literal["default", "jinja2"]
 
