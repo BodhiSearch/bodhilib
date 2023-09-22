@@ -6,7 +6,7 @@ from bodhiext.sentence_transformers import (
     bodhilib_list_services,
     sentence_transformer_builder,
 )
-from bodhilib import Service, get_embedder
+from bodhilib import Service, get_embedder, Node
 
 
 def test_sentence_transformer_bodhilib_list_services():
@@ -70,7 +70,7 @@ def test_embedder_calls_sentence_transformer(mock_class, pass_as_client):
     result = embedder.embed(["foo", "bar"])
 
     mock_instance.encode.assert_called_once_with(["foo", "bar"])
-    assert list(result) == [[1, 2, 3], [4, 5, 6]]
+    assert list(result) == [Node(text="foo", embedding=[1, 2, 3]), Node(text="bar", embedding=[4, 5, 6])]
 
 
 @pytest.mark.parametrize(

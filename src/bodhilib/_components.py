@@ -96,7 +96,7 @@ class Embedder(abc.ABC):
     """
 
     @abc.abstractmethod
-    def embed(self, inputs: SerializedInput) -> List[Embedding]:
+    def embed(self, inputs: SerializedInput) -> List[Node]:
         """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
 
         Args:
@@ -105,7 +105,7 @@ class Embedder(abc.ABC):
                 or a serialized dict of the object.
 
         Returns:
-            List[:data:`~bodhilib.Embedding`]: list of :data:`~bodhilib.Embedding`
+            List[:data:`~bodhilib.Node`]: list of :data:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
         """
 
     @property
@@ -122,7 +122,7 @@ class BaseEmbedder(Embedder):
     and passes to the abstract method to implement :func:`~bodhilib.BaseEmbedder._embed`.
     """
 
-    def embed(self, inputs: SerializedInput) -> List[Embedding]:
+    def embed(self, inputs: SerializedInput) -> List[Node]:
         """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
 
         Massages the data and converts the input to a list of :class:`~bodhilib.Node`. Then passes to
@@ -134,20 +134,20 @@ class BaseEmbedder(Embedder):
                 or a serialized dict of the object.
 
         Returns:
-            List[:data:`~bodhilib.Embedding`]: list of :data:`~bodhilib.Embedding`
+            List[:data:`~bodhilib.Node`]: list of :class:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
         """
         nodes = to_node_list(inputs)
         return self._embed(nodes)
 
     @abc.abstractmethod
-    def _embed(self, nodes: List[Node]) -> List[Embedding]:
+    def _embed(self, nodes: List[Node]) -> List[Node]:
         """Embed a list of :class:`~bodhilib.Node` using the embedder service.
 
         Args:
             nodes (List[:class:`~bodhilib.Node`]): list of :class:`~bodhilib.Node` to embed
 
         Returns:
-            List[:data:`~bodhilib.Embedding`]: embeddings as list of :data:`~bodhilib.Embedding`
+            List[:data:`~bodhilib.Node`]: list of :class:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
         """
 
 

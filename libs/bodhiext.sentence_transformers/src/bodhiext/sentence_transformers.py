@@ -26,7 +26,7 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         else:
             self.model = model
 
-    def _embed(self, nodes: List[Node]) -> List[Embedding]:
+    def _embed(self, nodes: List[Node]) -> List[Node]:
         """Embeds the nodes using sentence-transformer.
 
         Args:
@@ -38,7 +38,9 @@ class SentenceTransformerEmbedder(BaseEmbedder):
         if self.client is None:
             self.client = SentenceTransformer(self.model)
         embeddings: List[Embedding] = self.client.encode([node.text for node in nodes]).tolist()
-        return embeddings
+        for node, embedding in zip(nodes, embeddings):
+            node.embedding = embedding
+        return nodes
 
     @property
     def dimension(self) -> int:

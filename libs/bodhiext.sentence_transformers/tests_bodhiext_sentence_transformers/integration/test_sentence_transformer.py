@@ -10,10 +10,10 @@ def embedder() -> SentenceTransformerEmbedder:
 
 @pytest.mark.live
 def test_sentence_transformer_embeddings(embedder: Embedder):
-    embeddings = list(embedder.embed(["foo", "bar"]))
-    assert len(embeddings) == 2
-    assert len(embeddings[0]) == 384
-    assert len(embeddings[1]) == 384
+    nodes = list(embedder.embed(["foo", "bar"]))
+    assert len(nodes) == 2
+    assert len(nodes[0].embedding) == 384
+    assert len(nodes[1].embedding) == 384
 
 
 @pytest.mark.live
