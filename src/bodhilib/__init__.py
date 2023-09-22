@@ -1,4 +1,4 @@
-""":mod:`bodhilib` module defines classes and methods for core bodhilib components."""
+""":mod:`bodhilib` module defines classes and methods for bodhilib components."""
 import inspect
 
 from ._components import LLM as LLM
@@ -25,10 +25,10 @@ from ._models import PromptInput as PromptInput
 from ._models import PromptStream as PromptStream
 from ._models import Role as Role
 from ._models import Source as Source
-from ._models import StrEnumMixin as StrEnumMixin
 from ._models import SupportsText as SupportsText
 from ._models import TextLike as TextLike
 from ._models import TextLikeOrTextLikeList as TextLikeOrTextLikeList
+from ._models import _StrEnumMixin as _StrEnumMixin
 from ._models import istextlike as istextlike
 from ._models import prompt_input_to_prompt_list as prompt_input_to_prompt_list
 from ._models import prompt_output as prompt_output

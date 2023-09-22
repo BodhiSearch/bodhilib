@@ -37,7 +37,7 @@ class FileLoader(DataLoader):
         dir: Optional[PathLike] = None,
         recursive: bool = False,
     ) -> None:
-        """Add a file or directory resource to the data loader with given :data:`~PathLike` location.
+        """Add a file or directory resource to the data loader with given :data:`~bodhilib.PathLike` location.
 
         Args:
             files (Optional[List[PathLike]]): A list of file paths to add.
@@ -109,7 +109,15 @@ def file_loader_service_builder(
     publisher: Optional[str] = "bodhiext",
     **kwargs: Dict[str, Any],
 ) -> FileLoader:
-    """Return a file data loader service builder for the plugin to build and return :class:`~FileLoader`."""
+    """Return a file data loader service builder.
+
+    Builds and returns an instance of :class:`~bodhiext.data_loader._file.FileLoader`
+    with the passed arguments.
+
+    Returns:
+        FileLoader (:class:`~bodhiext.data_loader._file.FileLoader`): FileLoader instance to load local files
+            as resources.
+    """
     if service_name != "file":
         raise ValueError(f"Unknown service: {service_name=}")
     if service_type != "data_loader":

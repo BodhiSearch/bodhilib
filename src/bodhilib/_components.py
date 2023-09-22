@@ -48,21 +48,30 @@ class DataLoader(Iterable[Document], abc.ABC):
 class Splitter(abc.ABC):
     """Splitter defines abstract method to split longer text into shorter text.
 
-    Splitter takes in longer text as a generic :data:`~bodhilib.models.TextLike`
-    and splits them into shorter text and return as :class:`~bodhilib.models.Node`.
+    Splitter takes in longer text as a generic :data:`~bodhilib.TextLike`
+    and splits them into shorter text and return as :class:`~bodhilib.Node`.
     The shorter text are then used to create embeddings.
     """
 
     @abc.abstractmethod
     def split(self, texts: TextLikeOrTextLikeList) -> List[Node]:
-        """Split a :data:`~bodhilib.models.TextLike` into :class:`~bodhilib.models.Node`."""
+        """Split a :data:`~bodhilib.TextLikeOrTextLikeList` into a list of :class:`~bodhilib.Node`.
+
+        Args:
+            texts (:data:`~bodhilib.TextLikeOrTextLikeList`): takes input as :data:`~bodhilib.TextLikeOrTextLikeList`,
+                a generic type that can be a :data:`~bodhilib.TextLike` or a list of :data:`~bodhilib.TextLike`
+
+        Returns:
+            List[:class:`~bodhilib.Node`]: a list of :class:`~bodhilib.Node` as result of the split
+        """
 
 
 class BaseSplitter(Splitter):
     """BaseSplitter provides a simpler method for implementing Splitters.
 
-    BaseSplitter overrides the abstract Splitter method :method:`~split`, massages the data and converts it to a
-    list of :class:`~Document` and passes to implementing :method:`~_split` method.
+    BaseSplitter overrides the abstract Splitter method :func:`~bodhilib.Splitter.split`, massages the data
+    and converts it to a list of :class:`~bodhilib.Document`
+    and passes to implementing :func:`~bodhilib.BaseSplitter._split` method.
     """
 
     def split(self, texts: TextLikeOrTextLikeList) -> List[Node]:
@@ -71,7 +80,7 @@ class BaseSplitter(Splitter):
 
     @abc.abstractmethod
     def _split(self, docs: Iterable[Document]) -> List[Node]:
-        """Split a list of :class:`~bodhilib.models.Document` into list of :class:`~bodhilib.models.Node`.
+        """Split a list of :class:`~bodhilib.Document` into list of :class:`~bodhilib.Node`.
 
         The split method preserves the relationship and copies the metadata associated with Document to the Node.
         """
@@ -88,13 +97,13 @@ class Embedder(abc.ABC):
 
     @abc.abstractmethod
     def embed(self, texts: TextLikeOrTextLikeList) -> List[Embedding]:
-        """Embed the a list of :data:`~bodhilib.models.TextLike` using the embedder service.
+        """Embed the a list of :data:`~bodhilib.TextLike` using the embedder service.
 
         Args:
-            text (List[TextLike]): a list of :data:`~bodhilib.models.TextLike` objects to embed
+            texts (List[:data:`~bodhilib.TextLike`]): a list of :data:`~bodhilib.TextLike` objects to embed
 
         Returns:
-            List[Embedding]: list of embeddings, see :data:`~bodhilib.models.Embedding`
+            List[:data:`~bodhilib.Embedding`]: list of embeddings, see :data:`~bodhilib.Embedding`
         """
 
     @property
@@ -106,11 +115,22 @@ class Embedder(abc.ABC):
 class BaseEmbedder(Embedder):
     """BaseEmbedder provides a simpler method for implementing Embedders.
 
-    BaseEmbedder overrides the abstract Embedder method :method:`~embed`, massages the data and converts the input
-    to a list of :class:`~Node`, and passes to the abstract method to implement :method:`~_embed`.
+    BaseEmbedder overrides the abstract Embedder method :func:`~bodhilib.Embedder.embed`,
+    massages the data and converts the input to a list of :class:`~bodhilib.Node`,
+    and passes to the abstract method to implement :func:`~bodhilib.BaseEmbedder._embed`.
     """
 
     def embed(self, texts: TextLikeOrTextLikeList) -> List[Embedding]:
+        """Embed a list of :data:`~bodhilib.TextLike` using the embedder service.
+
+        Massages the data and converts the input to a list of :class:`~bodhilib.Node`.
+
+        Args:
+            texts (List[:data:`~bodhilib.TextLike`]): a list of :data:`~bodhilib.TextLike` objects to embed
+
+        Returns:
+            List[:data:`~bodhilib.Embedding`]: list of embeddings, see :data:`~bodhilib.Embedding`
+        """
         nodes = to_node_list(texts)
         return self._embed(nodes)
 
@@ -119,7 +139,10 @@ class BaseEmbedder(Embedder):
         """Embed a list of strings using the embedder service.
 
         Args:
-            nodes (List[Node]): list of :class:`~Node` to embed
+            nodes (List[Node]): list of :class:`~bodhilib.Node` to embed
+
+        Returns:
+            List[:data:`~bodhilib.Embedding`]: embeddings as list of :data:`~bodhilib.Embedding`
         """
 
 
@@ -148,12 +171,12 @@ class LLM(abc.ABC):
     ) -> Union[Prompt, PromptStream]:
         """Base class :func:`~bodhilib.LLM.generate` method interface common to all LLM service implementation.
 
-        Takes in :data:`PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.models.Prompt`
+        Takes in :data:`bodhilib.PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.Prompt`
         object, to dict representation of Prompt. Returns the response from LLM service as
-        :class:`~bodhilib.models.Prompt` object with `source="output"`.
+        :class:`~bodhilib.Prompt` object with `source="output"`.
 
         Args:
-            prompts (:data:`PromptInput`): input to the LLM service
+            prompts (:data:`bodhilib.PromptInput`): input to the LLM service
             stream (bool): whether to stream the response from the LLM service
             temperature (Optional[float]): temperature or randomness of the generation
             top_p (Optional[float]): token consideration probability top_p for the generation
@@ -167,8 +190,8 @@ class LLM(abc.ABC):
             kwargs (Dict[str, Any]): pass through arguments for the LLM service
 
         Returns:
-            :class:`~bodhilib.models.Prompt`: a Prompt object, if stream is False
-            Iterator[:class:`~bodhilib.models.Prompt`]: an iterator of Prompt objects, if stream is True
+            :class:`~bodhilib.Prompt`: a Prompt object, if stream is False
+            Iterator[:class:`~bodhilib.Prompt`]: an iterator of Prompt objects, if stream is True
         """
 
 
@@ -311,8 +334,8 @@ def get_data_loader(
         **kwargs (Dict[str, Any]): pass through arguments for the data loader, e.g. aws_access_key_id, notion_db etc.
 
     Returns:
-        T (:data:`~bodhilib._data_loader.T` | :class:`~DataLoader`):
-            an instance of DataLoader service of type `oftype`, if oftype is passed, else of type :class:`~DataLoader`
+        DL (:data:`~bodhilib.DL` | :class:`~bodhilib.DataLoader`): an instance of DataLoader service
+            of type `oftype`, if oftype is passed, else of type :class:`~bodhilib.DataLoader`
 
     Raises:
         TypeError: if the type of data loader is not oftype
@@ -364,8 +387,8 @@ def get_embedder(
         **kwargs (Dict[str, Any]): pass through arguments for the embedder, e.g. dimension etc.
 
     Returns:
-        T (:data:`~bodhilib._embedder.T` | :class:`~Embedder`):
-            an instance of Embedder service of type `oftype`, if oftype is passed, else of type :class:`~Embedder`
+        E (:data:`~bodhilib.E` | :class:`~bodhilib.Embedder`): an instance of Embedder service
+            of type `oftype`, if oftype is passed, else of type :class:`~bodhilib.Embedder`
 
     Raises:
         TypeError: if the type of embedder is not oftype
@@ -394,7 +417,7 @@ def list_embedders() -> List[Service]:
 
 
 # LLM
-T = TypeVar("T", bound=LLM)
+L = TypeVar("L", bound=LLM)
 """TypeVar for LLM."""
 
 
@@ -403,11 +426,11 @@ def get_llm(
     model: str,
     api_key: Optional[str] = None,
     *,
-    oftype: Optional[Type[T]] = None,
+    oftype: Optional[Type[L]] = None,
     publisher: Optional[str] = None,
     version: Optional[str] = None,
     **kwargs: Dict[str, Any],
-) -> T:
+) -> L:
     """Get an instance of LLM for the given service name and model.
 
     Args:
@@ -422,9 +445,9 @@ def get_llm(
         **kwargs (Dict[str, Any]): pass through arguments for the LLM service, e.g. "temperature", "max_tokens", etc.
 
     Returns:
-        T (:data:`~bodhilib._llm.T` | :class:`~LLM`):
+        T (:data:`~bodhilib.L` | :class:`~bodhilib.LLM`):
             an instance of LLM service of type `oftype`, if oftype is passed,
-            else of type :class:`~LLM`
+            else of type :class:`~bodhilib.LLM`
 
     Raises:
         TypeError: if the type of LLM is not oftype
@@ -435,7 +458,7 @@ def get_llm(
         return_type = oftype
 
     manager = PluginManager.instance()
-    llm: T = manager.get(
+    llm: L = manager.get(
         service_name=service_name,
         service_type="llm",
         oftype=return_type,
@@ -445,7 +468,7 @@ def get_llm(
         api_key=api_key,
         **kwargs,
     )
-    return cast(T, llm)
+    return cast(L, llm)
 
 
 def list_llms() -> List[Service]:
@@ -467,7 +490,11 @@ def get_vector_db(
     version: Optional[str] = None,
     **kwargs: Dict[str, Any],
 ) -> V:
-    """Get an instance of VectorDB for the given service name."""
+    """Get an instance of VectorDB for the given service name.
+
+    Returns:
+        V (:data:`~bodhilib.V` | :class:`~bodhilib.VectorDB`): an instance of VectorDB service
+    """
     if oftype is None:
         return_type: Type[Any] = VectorDB
     else:

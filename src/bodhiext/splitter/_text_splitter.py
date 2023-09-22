@@ -5,7 +5,7 @@ from bodhilib import BaseSplitter, Document, Node
 
 
 class TextSplitter(BaseSplitter):
-    """Splitter splits a :class:`~bodhilib.models.Document` into :class:`~bodhilib.models.Node`."""
+    """Splitter splits a :class:`~bodhilib.Document` into :class:`~bodhilib.Node`."""
 
     def __init__(
         self,

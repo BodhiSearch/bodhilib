@@ -26,31 +26,36 @@ from typing_extensions import TypeAlias
 
 # region type aliases
 #######################################################################################################################
+# Update the documentation in bodhilib.rst file directly. TypeAlias inline documentation not picked up by sphinx.
+# Duplicating it here to make it easier when browsing the code.
 PathLike: TypeAlias = Union[str, Path]
-"""PathLike is either a path to a resource as string or pathlib.Path."""
+"""Type alias for Union of :class:`str` and :class:`~pathlib.Path`"""
 TextLike: TypeAlias = Union[str, "SupportsText"]
-"""TextLike is either a string or a Document."""
-Embedding: TypeAlias = List[float]
-"""Embedding is list of float"""
+"""Type alias for Union of :class:`str` and protocol :data:`~bodhilib.SupportsText`"""
 TextLikeOrTextLikeList: TypeAlias = Union[TextLike, Iterable[TextLike]]
-"""TextLikeOrTextLikeList is either a TextLike or a list of TextLike"""
+"""Type alias for Union of :data:`~bodhilib.TextLike` or list of :data:`~bodhilib.TextLike`"""
 PromptInput: TypeAlias = Union[TextLikeOrTextLikeList, Dict[str, Any], Iterable[Dict[str, Any]]]
-"""Documentation for typealias should be direcly edited in the rst file."""
+"""Type alias for various inputs that can be passed to the LLM service as prompt."""
+Embedding: TypeAlias = List[float]
+"""Type alias for list of :class:`float`, to indicate the embedding generated
+from :class:`~bodhilib.Embedder` operation"""
 
 
 class SupportsText(Protocol):
     """TextLike is a protocol for types that can be converted to text.
 
-    Known classes that supports protocol: :class:`~Prompt`, :class:`~Document`, :class:`~Node`
+    To support the protocol, the type must have a property `text`.
+
+    Known sub-classes: :class:`~bodhilib.Prompt`, :class:`~bodhilib.Document`, :class:`~bodhilib.Node`
     """
 
     @property
     def text(self) -> str:
-        """Return the text representation of the object."""
+        """Return the content of the object as string."""
 
 
 def supportstext(obj: object) -> bool:
-    """Returns True if the object supports :class:`~bodhilib.models.SupportsText` protocol."""
+    """Returns True if the object supports :data:`~bodhilib.SupportsText` protocol."""
     return hasattr(obj, "text")
 
 
@@ -62,7 +67,7 @@ def istextlike(obj: object) -> bool:
 # endregion
 # region utility
 #######################################################################################################################
-class StrEnumMixin:
+class _StrEnumMixin:
     """Mixin class for string enums, provides __str__ and __eq__ methods."""
 
     @no_type_check
@@ -106,7 +111,7 @@ def _strenum_validator(enum_cls: Type[_EnumT], value: Any) -> _EnumT:
 # endregion
 # region value objects
 #######################################################################################################################
-class Role(StrEnumMixin, str, Enum):
+class Role(_StrEnumMixin, str, Enum):
     """Role of the prompt.
 
     Used for fine-grain control over "role" instructions to the LLM service.
@@ -118,7 +123,7 @@ class Role(StrEnumMixin, str, Enum):
     USER = "user"
 
 
-class Source(StrEnumMixin, str, Enum):
+class Source(_StrEnumMixin, str, Enum):
     """Source of the prompt.
 
     If the prompt is given as input by the user, then *source="input"*,
@@ -129,7 +134,7 @@ class Source(StrEnumMixin, str, Enum):
     OUTPUT = "output"
 
 
-class Distance(StrEnumMixin, str, Enum):
+class Distance(_StrEnumMixin, str, Enum):
     """Vector Distance Method."""
 
     COSINE = "cosine"
@@ -220,7 +225,7 @@ class PromptStream(Iterator[Prompt]):
         """Initialize a prompt stream.
 
         Args:
-            api_response (Iterable[T]): LLM API Response of generic type :data:`~bodhilib.models._prompt.T` as Iterable
+            api_response (Iterable[T]): LLM API Response of generic type :data:`~bodhilib.T` as Iterable
             transformer (Callable[[T], Prompt]): Transformer function to convert API response to Prompt
         """
         self.api_response = iter(api_response)
@@ -329,7 +334,7 @@ class Node(BaseModel):
 # region model converters
 #######################################################################################################################
 def to_document(textlike: TextLike) -> Document:
-    """Converts a :data:`~TextLike` to :class:`~Document`."""
+    """Converts a :data:`~bodhilib.TextLike` to :class:`~bodhilib.Document`."""
     if isinstance(textlike, Document):
         return textlike
     elif isinstance(textlike, str):
@@ -351,7 +356,7 @@ def to_prompt(textlike: TextLike) -> Prompt:
 
 
 def to_node(textlike: TextLike) -> Node:
-    """Converts a :data:`~TextLike` to :class:`Node`."""
+    """Converts a :data:`~TextLike` to :class:`~Node`."""
     if isinstance(textlike, Node):
         return textlike
     elif isinstance(textlike, str):
@@ -406,18 +411,19 @@ def to_node_list(textlikes: TextLikeOrTextLikeList) -> List[Node]:
 def prompt_input_to_prompt_list(input: PromptInput) -> List[Prompt]:
     """Parses from the PromptInput to List[Prompt].
 
-    Following is the parsing logic used based on the type of input:
-        input  (str) = [Prompt(text=input)]
-        inputs (Iterable[str]) = [Prompt(text=input) for input in inputs]
-        input  (Prompt) = [input]
-        inputs (Iterable[Prompt]) = inputs
-        input  (SupportsText) = [Prompt(text=input.text)]
-        inputs (Iterable[SupportsText]) = [Prompt(text=input.text) for input in inputs]
-        input  (Dict[str, Any]) = [Prompt(**input)]
-        inputs (Iterable[Dict[str, Any]]) = [Prompt(**input) for input in inputs]
+    Following is the parsing logic used based on the type of input::
+
+        - input  (str) = [Prompt(text=input)]
+        - inputs (Iterable[str]) = [Prompt(text=input) for input in inputs]
+        - input  (Prompt) = [input]
+        - inputs (Iterable[Prompt]) = inputs
+        - input  (SupportsText) = [Prompt(text=input.text)]
+        - inputs (Iterable[SupportsText]) = [Prompt(text=input.text) for input in inputs]
+        - input  (Dict[str, Any]) = [Prompt(**input)]
+        - inputs (Iterable[Dict[str, Any]]) = [Prompt(**input) for input in inputs]
 
     Args:
-        input (:data:`PromptInput`): input to parse from
+        input (:data:`bodhilib.PromptInput`): input to parse from
     """
     if isinstance(input, str):
         return [Prompt(text=input)]

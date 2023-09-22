@@ -45,7 +45,7 @@ def bodhilib_list_services() -> List[Service]:
     return []
 
 
-T = TypeVar("T")
+C = TypeVar("C")
 """TypeVar for Component (one of sub-class of :class:`~bodhilib.LLM`, :class:`~bodhilib.Embedder`,
 :class:`~bodhilib.DataLoader`).
 Used for type hinting in :meth:`~bodhilib.plugin.PluginManager.get` method."""
@@ -84,11 +84,11 @@ class PluginManager:
         service_name: str,
         service_type: str,
         *,
-        oftype: Optional[Type[T]] = None,
+        oftype: Optional[Type[C]] = None,
         publisher: Optional[str] = None,
         version: Optional[str] = None,
         **kwargs: Any,
-    ) -> T:
+    ) -> C:
         """Get an instance of service for the given service and type.
 
         Args:
@@ -101,7 +101,7 @@ class PluginManager:
             **kwargs (Dict[str, Any]): pass through arguments for the service, e.g. "temperature", "max_tokens", etc.
 
         Returns:
-            T (:data:`~bodhilib.plugin._plugin.T` | :class:`~Any`):
+            C (:data:`~bodhilib.C` | :class:`~typing.Any`):
                 an instance of service of type `oftype`, if oftype is passed, else of type :class:`~typing.Any`
 
         Raises:
@@ -125,7 +125,7 @@ class PluginManager:
                 component = service.service_builder(**all_args)
                 if not isinstance(component, return_type):
                     raise TypeError(f'Expecting {service_type} of type "{oftype}", but got "{type(component)}"')
-                return cast(T, component)
+                return cast(C, component)
         raise ValueError(f"Unknown service: {service_name}, available services: {self.services}")
 
     def list_services(self, service_type: str) -> List[Service]:

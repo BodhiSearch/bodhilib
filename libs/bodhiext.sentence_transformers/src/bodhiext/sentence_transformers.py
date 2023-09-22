@@ -27,6 +27,14 @@ class SentenceTransformerEmbedder(BaseEmbedder):
             self.model = model
 
     def _embed(self, nodes: List[Node]) -> List[Embedding]:
+        """Embeds the nodes using sentence-transformer.
+
+        Args:
+            nodes (List[:class:`~bodhilib.Node`]): list of nodes to embed
+
+        Returns:
+            List[:class:`~bodhilib.Embedding`]: list of embeddings
+        """
         if self.client is None:
             self.client = SentenceTransformer(self.model)
         embeddings: List[Embedding] = self.client.encode([node.text for node in nodes]).tolist()
@@ -34,7 +42,11 @@ class SentenceTransformerEmbedder(BaseEmbedder):
 
     @property
     def dimension(self) -> int:
-        """Dimension of the embeddings."""
+        """Dimension of the embeddings.
+
+        Returns:
+            int: dimension of the embeddings
+        """
         if self.client is None:
             self.client = SentenceTransformer(self.model)
         dimension = self.client.get_sentence_embedding_dimension()
