@@ -4,7 +4,8 @@ import abc
 from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
 from bodhilib.models import Embedding, Node, TextLikeOrTextLikeList, to_node_list
-from bodhilib.plugin import PluginManager, Service
+
+from ._plugin import PluginManager, Service
 
 
 class Embedder(abc.ABC):

@@ -11,6 +11,9 @@ from ._llm import LLM as LLM
 from ._llm import PromptInput as PromptInput
 from ._llm import get_llm as get_llm
 from ._llm import list_llms as list_llms
+from ._plugin import PluginManager as PluginManager
+from ._plugin import Service as Service
+from ._plugin import service_provider as service_provider
 from ._splitter import BaseSplitter as BaseSplitter
 from ._splitter import Splitter as Splitter
 from ._vectordb import VectorDB as VectorDB

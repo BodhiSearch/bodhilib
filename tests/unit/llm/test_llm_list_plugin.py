@@ -1,7 +1,6 @@
 from unittest.mock import patch
 
-from bodhilib import list_llms
-from bodhilib.plugin import PluginManager, Service
+from bodhilib import PluginManager, Service, list_llms
 
 
 @patch.object(PluginManager, "list_services")

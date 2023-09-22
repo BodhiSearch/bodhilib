@@ -4,8 +4,7 @@ import pytest
 from bodhiext.openai import OpenAIChat, OpenAIText, bodhilib_list_services
 from bodhiext.openai._openai_plugin import openai_chat_service_builder, openai_text_service_builder
 from bodhiext.openai._version import __version__
-from bodhilib import get_llm
-from bodhilib.plugin import Service
+from bodhilib import Service, get_llm
 
 from tests_bodhiext_openai.utils import chat_model, text_model
 

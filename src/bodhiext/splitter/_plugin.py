@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from bodhilib.plugin import Service, service_provider
+from bodhilib import Service, service_provider
 
 from ._text_splitter import TextSplitter
 

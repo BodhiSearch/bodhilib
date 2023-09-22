@@ -4,8 +4,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-from bodhilib import LLM
-from bodhilib.plugin import Service, service_provider
+from bodhilib import LLM, Service, service_provider
 
 import cohere
 

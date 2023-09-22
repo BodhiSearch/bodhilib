@@ -4,7 +4,8 @@ import abc
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Type, TypeVar, cast
 
 from bodhilib.models import Document
-from bodhilib.plugin import PluginManager, Service
+
+from ._plugin import PluginManager, Service
 
 
 class DataLoader(Iterable[Document], abc.ABC):

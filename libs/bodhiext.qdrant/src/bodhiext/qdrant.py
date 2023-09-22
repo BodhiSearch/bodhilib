@@ -2,9 +2,8 @@
 import uuid
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib import VectorDB, VectorDBError
+from bodhilib import Service, VectorDB, VectorDBError, service_provider
 from bodhilib.models import Distance, Embedding, Node
-from bodhilib.plugin import Service, service_provider
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance as QdrantDistance
 from qdrant_client.http.models import Filter, PointStruct, ScoredPoint, VectorParams

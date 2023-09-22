@@ -1,6 +1,6 @@
 from typing import List
 
-from bodhilib.plugin import Service, service_provider
+from bodhilib import Service, service_provider
 
 from ._file import file_loader_service_builder as file_loader_service_builder
 

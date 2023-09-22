@@ -1,7 +1,6 @@
 import pytest
 from bodhiext.openai import OpenAIChat
-from bodhilib import get_llm
-from bodhilib.plugin import PluginManager
+from bodhilib import PluginManager, get_llm
 
 from tests.prompt_utils import gpt35turbo
 

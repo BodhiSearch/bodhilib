@@ -4,7 +4,8 @@ import abc
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
 from bodhilib.models import Prompt, PromptInput, PromptStream
-from bodhilib.plugin import PluginManager, Service
+
+from ._plugin import PluginManager, Service
 
 
 class LLM(abc.ABC):

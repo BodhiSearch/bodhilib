@@ -6,8 +6,7 @@ from bodhiext.sentence_transformers import (
     bodhilib_list_services,
     sentence_transformer_builder,
 )
-from bodhilib import get_embedder
-from bodhilib.plugin import Service
+from bodhilib import Service, get_embedder
 
 
 def test_sentence_transformer_bodhilib_list_services():

@@ -4,7 +4,7 @@ from __future__ import annotations
 import os
 from typing import Any, Dict, List, Optional
 
-from bodhilib.plugin import Service, service_provider
+from bodhilib import Service, service_provider
 
 import openai
 

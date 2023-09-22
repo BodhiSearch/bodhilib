@@ -1,7 +1,6 @@
 import pytest
 from bodhiext.cohere import Cohere, bodhilib_list_services, cohere_llm_service_builder
-from bodhilib import get_llm
-from bodhilib.plugin import Service
+from bodhilib import Service, get_llm
 
 
 def test_cohere_service_builder():
