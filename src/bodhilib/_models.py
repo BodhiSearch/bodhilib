@@ -34,8 +34,8 @@ TextLike: TypeAlias = Union[str, "SupportsText"]
 """Type alias for Union of :class:`str` and protocol :data:`~bodhilib.SupportsText`"""
 TextLikeOrTextLikeList: TypeAlias = Union[TextLike, Iterable[TextLike]]
 """Type alias for Union of :data:`~bodhilib.TextLike` or list of :data:`~bodhilib.TextLike`"""
-PromptInput: TypeAlias = Union[TextLikeOrTextLikeList, Dict[str, Any], Iterable[Dict[str, Any]]]
-"""Type alias for various inputs that can be passed to the LLM service as prompt."""
+SerializedInput: TypeAlias = Union[TextLikeOrTextLikeList, Dict[str, Any], Iterable[Dict[str, Any]]]
+"""Type alias for various inputs that can be passed to the components."""
 Embedding: TypeAlias = List[float]
 """Type alias for list of :class:`float`, to indicate the embedding generated
 from :class:`~bodhilib.Embedder` operation"""
@@ -375,66 +375,43 @@ def to_text(textlike: TextLike) -> str:
     raise ValueError(f"Cannot convert type {type(textlike)} to text.")
 
 
-def to_prompt_list(textlikes: TextLikeOrTextLikeList) -> List[Prompt]:
-    """Converts a :data:`~TextLike` or a list of :data:`~TextLike` to list of :class:`~Prompt`."""
-    if istextlike(textlikes):
-        return [to_prompt(cast(TextLike, textlikes))]  # cast to fix mypy warning
-    elif isinstance(textlikes, Iterable):
-        result = [to_prompt_list(textlike) for textlike in textlikes]
+def to_prompt_list(inputs: SerializedInput) -> List[Prompt]:
+    """Converts a :data:`~bodhilib.SerializedInput` to list of :class:`~Prompt`."""
+    if istextlike(inputs):
+        return [to_prompt(cast(TextLike, inputs))]  # cast to fix mypy warning
+    elif isinstance(inputs, dict):
+        return [Prompt(**inputs)]
+    elif isinstance(inputs, Iterable):
+        result = [to_prompt_list(textlike) for textlike in inputs]
         return list(itertools.chain(*result))
     else:
-        return [to_prompt(textlikes)]
+        return [to_prompt(inputs)]
 
 
-def to_document_list(textlikes: TextLikeOrTextLikeList) -> List[Document]:
-    """Converts a :data:`~TextLike` or a list of :data:`~TextLike` to list of :class:`~Document`."""
-    if istextlike(textlikes):
-        return [to_document(cast(TextLike, textlikes))]  # cast to fix mypy warning
-    if isinstance(textlikes, Iterable):
-        result = [to_document_list(textlike) for textlike in textlikes]
+def to_document_list(inputs: SerializedInput) -> List[Document]:
+    """Converts a :data:`~bodhilib.SerializedInput` to list of :class:`~Document`."""
+    if istextlike(inputs):
+        return [to_document(cast(TextLike, inputs))]  # cast to fix mypy warning
+    elif isinstance(inputs, dict):
+        return [Document(**inputs)]
+    if isinstance(inputs, Iterable):
+        result = [to_document_list(input) for input in inputs]
         return list(itertools.chain(*result))
     else:
-        return [to_document(textlikes)]
+        return [to_document(inputs)]
 
 
-def to_node_list(textlikes: TextLikeOrTextLikeList) -> List[Node]:
-    """Converts a :data:`~TextLike` or a list of :data:`~TextLike` to list of :class:`~Node`."""
-    if istextlike(textlikes):
-        return [to_node(cast(TextLike, textlikes))]  # cast to fix mypy warning
-    elif isinstance(textlikes, Iterable):
-        result = [to_node_list(textlike) for textlike in textlikes]
+def to_node_list(inputs: SerializedInput) -> List[Node]:
+    """Converts a :data:`~bodhilib.SerializedInput` to list of :class:`~Node`."""
+    if istextlike(inputs):
+        return [to_node(cast(TextLike, inputs))]  # cast to fix mypy warning
+    elif isinstance(inputs, dict):
+        return [Node(**inputs)]
+    elif isinstance(inputs, Iterable):
+        result = [to_node_list(input) for input in inputs]
         return list(itertools.chain(*result))
     else:
-        return [to_node(textlikes)]
-
-
-def prompt_input_to_prompt_list(input: PromptInput) -> List[Prompt]:
-    """Parses from the PromptInput to List[Prompt].
-
-    Following is the parsing logic used based on the type of input::
-
-        - input  (str) = [Prompt(text=input)]
-        - inputs (Iterable[str]) = [Prompt(text=input) for input in inputs]
-        - input  (Prompt) = [input]
-        - inputs (Iterable[Prompt]) = inputs
-        - input  (SupportsText) = [Prompt(text=input.text)]
-        - inputs (Iterable[SupportsText]) = [Prompt(text=input.text) for input in inputs]
-        - input  (Dict[str, Any]) = [Prompt(**input)]
-        - inputs (Iterable[Dict[str, Any]]) = [Prompt(**input) for input in inputs]
-
-    Args:
-        input (:data:`bodhilib.PromptInput`): input to parse from
-    """
-    if isinstance(input, str):
-        return [Prompt(text=input)]
-    elif isinstance(input, dict):
-        return [Prompt(**input)]
-    elif istextlike(input):
-        return [to_prompt(cast(TextLike, input))]  # cast to fix mypy warning
-    elif isinstance(input, Iterable):
-        result = [prompt_input_to_prompt_list(p) for p in input]
-        return list(itertools.chain(*result))
-    raise TypeError(f"Unknown prompt type: {type(input)}")
+        return [to_node(inputs)]
 
 
 # endregion

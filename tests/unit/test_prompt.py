@@ -69,7 +69,19 @@ def test_to_prompt_raises_exception_on_invalid_arg():
     assert str(e.value) == "Cannot convert type <class 'object'> to Prompt."
 
 
-@pytest.mark.parametrize("valid_arg", ["hello", Prompt(text="hello"), Node(text="hello")])
+@pytest.mark.parametrize(
+    "valid_arg",
+    [
+        "hello",
+        ["hello"],
+        Prompt(text="hello"),
+        [Prompt(text="hello")],
+        Node(text="hello"),
+        [Node(text="hello")],
+        ({"text": "hello"}),
+        ([{"text": "hello"}]),
+    ],
+)
 def test_to_prompt_list_converts_for_valid_args(valid_arg):
     prompts = to_prompt_list(valid_arg)
     assert len(prompts) == 1

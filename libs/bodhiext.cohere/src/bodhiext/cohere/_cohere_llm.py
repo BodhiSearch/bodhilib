@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib import LLM, Prompt, PromptInput, PromptStream, prompt_input_to_prompt_list, prompt_output
+from bodhilib import LLM, Prompt, PromptStream, SerializedInput, to_prompt_list, prompt_output
 
 import cohere
 from cohere.responses.generation import StreamingText
@@ -40,7 +40,7 @@ class Cohere(LLM):
 
     def generate(
         self,
-        prompt_input: PromptInput,
+        prompt_input: SerializedInput,
         *,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
@@ -54,7 +54,7 @@ class Cohere(LLM):
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> Union[Prompt, PromptStream]:
-        prompts = prompt_input_to_prompt_list(prompt_input)
+        prompts = to_prompt_list(prompt_input)
         if len(prompts) == 0:
             raise ValueError("Prompt is empty")
         input = self._to_cohere_prompt(prompts)

@@ -9,9 +9,8 @@ from ._models import (
     Embedding,
     Node,
     Prompt,
-    PromptInput,
     PromptStream,
-    TextLikeOrTextLikeList,
+    SerializedInput,
     to_document_list,
     to_node_list,
 )
@@ -54,12 +53,13 @@ class Splitter(abc.ABC):
     """
 
     @abc.abstractmethod
-    def split(self, texts: TextLikeOrTextLikeList) -> List[Node]:
-        """Split a :data:`~bodhilib.TextLikeOrTextLikeList` into a list of :class:`~bodhilib.Node`.
+    def split(self, inputs: SerializedInput) -> List[Node]:
+        """Split a :data:`~bodhilib.SerializedInput` into a list of :class:`~bodhilib.Node`.
 
         Args:
-            texts (:data:`~bodhilib.TextLikeOrTextLikeList`): takes input as :data:`~bodhilib.TextLikeOrTextLikeList`,
-                a generic type that can be a :data:`~bodhilib.TextLike` or a list of :data:`~bodhilib.TextLike`
+            inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
+                a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
+                or a serialized dict of the object.
 
         Returns:
             List[:class:`~bodhilib.Node`]: a list of :class:`~bodhilib.Node` as result of the split
@@ -74,8 +74,8 @@ class BaseSplitter(Splitter):
     and passes to implementing :func:`~bodhilib.BaseSplitter._split` method.
     """
 
-    def split(self, texts: TextLikeOrTextLikeList) -> List[Node]:
-        docs = to_document_list(texts)
+    def split(self, inputs: SerializedInput) -> List[Node]:
+        docs = to_document_list(inputs)
         return self._split(docs)
 
     @abc.abstractmethod
@@ -96,14 +96,16 @@ class Embedder(abc.ABC):
     """
 
     @abc.abstractmethod
-    def embed(self, texts: TextLikeOrTextLikeList) -> List[Embedding]:
-        """Embed the a list of :data:`~bodhilib.TextLike` using the embedder service.
+    def embed(self, inputs: SerializedInput) -> List[Embedding]:
+        """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
 
         Args:
-            texts (List[:data:`~bodhilib.TextLike`]): a list of :data:`~bodhilib.TextLike` objects to embed
+            inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
+                a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
+                or a serialized dict of the object.
 
         Returns:
-            List[:data:`~bodhilib.Embedding`]: list of embeddings, see :data:`~bodhilib.Embedding`
+            List[:data:`~bodhilib.Embedding`]: list of :data:`~bodhilib.Embedding`
         """
 
     @property
@@ -120,26 +122,29 @@ class BaseEmbedder(Embedder):
     and passes to the abstract method to implement :func:`~bodhilib.BaseEmbedder._embed`.
     """
 
-    def embed(self, texts: TextLikeOrTextLikeList) -> List[Embedding]:
-        """Embed a list of :data:`~bodhilib.TextLike` using the embedder service.
+    def embed(self, inputs: SerializedInput) -> List[Embedding]:
+        """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
 
-        Massages the data and converts the input to a list of :class:`~bodhilib.Node`.
+        Massages the data and converts the input to a list of :class:`~bodhilib.Node`. Then passes to
+        the :func:`~bodhilib.BaseEmbedder._embed` for processing.
 
         Args:
-            texts (List[:data:`~bodhilib.TextLike`]): a list of :data:`~bodhilib.TextLike` objects to embed
+            inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
+                a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
+                or a serialized dict of the object.
 
         Returns:
-            List[:data:`~bodhilib.Embedding`]: list of embeddings, see :data:`~bodhilib.Embedding`
+            List[:data:`~bodhilib.Embedding`]: list of :data:`~bodhilib.Embedding`
         """
-        nodes = to_node_list(texts)
+        nodes = to_node_list(inputs)
         return self._embed(nodes)
 
     @abc.abstractmethod
     def _embed(self, nodes: List[Node]) -> List[Embedding]:
-        """Embed a list of strings using the embedder service.
+        """Embed a list of :class:`~bodhilib.Node` using the embedder service.
 
         Args:
-            nodes (List[Node]): list of :class:`~bodhilib.Node` to embed
+            nodes (List[:class:`~bodhilib.Node`]): list of :class:`~bodhilib.Node` to embed
 
         Returns:
             List[:data:`~bodhilib.Embedding`]: embeddings as list of :data:`~bodhilib.Embedding`
@@ -155,7 +160,7 @@ class LLM(abc.ABC):
     @abc.abstractmethod
     def generate(
         self,
-        prompt_input: PromptInput,
+        prompt_input: SerializedInput,
         *,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
@@ -171,12 +176,12 @@ class LLM(abc.ABC):
     ) -> Union[Prompt, PromptStream]:
         """Base class :func:`~bodhilib.LLM.generate` method interface common to all LLM service implementation.
 
-        Takes in :data:`bodhilib.PromptInput`, a flexible input supporting from plain string, :class:`~bodhilib.Prompt`
-        object, to dict representation of Prompt. Returns the response from LLM service as
-        :class:`~bodhilib.Prompt` object with `source="output"`.
+        Takes in :data:`bodhilib.SerializedInput`, a flexible input supporting from plain string,
+        or a :class:`~bodhilib.Prompt` object, or a dict representation of Prompt.
+        Returns the response from LLM service as :class:`~bodhilib.Prompt` object with `source="output"`.
 
         Args:
-            prompts (:data:`bodhilib.PromptInput`): input to the LLM service
+            prompts (:data:`bodhilib.SerializedInput`): input to the LLM service
             stream (bool): whether to stream the response from the LLM service
             temperature (Optional[float]): temperature or randomness of the generation
             top_p (Optional[float]): token consideration probability top_p for the generation

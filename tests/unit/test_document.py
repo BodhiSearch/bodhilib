@@ -46,6 +46,8 @@ def test_to_document_raises_exception_for_invalid_arg():
         [(Document(text="hello"))],
         (Prompt(text="hello")),
         [(Prompt(text="hello"))],
+        ({"text": "hello"}),
+        ([{"text": "hello"}]),
     ],
 )
 def test_to_document_list_converts_valid_arg_to_document_list(valid_arg):

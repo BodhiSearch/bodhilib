@@ -24,6 +24,8 @@ def test_to_node_raise_error_if_not_of_valid_type():
         ([Node(text="hello")]),
         (Prompt(text="hello")),
         ([Prompt(text="hello")]),
+        ({"text": "hello"}),
+        ([{"text": "hello"}]),
     ],
 )
 def test_to_node_list_converts_valid_arg_to_node_list(valid_arg):
