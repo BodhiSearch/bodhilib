@@ -268,10 +268,23 @@ def prompt_user(text: str) -> Prompt:
 
     Args:
         text: text of the prompt
+
     Returns:
         Prompt: Prompt object generated from the text. Defaults role="user" and source="input".
     """
     return Prompt(text=text, role=Role.USER, source=Source.INPUT)
+
+
+def prompt_system(text: str) -> Prompt:
+    """Factory method to generate system prompt from string.
+
+    Args:
+        text: text of the prompt
+
+    Returns:
+        Prompt: Prompt object generated from the text. Defaults role="system" and source="input".
+    """
+    return Prompt(text=text, role=Role.SYSTEM, source=Source.INPUT)
 
 
 def prompt_output(text: str) -> Prompt:

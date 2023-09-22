@@ -31,6 +31,7 @@ from ._models import TextLikeOrTextLikeList as TextLikeOrTextLikeList
 from ._models import _StrEnumMixin as _StrEnumMixin
 from ._models import istextlike as istextlike
 from ._models import prompt_output as prompt_output
+from ._models import prompt_system as prompt_system
 from ._models import prompt_user as prompt_user
 from ._models import supportstext as supportstext
 from ._models import to_document as to_document

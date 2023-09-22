@@ -67,6 +67,7 @@ testpaths = [
   "libs/bodhiext.openai/tests_bodhiext_openai",
   "libs/bodhiext.sentence_transformers/tests_bodhiext_sentence_transformers",
   "libs/bodhiext.qdrant/tests_bodhiext_qdrant",
+  "libs/bodhitest/tests_bodhitest",
 ]
 filterwarnings = ["error", "ignore::DeprecationWarning:httpx._content"]
 markers = [

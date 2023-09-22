@@ -9,6 +9,7 @@ from bodhilib import LLM, Service, service_provider
 import cohere
 
 from ._cohere_llm import Cohere
+from ._version import __version__
 
 
 @service_provider
@@ -20,7 +21,7 @@ def bodhilib_list_services() -> List[Service]:
             service_type="llm",
             publisher="bodhiext",
             service_builder=cohere_llm_service_builder,
-            version="0.1.0",
+            version=__version__,
         )
     ]
 

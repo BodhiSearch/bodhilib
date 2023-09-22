@@ -1,5 +1,5 @@
 import pytest
-from bodhilib import Node, Prompt, Role, Source, prompt_output, prompt_user, to_prompt, to_prompt_list
+from bodhilib import Node, Prompt, Role, Source, prompt_output, prompt_system, prompt_user, to_prompt, to_prompt_list
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 
@@ -54,6 +54,13 @@ def test_prompt_output():
     assert prompt.text == default_system_prompt
     assert prompt.role == Role.AI
     assert prompt.source == Source.OUTPUT
+
+
+def test_prompt_system():
+    prompt = prompt_system(default_system_prompt)
+    assert prompt.text == default_system_prompt
+    assert prompt.role == Role.SYSTEM
+    assert prompt.source == Source.INPUT
 
 
 @pytest.mark.parametrize("valid_arg", ["hello", Prompt(text="hello"), Node(text="hello")])

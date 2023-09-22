@@ -1,5 +1,5 @@
 import pytest
-from bodhiext.cohere import Cohere, bodhilib_list_services, cohere_llm_service_builder
+from bodhiext.cohere import Cohere, __version__, bodhilib_list_services, cohere_llm_service_builder
 from bodhilib import Service, get_llm
 
 
@@ -12,7 +12,7 @@ def test_cohere_bodhilib_list_services():
     services = bodhilib_list_services()
     assert len(services) == 1
     service = services[0]
-    assert service == Service("cohere", "llm", "bodhiext", cohere_llm_service_builder, "0.1.0")
+    assert service == Service("cohere", "llm", "bodhiext", cohere_llm_service_builder, __version__)
 
 
 @pytest.mark.parametrize(
