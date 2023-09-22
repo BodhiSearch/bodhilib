@@ -44,10 +44,10 @@ def openai_text_service_builder(
     """Returns an instance of OpenAIText LLM for the given arguments.
 
     Args:
-        service_name (Optiona[str]): service name to wrap, should be "openai_text"
-        service_type (Optiona[str]): service of the implementation, should be "llm"
-        model (Optiona[str]): OpenAI model identifier, e.g. text-ada-002
-        api_key (Optiona[str]): OpenAI api key, if not set, it will be read from environment variable OPENAI_API_KEY
+        service_name (Optional[str]): service name to wrap, should be "openai_text"
+        service_type (Optional[str]): service of the implementation, should be "llm"
+        model (Optional[str]): OpenAI model identifier, e.g. text-ada-002
+        api_key (Optional[str]): OpenAI api key, if not set, it will be read from environment variable OPENAI_API_KEY
         **kwargs: additional pass through arguments for OpenAI API client
 
     Returns:

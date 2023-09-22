@@ -15,6 +15,7 @@ from ._components import get_llm as get_llm
 from ._components import get_vector_db as get_vector_db
 from ._components import list_embedders as list_embedders
 from ._components import list_llms as list_llms
+from ._components import list_vector_dbs as list_vector_dbs
 from ._models import Distance as Distance
 from ._models import Document as Document
 from ._models import Embedding as Embedding

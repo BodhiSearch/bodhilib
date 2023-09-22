@@ -26,9 +26,9 @@ def test_cohere_bodhilib_list_services():
             ),
         ),
         (
-            {"service_name": "cohere", "service_type": "vectordb"},
+            {"service_name": "cohere", "service_type": "vector_db"},
             (
-                "Unknown params: service_name='cohere', service_type='vectordb', supported params:"
+                "Unknown params: service_name='cohere', service_type='vector_db', supported params:"
                 " service_name='cohere', service_type='llm'"
             ),
         ),

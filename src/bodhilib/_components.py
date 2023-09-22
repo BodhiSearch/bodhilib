@@ -201,7 +201,7 @@ class LLM(abc.ABC):
 
 
 # endregion
-# region vectordb
+# region vector db
 #######################################################################################################################
 class VectorDBError(Exception):
     """Error to wrap any exception raised by the vector database client."""
@@ -506,7 +506,7 @@ def get_vector_db(
         return_type = oftype
 
     manager = PluginManager.instance()
-    vectordb: V = manager.get(
+    vector_db: V = manager.get(
         service_name=service_name,
         service_type="vector_db",
         oftype=return_type,
@@ -514,7 +514,13 @@ def get_vector_db(
         version=version,
         **kwargs,
     )
-    return cast(V, vectordb)
+    return cast(V, vector_db)
+
+
+def list_vector_dbs() -> List[Service]:
+    """List all VectorDB services installed and available."""
+    manager = PluginManager.instance()
+    return manager.list_services("vector_db")
 
 
 # endregion

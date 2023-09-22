@@ -10,7 +10,6 @@ TEST_COLLECTION = "test_collection"
 EMBEDDING = [1.0, 2.0, 3.0, 4.0] * 25
 
 
-@pytest.fixture
 def qdrant_local():
     client = QdrantClient(host="localhost", port=6333)
     collections = client.get_collections().collections
@@ -20,7 +19,6 @@ def qdrant_local():
     return qdrant
 
 
-@pytest.fixture
 def qdrant_mem():
     client = QdrantClient(location=":memory:")
     collections = client.get_collections().collections
@@ -30,26 +28,33 @@ def qdrant_mem():
     return qdrant
 
 
+@pytest.fixture
+def qdrant_client(request):
+    if request.param == "qdrant_local":
+        return qdrant_local()
+    elif request.param == "qdrant_mem":
+        return qdrant_mem()
+    else:
+        raise ValueError(f"Unknown fixture {request.param}")
+
+
 @pytest.mark.live
-@pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
-def test_qdrant_get_collections(qdrant_fixture, request):
-    qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
+@pytest.mark.parametrize("qdrant_client", ["qdrant_local", "qdrant_mem"], indirect=True)
+def test_qdrant_get_collections(qdrant_client):
     collections = qdrant_client.get_collections()
     assert collections == [TEST_COLLECTION]
 
 
 @pytest.mark.live
-@pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
-def test_qdrant_close(qdrant_fixture, request):
-    qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
+@pytest.mark.parametrize("qdrant_client", ["qdrant_local", "qdrant_mem"], indirect=True)
+def test_qdrant_close(qdrant_client):
     result = qdrant_client.close()
     assert result is True
 
 
 @pytest.mark.live
-@pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
-def test_qdrant_create_collection(qdrant_fixture, request):
-    qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
+@pytest.mark.parametrize("qdrant_client", ["qdrant_local", "qdrant_mem"], indirect=True)
+def test_qdrant_create_collection(qdrant_client):
     _delete_collection(qdrant_client.client, TEST_COLLECTION)
     result = qdrant_client.create_collection(collection_name=TEST_COLLECTION, dimension=100, distance=Distance.COSINE)
     assert result is True
@@ -60,17 +65,15 @@ def test_qdrant_create_collection(qdrant_fixture, request):
 
 
 @pytest.mark.live
-@pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
-def test_qdrant_delete_collection(qdrant_fixture, request):
-    qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
+@pytest.mark.parametrize("qdrant_client", ["qdrant_local", "qdrant_mem"], indirect=True)
+def test_qdrant_delete_collection(qdrant_client):
     result = qdrant_client.delete_collection(collection_name=TEST_COLLECTION)
     assert result is True
 
 
 @pytest.mark.live
-@pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
-def test_qdrant_insert_node(qdrant_fixture, request):
-    qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
+@pytest.mark.parametrize("qdrant_client", ["qdrant_local", "qdrant_mem"], indirect=True)
+def test_qdrant_insert_node(qdrant_client):
     nodes = [Node(id=None, embedding=EMBEDDING, text="test", metadata={"filename": "foo.txt"})]
     result = qdrant_client.upsert(TEST_COLLECTION, nodes)
     assert result is not None
@@ -85,9 +88,8 @@ def test_qdrant_insert_node(qdrant_fixture, request):
 
 
 @pytest.mark.live
-@pytest.mark.parametrize("qdrant_fixture", ["qdrant_local", "qdrant_mem"])
-def test_qdrant_query(qdrant_fixture, request):
-    qdrant_client: Qdrant = request.getfixturevalue(qdrant_fixture)
+@pytest.mark.parametrize("qdrant_client", ["qdrant_local", "qdrant_mem"], indirect=True)
+def test_qdrant_query(qdrant_client):
     foo = Node(id=None, embedding=EMBEDDING, text="foo", metadata={"filename": "foo.txt"})
     bar = Node(id=None, embedding=EMBEDDING, text="bar", metadata={"filename": "bar.txt"})
     nodes = [

@@ -7,7 +7,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance as QdrantDistance
 from qdrant_client.http.models import Filter, PointStruct, ScoredPoint, VectorParams
 
-from ._version import __version__
+from ._version import __version__ as __version__
 
 _qdrant_distance_mapping = {
     Distance.COSINE.value: QdrantDistance.COSINE,

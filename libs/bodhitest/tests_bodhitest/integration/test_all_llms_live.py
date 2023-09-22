@@ -1,7 +1,7 @@
 import pytest
 from bodhilib import get_llm, prompt_output, prompt_system, prompt_user
 
-from tests_bodhitest.llm_data import bodhiext_llms, explode
+from libs.bodhitest.tests_bodhitest.components import bodhiext_llms, unwrap_llm
 
 
 @pytest.fixture
@@ -11,14 +11,14 @@ def llm_params(request):
 
 @pytest.fixture
 def llm_service(request):
-    service_name, _, model_name, llm_class, _ = explode(bodhiext_llms[request.param])
+    service_name, _, model_name, llm_class, _, _ = unwrap_llm(bodhiext_llms[request.param])
     return get_llm(service_name, model_name, oftype=llm_class)
 
 
 @pytest.mark.live
 @pytest.mark.parametrize("llm_params", bodhiext_llms.keys(), indirect=True)
 def test_all_llms_generate(llm_params):
-    service_name, llm_service_builder, model_name, _, _ = explode(llm_params)
+    service_name, llm_service_builder, model_name, _, _, _ = unwrap_llm(llm_params)
     service = llm_service_builder(service_name=service_name, service_type="llm", model=model_name)
     result = service.generate("Answer in one word. What day comes after Monday?")
     assert "tuesday" in result.text.lower().strip()
