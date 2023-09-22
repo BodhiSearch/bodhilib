@@ -1,5 +1,5 @@
 import pytest
-from bodhilib.models import Node, Prompt, to_node, to_node_list
+from bodhilib import Node, Prompt, to_node, to_node_list
 
 
 @pytest.mark.parametrize(["valid_arg"], [(["hello"]), ([Node(text="hello")]), ([Prompt(text="hello")])])

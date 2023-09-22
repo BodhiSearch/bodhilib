@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib import LLM
-from bodhilib.models import Prompt, PromptStream, prompt_output, PromptInput, prompt_input_to_prompt_list
+from bodhilib import LLM, Prompt, PromptInput, PromptStream, prompt_input_to_prompt_list, prompt_output
 
 import cohere
 from cohere.responses.generation import StreamingText

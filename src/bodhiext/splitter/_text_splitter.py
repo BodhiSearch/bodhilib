@@ -1,8 +1,7 @@
 import re
 from typing import Callable, Iterable, Iterator, List, Optional, Tuple
 
-from bodhilib import BaseSplitter
-from bodhilib.models import Document, Node
+from bodhilib import BaseSplitter, Document, Node
 
 
 class TextSplitter(BaseSplitter):

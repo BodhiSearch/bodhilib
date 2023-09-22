@@ -3,8 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
-from bodhilib import LLM
-from bodhilib.models import Prompt, PromptInput, PromptStream, Role, prompt_input_to_prompt_list, prompt_output
+from bodhilib import LLM, Prompt, PromptInput, PromptStream, Role, prompt_input_to_prompt_list, prompt_output
 
 import openai
 from openai.openai_response import OpenAIResponse

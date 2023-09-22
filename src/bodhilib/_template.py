@@ -4,9 +4,8 @@ import textwrap
 from typing import Any, Dict, List, Literal, Optional
 
 from bodhilib.logging import logger
-from bodhilib.models import TextLike
 
-from ._models import Prompt, Role, Source
+from ._models import Prompt, Role, Source, TextLike
 
 Engine = Literal["default", "jinja2"]
 

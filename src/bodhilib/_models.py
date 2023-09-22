@@ -26,8 +26,6 @@ from typing_extensions import TypeAlias
 
 # region type aliases
 #######################################################################################################################
-
-# document
 PathLike: TypeAlias = Union[str, Path]
 """PathLike is either a path to a resource as string or pathlib.Path."""
 TextLike: TypeAlias = Union[str, "SupportsText"]
@@ -108,8 +106,6 @@ def _strenum_validator(enum_cls: Type[_EnumT], value: Any) -> _EnumT:
 # endregion
 # region value objects
 #######################################################################################################################
-
-
 class Role(StrEnumMixin, str, Enum):
     """Role of the prompt.
 
@@ -144,8 +140,6 @@ class Distance(StrEnumMixin, str, Enum):
 # endregion
 # region prompt
 #######################################################################################################################
-
-
 class Prompt(BaseModel):
     """Prompt encapsulating input/output schema to interact with LLM service."""
 
@@ -286,8 +280,6 @@ def prompt_output(text: str) -> Prompt:
 # endregion
 # region document
 #######################################################################################################################
-
-
 class Document(BaseModel):
     """Document defines the basic interface for a processible resource.
 
@@ -333,6 +325,9 @@ class Node(BaseModel):
         return f"Node(id={self.id}, text={reprlib.repr(self.text)}, parent={repr(self.parent)})"
 
 
+# endregion
+# region model converters
+#######################################################################################################################
 def to_document(textlike: TextLike) -> Document:
     """Converts a :data:`~TextLike` to :class:`~Document`."""
     if isinstance(textlike, Document):

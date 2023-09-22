@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import cohere
 from bodhiext.cohere import Cohere
-from bodhilib.models import Prompt
+from bodhilib import Prompt
 
 
 @patch("cohere.Client", autospec=True)

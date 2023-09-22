@@ -1,5 +1,5 @@
 import pytest
-from bodhilib.models import Node, Prompt, Role, Source, prompt_output, prompt_user, to_prompt, to_prompt_list
+from bodhilib import Node, Prompt, Role, Source, prompt_output, prompt_user, to_prompt, to_prompt_list
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 

@@ -1,6 +1,6 @@
 import json
 
-from bodhilib.models import Prompt, Role
+from bodhilib import Prompt, Role
 
 
 def test_role_eq_str_value():

@@ -1,6 +1,6 @@
 import pytest
 from bodhiext.cohere import cohere_llm_service_builder
-from bodhilib.models import Role, Source
+from bodhilib import Role, Source
 
 
 @pytest.mark.live

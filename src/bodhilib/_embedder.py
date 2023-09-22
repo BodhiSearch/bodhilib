@@ -3,8 +3,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
-from bodhilib.models import Embedding, Node, TextLikeOrTextLikeList, to_node_list
-
+from ._models import Embedding, Node, TextLikeOrTextLikeList, to_node_list
 from ._plugin import PluginManager, Service
 
 

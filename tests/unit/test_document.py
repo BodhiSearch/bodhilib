@@ -1,5 +1,5 @@
 import pytest
-from bodhilib.models import Document, Node, Prompt, to_document, to_document_list
+from bodhilib import Document, Node, Prompt, to_document, to_document_list
 
 
 def test_document_repr():

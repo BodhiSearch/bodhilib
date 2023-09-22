@@ -1,6 +1,6 @@
 import pytest
-from bodhilib.models import Distance, Node
 from bodhiext.qdrant import Qdrant
+from bodhilib import Distance, Node
 from qdrant_client import QdrantClient
 
 # from qdrant_client.http.models import Distance, VectorParams

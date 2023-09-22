@@ -1,6 +1,6 @@
 import pytest
-from bodhilib.models import Role, Source
 from bodhiext.openai import OpenAIChat, OpenAIText
+from bodhilib import Role, Source
 
 from tests_bodhiext_openai.utils import chat_model, text_model
 

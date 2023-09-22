@@ -3,8 +3,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
-from bodhilib.models import Prompt, PromptInput, PromptStream
-
+from ._models import Prompt, PromptInput, PromptStream
 from ._plugin import PluginManager, Service
 
 

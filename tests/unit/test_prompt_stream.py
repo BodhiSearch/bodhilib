@@ -1,4 +1,4 @@
-from bodhilib.models import Prompt, PromptStream, Role, Source, prompt_output
+from bodhilib import Prompt, PromptStream, Role, Source, prompt_output
 
 
 def test_returns_a_prompt_stream():

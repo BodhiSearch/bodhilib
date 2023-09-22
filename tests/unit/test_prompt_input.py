@@ -1,4 +1,4 @@
-from bodhilib.models import Prompt, prompt_input_to_prompt_list
+from bodhilib import Prompt, prompt_input_to_prompt_list
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 

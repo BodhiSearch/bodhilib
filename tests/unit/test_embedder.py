@@ -2,8 +2,7 @@ from typing import List
 from unittest.mock import MagicMock, patch
 
 import pytest
-from bodhilib import BaseEmbedder
-from bodhilib.models import Embedding, Node
+from bodhilib import BaseEmbedder, Embedding, Node
 
 
 class _TestEmbedder(BaseEmbedder):

@@ -1,7 +1,7 @@
 # prompt template
 import textwrap
 
-from bodhilib.models import (
+from bodhilib import (
     Prompt,
     PromptTemplate,
     prompt_with_examples,

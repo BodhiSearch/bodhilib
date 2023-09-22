@@ -1,6 +1,5 @@
 import pytest
-from bodhilib import LLM, get_llm
-from bodhilib.models import Prompt, PromptTemplate
+from bodhilib import LLM, Prompt, PromptTemplate, get_llm
 
 from tests_bodhiext_openai.utils import chat_model, default_system_prompt, default_user_prompt
 

@@ -1,7 +1,7 @@
 import abc
 from typing import Iterable, List
 
-from bodhilib.models import Document, Node, TextLikeOrTextLikeList, to_document_list
+from ._models import Document, Node, TextLikeOrTextLikeList, to_document_list
 
 
 class Splitter(abc.ABC):

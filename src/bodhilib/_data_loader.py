@@ -3,8 +3,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Dict, Iterable, Iterator, List, Optional, Type, TypeVar, cast
 
-from bodhilib.models import Document
-
+from ._models import Document
 from ._plugin import PluginManager, Service
 
 

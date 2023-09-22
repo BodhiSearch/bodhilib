@@ -2,8 +2,7 @@ from typing import Iterable, List
 from unittest.mock import MagicMock, patch
 
 import pytest
-from bodhilib import BaseSplitter
-from bodhilib.models import Document, Node, Prompt
+from bodhilib import BaseSplitter, Document, Node, Prompt
 
 
 class TestSplitter(BaseSplitter):
@@ -11,17 +10,11 @@ class TestSplitter(BaseSplitter):
         ...
 
 
-class TestObject:
-    ...
-
-
 def test_base_splitter_raise_error_if_texts_invalid():
     splitter = TestSplitter()
     with pytest.raises(ValueError) as e:
-        splitter.split(TestObject())
-    assert (
-        str(e.value) == "Cannot convert type <class 'tests.unit.splitter.test_base_splitter.TestObject'> to Document."
-    )
+        splitter.split(object())
+    assert str(e.value) == "Cannot convert type <class 'object'> to Document."
 
 
 def test_base_splitter_parses_str():

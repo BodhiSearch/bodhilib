@@ -3,9 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from bodhilib import BaseEmbedder, Service, service_provider
+from bodhilib import BaseEmbedder, Embedding, Node, Service, service_provider
 from bodhilib.logging import logger
-from bodhilib.models import Embedding, Node
 from sentence_transformers import SentenceTransformer
 
 

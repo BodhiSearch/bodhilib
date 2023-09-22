@@ -1,8 +1,7 @@
 import abc
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
-from bodhilib.models import Distance, Embedding, Node
-
+from ._models import Distance, Embedding, Node
 from ._plugin import PluginManager
 
 
