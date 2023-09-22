@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 from typing import Any, Dict, List, Optional, Type, TypeVar, cast
 
-from bodhilib.models import TextLike, istextlike, to_text
+from bodhilib.models import Embedding, Node, TextLikeOrTextLikeList, to_node_list
 from bodhilib.plugin import PluginManager, Service
 
 
@@ -13,41 +13,41 @@ class Embedder(abc.ABC):
     An embedder should inherit from this class and implement the abstract methods.
     """
 
-    def embed(self, texts: List[TextLike]) -> List[List[float]]:
+    @abc.abstractmethod
+    def embed(self, texts: TextLikeOrTextLikeList) -> List[Embedding]:
         """Embed the a list of :data:`~bodhilib.models.TextLike` using the embedder service.
 
         Args:
             text (List[TextLike]): a list of :data:`~bodhilib.models.TextLike` objects to embed
 
         Returns:
-            List[List[float]]: list of embeddings
-        """
-        if not isinstance(texts, list):
-            raise ValueError(
-                f"Expecting input `texts` to be a list of TextLike, but is of type {type(texts)}. Did you forget to"
-                " pass it as a list?"
-            )
-        if not all(istextlike(t) for t in texts):
-            raise ValueError(
-                "Expecting input `texts` to be a list of TextLike items (a string or have attribute `text`), "
-                "but some elements of the list are not TextLike"
-            )
-        input = [to_text(t) for t in texts]
-        embeddings: List[List[float]] = self._embed(input)
-        return embeddings
-
-    @abc.abstractmethod
-    def _embed(self, texts: List[str]) -> List[List[float]]:
-        """Embed a list of strings using the embedder service.
-
-        Args:
-            texts (List[str]): list of texts to embed
+            List[Embedding]: list of embeddings, see :data:`~bodhilib.models.Embedding`
         """
 
     @property
     @abc.abstractmethod
     def dimension(self) -> int:
         """Dimension of the embeddings."""
+
+
+class BaseEmbedder(Embedder):
+    """BaseEmbedder provides a simpler method for implementing Embedders.
+
+    BaseEmbedder overrides the abstract Embedder method :method:`~embed`, massages the data and converts the input
+    to a list of :class:`~Node`, and passes to the abstract method to implement :method:`~_embed`.
+    """
+
+    def embed(self, texts: TextLikeOrTextLikeList) -> List[Embedding]:
+        nodes = to_node_list(texts)
+        return self._embed(nodes)
+
+    @abc.abstractmethod
+    def _embed(self, nodes: List[Node]) -> List[Embedding]:
+        """Embed a list of strings using the embedder service.
+
+        Args:
+            nodes (List[Node]): list of :class:`~Node` to embed
+        """
 
 
 T = TypeVar("T", bound=Embedder)

@@ -1,11 +1,5 @@
 import pytest
-from bodhilib.models import (
-    Prompt,
-    Role,
-    Source,
-    prompt_output,
-    prompt_user,
-)
+from bodhilib.models import Node, Prompt, Role, Source, prompt_output, prompt_user, to_prompt, to_prompt_list
 
 from tests.prompt_utils import default_system_prompt, default_user_prompt
 
@@ -60,3 +54,30 @@ def test_prompt_output():
     assert prompt.text == default_system_prompt
     assert prompt.role == Role.AI
     assert prompt.source == Source.OUTPUT
+
+
+@pytest.mark.parametrize("valid_arg", ["hello", Prompt(text="hello"), Node(text="hello")])
+def test_to_prompt_converts_to_prompt_for_valid_args(valid_arg):
+    prompt = to_prompt(valid_arg)
+    assert isinstance(prompt, Prompt)
+    assert prompt.text == "hello"
+
+
+def test_to_prompt_raises_exception_on_invalid_arg():
+    with pytest.raises(ValueError) as e:
+        _ = to_prompt(object())
+    assert str(e.value) == "Cannot convert type <class 'object'> to Prompt."
+
+
+@pytest.mark.parametrize("valid_arg", ["hello", Prompt(text="hello"), Node(text="hello")])
+def test_to_prompt_list_converts_for_valid_args(valid_arg):
+    prompts = to_prompt_list(valid_arg)
+    assert len(prompts) == 1
+    assert isinstance(prompts[0], Prompt)
+    assert prompts[0].text == "hello"
+
+
+def test_to_prompt_list_raises_exception_on_invalid_arg():
+    with pytest.raises(ValueError) as e:
+        _ = to_prompt_list(object())
+    assert str(e.value) == "Cannot convert type <class 'object'> to Prompt."

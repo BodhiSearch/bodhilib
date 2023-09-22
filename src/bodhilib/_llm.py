@@ -1,42 +1,10 @@
 from __future__ import annotations
 
 import abc
-import itertools
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
-from typing_extensions import TypeAlias
-
-from bodhilib.models import Prompt, PromptStream
+from bodhilib.models import Prompt, PromptInput, PromptStream
 from bodhilib.plugin import PluginManager, Service
-
-PromptInput: TypeAlias = Union[str, List[str], Prompt, List[Prompt], Dict[str, Any], List[Dict[str, Any]]]
-"""Documentation for typealias should be direcly edited in the rst file."""
-
-
-def prompt_input_to_prompts(input: PromptInput) -> List[Prompt]:
-    """Parses from the PromptInput to List[Prompt].
-
-    Following is the parsing logic used based on the type of input:
-        input  (str) = [Prompt(text=input)]
-        inputs (List[str]) = [Prompt(text=input) for input in inputs]
-        input  (Prompt) = [input]
-        inputs (List[Prompt]) = inputs
-        input  (Dict[str, Any]) = [Prompt(**input)]
-        inputs (List[Dict[str, Any]]) = [Prompt(**input) for input in inputs]
-
-    Args:
-        input (:data:`PromptInput`): input to parse from
-    """
-    if isinstance(input, str):
-        return [Prompt(input)]
-    if isinstance(input, Prompt):
-        return [input]
-    if isinstance(input, dict):
-        return [Prompt(**input)]
-    if isinstance(input, list):
-        result = [prompt_input_to_prompts(p) for p in input]
-        return list(itertools.chain(*result))
-    raise TypeError(f"Unknown prompt type: {type(input)}")
 
 
 class LLM(abc.ABC):

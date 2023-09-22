@@ -1,11 +1,13 @@
 from typing import List
+from unittest.mock import MagicMock, patch
 
 import pytest
-from bodhilib import Embedder
+from bodhilib import BaseEmbedder
+from bodhilib.models import Embedding, Node
 
 
-class _TestEmbedder(Embedder):
-    def _embed(self, texts: List[str]) -> List[List[float]]:
+class _TestEmbedder(BaseEmbedder):
+    def _embed(self, texts: List[Node]) -> List[Embedding]:
         return [[1.0, 2.0, 3.0]] * len(texts)
 
     @property
@@ -18,23 +20,16 @@ def embedder():
     return _TestEmbedder()
 
 
-def test_embedder_embed_raise_error_if_called_with_non_list(embedder):
-    with pytest.raises(ValueError) as e:
-        embedder.embed("hello")
-    assert (
-        str(e.value)
-        == "Expecting input `texts` to be a list of TextLike, but is of type <class 'str'>. Did you forget to pass it"
-        " as a list?"
-    )
+def test_embedder_embed_str(embedder):
+    with patch.object(embedder, "_embed", MagicMock()) as mock_embed:
+        _ = embedder.embed("hello")
+        mock_embed.assert_called_once_with([Node(text="hello")])
 
 
 def test_embedder_embed_raise_error_if_called_with_non_textlike(embedder):
     with pytest.raises(ValueError) as e:
         embedder.embed([1])
-    expected = (
-        "Expecting input `texts` to be a list of TextLike items (a string or have attribute `text`), but some elements"
-        " of the list are not TextLike"
-    )
+    expected = "Cannot convert type <class 'int'> to Node."
     assert str(e.value) == expected
 
 

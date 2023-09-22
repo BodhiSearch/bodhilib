@@ -1,7 +1,7 @@
 import abc
 from typing import Iterable, List
 
-from bodhilib.models import Document, Node, TextLike, to_document
+from bodhilib.models import Document, Node, TextLikeOrTextLikeList, to_document_list
 
 
 class Splitter(abc.ABC):
@@ -12,11 +12,25 @@ class Splitter(abc.ABC):
     The shorter text are then used to create embeddings.
     """
 
-    def split(self, texts: Iterable[TextLike]) -> List[Node]:
+    @abc.abstractmethod
+    def split(self, texts: TextLikeOrTextLikeList) -> List[Node]:
         """Split a :data:`~bodhilib.models.TextLike` into :class:`~bodhilib.models.Node`."""
-        docs: List[Document] = [to_document(text) for text in texts]
+
+
+class BaseSplitter(Splitter):
+    """BaseSplitter provides a simpler method for implementing Splitters.
+
+    BaseSplitter overrides the abstract Splitter method :method:`~split`, massages the data and converts it to a
+    list of :class:`~Document` and passes to implementing :method:`~_split` method.
+    """
+
+    def split(self, texts: TextLikeOrTextLikeList) -> List[Node]:
+        docs = to_document_list(texts)
         return self._split(docs)
 
     @abc.abstractmethod
     def _split(self, docs: Iterable[Document]) -> List[Node]:
-        """Split a :class:`~bodhilib.models.Document` into :class:`~bodhilib.models.Node`."""
+        """Split a list of :class:`~bodhilib.models.Document` into list of :class:`~bodhilib.models.Node`.
+
+        The split method preserves the relationship and copies the metadata associated with Document to the Node.
+        """

@@ -1,7 +1,7 @@
 import abc
 from typing import Any, Dict, List, Optional, Type, TypeVar, Union, cast
 
-from bodhilib.models import Distance, Node
+from bodhilib.models import Distance, Embedding, Node
 from bodhilib.plugin import PluginManager
 
 
@@ -99,7 +99,7 @@ class VectorDB(abc.ABC):
 
     @abc.abstractmethod
     def query(
-        self, collection_name: str, embedding: List[float], filter: Optional[Dict[str, Any]], **kwargs: Dict[str, Any]
+        self, collection_name: str, embedding: Embedding, filter: Optional[Dict[str, Any]], **kwargs: Dict[str, Any]
     ) -> List[Node]:
         """Search for the nearest vectors in the database.
 

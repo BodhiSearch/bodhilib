@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib import LLM, PromptInput, prompt_input_to_prompts
-from bodhilib.models import Prompt, PromptStream, prompt_output
+from bodhilib import LLM
+from bodhilib.models import Prompt, PromptStream, prompt_output, PromptInput, prompt_input_to_prompt_list
 
 import cohere
 from cohere.responses.generation import StreamingText
@@ -55,7 +55,7 @@ class Cohere(LLM):
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> Union[Prompt, PromptStream]:
-        prompts = prompt_input_to_prompts(prompt_input)
+        prompts = prompt_input_to_prompt_list(prompt_input)
         if len(prompts) == 0:
             raise ValueError("Prompt is empty")
         input = self._to_cohere_prompt(prompts)

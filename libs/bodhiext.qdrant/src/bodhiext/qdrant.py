@@ -3,7 +3,7 @@ import uuid
 from typing import Any, Dict, List, Optional, Union
 
 from bodhilib import VectorDB, VectorDBError
-from bodhilib.models import Distance, Node
+from bodhilib.models import Distance, Embedding, Node
 from bodhilib.plugin import Service, service_provider
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance as QdrantDistance
@@ -137,7 +137,7 @@ class Qdrant(VectorDB):
     def query(
         self,
         collection_name: str,
-        embedding: List[float],
+        embedding: Embedding,
         filter: Optional[Dict[str, Any]] = None,
         **kwargs: Dict[str, Any],
     ) -> List[Node]:

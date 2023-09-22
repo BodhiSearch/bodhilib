@@ -1,11 +1,11 @@
 import re
 from typing import Callable, Iterable, Iterator, List, Optional, Tuple
 
+from bodhilib import BaseSplitter
 from bodhilib.models import Document, Node
-from bodhilib import Splitter
 
 
-class TextSplitter(Splitter):
+class TextSplitter(BaseSplitter):
     """Splitter splits a :class:`~bodhilib.models.Document` into :class:`~bodhilib.models.Node`."""
 
     def __init__(

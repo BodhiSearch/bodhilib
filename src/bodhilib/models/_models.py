@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import itertools
 import reprlib
 from enum import Enum
 from pathlib import Path
@@ -16,6 +17,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    cast,
     no_type_check,
 )
 
@@ -32,6 +34,10 @@ TextLike: TypeAlias = Union[str, "SupportsText"]
 """TextLike is either a string or a Document."""
 Embedding: TypeAlias = List[float]
 """Embedding is list of float"""
+TextLikeOrTextLikeList: TypeAlias = Union[TextLike, Iterable[TextLike]]
+"""TextLikeOrTextLikeList is either a TextLike or a list of TextLike"""
+PromptInput: TypeAlias = Union[TextLikeOrTextLikeList, Dict[str, Any], Iterable[Dict[str, Any]]]
+"""Documentation for typealias should be direcly edited in the rst file."""
 
 
 class SupportsText(Protocol):
@@ -338,6 +344,28 @@ def to_document(textlike: TextLike) -> Document:
     raise ValueError(f"Cannot convert type {type(textlike)} to Document.")
 
 
+def to_prompt(textlike: TextLike) -> Prompt:
+    """Converts a :data:`~TextLike` to :class:`~Prompt`."""
+    if isinstance(textlike, Prompt):
+        return textlike
+    elif isinstance(textlike, str):
+        return Prompt(text=textlike)
+    elif supportstext(textlike):
+        return Prompt(text=textlike.text)
+    raise ValueError(f"Cannot convert type {type(textlike)} to Prompt.")
+
+
+def to_node(textlike: TextLike) -> Node:
+    """Converts a :data:`~TextLike` to :class:`Node`."""
+    if isinstance(textlike, Node):
+        return textlike
+    elif isinstance(textlike, str):
+        return Node(text=textlike)
+    elif supportstext(textlike):
+        return Node(text=textlike.text)
+    raise ValueError(f"Cannot convert type {type(textlike)} to Node.")
+
+
 def to_text(textlike: TextLike) -> str:
     """Converts a :data:`~TextLike` to string."""
     if isinstance(textlike, str):
@@ -345,6 +373,67 @@ def to_text(textlike: TextLike) -> str:
     if supportstext(textlike):
         return textlike.text
     raise ValueError(f"Cannot convert type {type(textlike)} to text.")
+
+
+def to_prompt_list(textlikes: TextLikeOrTextLikeList) -> List[Prompt]:
+    """Converts a :data:`~TextLike` or a list of :data:`~TextLike` to list of :class:`~Prompt`."""
+    if istextlike(textlikes):
+        return [to_prompt(cast(TextLike, textlikes))]  # cast to fix mypy warning
+    elif isinstance(textlikes, Iterable):
+        result = [to_prompt_list(textlike) for textlike in textlikes]
+        return list(itertools.chain(*result))
+    else:
+        return [to_prompt(textlikes)]
+
+
+def to_document_list(textlikes: TextLikeOrTextLikeList) -> List[Document]:
+    """Converts a :data:`~TextLike` or a list of :data:`~TextLike` to list of :class:`~Document`."""
+    if istextlike(textlikes):
+        return [to_document(cast(TextLike, textlikes))]  # cast to fix mypy warning
+    if isinstance(textlikes, Iterable):
+        result = [to_document_list(textlike) for textlike in textlikes]
+        return list(itertools.chain(*result))
+    else:
+        return [to_document(textlikes)]
+
+
+def to_node_list(textlikes: TextLikeOrTextLikeList) -> List[Node]:
+    """Converts a :data:`~TextLike` or a list of :data:`~TextLike` to list of :class:`~Node`."""
+    if istextlike(textlikes):
+        return [to_node(cast(TextLike, textlikes))]  # cast to fix mypy warning
+    elif isinstance(textlikes, Iterable):
+        result = [to_node_list(textlike) for textlike in textlikes]
+        return list(itertools.chain(*result))
+    else:
+        return [to_node(textlikes)]
+
+
+def prompt_input_to_prompt_list(input: PromptInput) -> List[Prompt]:
+    """Parses from the PromptInput to List[Prompt].
+
+    Following is the parsing logic used based on the type of input:
+        input  (str) = [Prompt(text=input)]
+        inputs (Iterable[str]) = [Prompt(text=input) for input in inputs]
+        input  (Prompt) = [input]
+        inputs (Iterable[Prompt]) = inputs
+        input  (SupportsText) = [Prompt(text=input.text)]
+        inputs (Iterable[SupportsText]) = [Prompt(text=input.text) for input in inputs]
+        input  (Dict[str, Any]) = [Prompt(**input)]
+        inputs (Iterable[Dict[str, Any]]) = [Prompt(**input) for input in inputs]
+
+    Args:
+        input (:data:`PromptInput`): input to parse from
+    """
+    if isinstance(input, str):
+        return [Prompt(text=input)]
+    elif isinstance(input, dict):
+        return [Prompt(**input)]
+    elif istextlike(input):
+        return [to_prompt(cast(TextLike, input))]  # cast to fix mypy warning
+    elif isinstance(input, Iterable):
+        result = [prompt_input_to_prompt_list(p) for p in input]
+        return list(itertools.chain(*result))
+    raise TypeError(f"Unknown prompt type: {type(input)}")
 
 
 # endregion

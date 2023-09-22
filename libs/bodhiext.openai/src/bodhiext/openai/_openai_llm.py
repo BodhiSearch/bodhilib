@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Dict, Iterable, List, NoReturn, Optional, Union
 
-from bodhilib import LLM, PromptInput, prompt_input_to_prompts
-from bodhilib.models import Prompt, PromptStream, Role, prompt_output
+from bodhilib import LLM
+from bodhilib.models import Prompt, PromptInput, PromptStream, Role, prompt_input_to_prompt_list, prompt_output
 
 import openai
 from openai.openai_response import OpenAIResponse
@@ -32,7 +32,7 @@ class OpenAIChat(LLM):
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> Union[Prompt, PromptStream]:
-        prompts = prompt_input_to_prompts(prompt_input)
+        prompts = prompt_input_to_prompt_list(prompt_input)
         all_args = {
             **self.kwargs,
             "stream": stream,
@@ -87,7 +87,7 @@ class OpenAIText(LLM):
         user: Optional[str] = None,
         **kwargs: Any,
     ) -> Union[Prompt, PromptStream]:
-        prompts = prompt_input_to_prompts(prompt_input)
+        prompts = prompt_input_to_prompt_list(prompt_input)
         prompt = self._to_prompt(prompts)
         all_args = {
             **self.kwargs,

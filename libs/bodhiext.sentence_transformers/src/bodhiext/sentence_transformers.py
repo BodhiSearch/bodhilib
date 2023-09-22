@@ -3,13 +3,14 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from bodhilib import Embedder
+from bodhilib import BaseEmbedder
 from bodhilib.logging import logger
+from bodhilib.models import Embedding, Node
 from bodhilib.plugin import Service, service_provider
 from sentence_transformers import SentenceTransformer
 
 
-class SentenceTransformerEmbedder(Embedder):
+class SentenceTransformerEmbedder(BaseEmbedder):
     """Embedder using sentence-transformer library."""
 
     def __init__(
@@ -27,10 +28,10 @@ class SentenceTransformerEmbedder(Embedder):
         else:
             self.model = model
 
-    def _embed(self, texts: List[str]) -> List[List[float]]:
+    def _embed(self, nodes: List[Node]) -> List[Embedding]:
         if self.client is None:
             self.client = SentenceTransformer(self.model)
-        embeddings: List[List[float]] = self.client.encode(list(texts)).tolist()
+        embeddings: List[Embedding] = self.client.encode([node.text for node in nodes]).tolist()
         return embeddings
 
     @property
