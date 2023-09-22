@@ -49,7 +49,7 @@ nitpick_ignore = [
     ("py:class", "TextLike"),
     ("py:class", "Embedding"),
     ("py:class", "TextLikeOrTextLikeList"),
-    ("py:class", "PromptInput"),
+    ("py:class", "SerializedInput"),
     ("py:class", "pydantic.main.BaseModel"),
     ("py:class", "T"),
     ("py:data", "T"),
@@ -76,7 +76,7 @@ autodoc_type_aliases = {
     "TextLike": "TextLike",
     "Embedding": "Embedding",
     "TextLikeOrTextLikeList": "TextLikeOrTextLikeList",
-    "PromptInput": "PromptInput",
+    "SerializedInput": "SerializedInput",
 }
 autoclass_content = "both"
 html_theme_options = {

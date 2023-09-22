@@ -13,19 +13,20 @@ bodhilib
 
    Type alias for Union of :data:`~bodhilib.TextLike` and :class:`~typing.List`\[:data:`~bodhilib.TextLike`\]
 
-.. data:: bodhilib.PromptInput
+.. data:: bodhilib.SerializedInput
 
-   Type alias for various inputs that can be passed to the LLM service as prompt.
+   Type alias for a generic and flexible input types that can be passed to the Service components
+   like :class:`~bodhilib.LLM`, :class:`~bodhilib.Splitter`, :class:`~bodhilib.Embedder` as input.
 
-   Defined as Union[:class:`str`, List[str], :class:`~bodhilib.Prompt`, List[:class:`~bodhilib.Prompt`], Dict[str, Any], List[Dict[str, Any]]]
+   Defined as `TextLike | List[TextLike] | Dict[str, Any] | List[Dict[str, Any]]`.
 
-   LLM service can take in::
-      - a string, the string value is treated as prompt "text", role is set to "user" and source is set to "input"
-      - a list of strings, builds prompt with same defaults as above
-      - a :class:`~bodhilib.Prompt` object
-      - a list of :class:`~bodhilib.Prompt` objects
-      - a serialized :class:`~bodhilib.Prompt` object as dict, e.g. `{"text": "hello", "role": "user", "source": "input"}`
-      - a list of serialized :class:`~bodhilib.Prompt` objects as dicts
+   Service supporting SerializedInput can take in::
+      - a string, the string value is treated as "text" for target object, remaining values are set as defaults
+      - a list of strings, created iteratively same as above
+      - an object supporting :class:`~bodhilib.SupportsText`, the property `text` is treated as "text" for the target object, remaining values are set as defaults
+      - a list of objects supporting :class:`~bodhilib.SupportsText`, created iteratively same as above
+      - a serialized object as :class:`dict`, e.g. for :class:`~bodhilib.Prompt` can be `{"text": "hello", "role": "user", "source": "input"}`. The input is passed to the constructor and built using :class:`~pydantic.main.BaseModel` implementation.
+      - a list of serialized objects as :class:`dict`, created iteratively same as above
 
 .. data:: bodhilib.Embedding
 
