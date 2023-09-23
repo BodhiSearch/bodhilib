@@ -66,7 +66,7 @@ class FileLoader(DataLoader):
         if isinstance(path, str):
             path = Path(path)
         if not path.exists():
-            raise ValueError(f"Path {path} does not exist")
+            raise ValueError(f"Path {path.absolute()} does not exist")
         self.paths.append(path)
 
     def _add_dir(self, dir: PathLike, recursive: bool) -> None:

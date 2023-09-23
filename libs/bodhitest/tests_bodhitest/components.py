@@ -1,7 +1,10 @@
 import bodhiext
 from bodhiext.cohere import Cohere, cohere_llm_service_builder
+from bodhiext.data_loader import FileLoader, file_loader_service_builder
 from bodhiext.openai import OpenAIChat, OpenAIText, openai_chat_service_builder, openai_text_service_builder
 from bodhiext.qdrant import Qdrant, qdrant_service_builder
+
+from .file_loader_helper import setup_file_loader, teardown_file_loader
 
 bodhiext_llms = {
     "openai_chat": {
@@ -41,6 +44,23 @@ bodhiext_vector_dbs = {
 }
 
 
+bodhiext_data_loaders = {
+    "file": {
+        "service_name": "file",
+        "data_loader_service_builder": file_loader_service_builder,
+        "data_loader_class": FileLoader,
+        "publisher": "bodhiext",
+        "version": bodhiext.data_loader.__version__,
+        "happypath": {
+            "setup": setup_file_loader,
+            "resources": ["libs/bodhitest/tmp/file_loader/test1.txt", "libs/bodhitest/tmp/file_loader/test2.txt"],
+            "text": ["hello world!", "world hello!"],
+            "teardown": teardown_file_loader,
+        },
+    }
+}
+
+
 def unwrap_llm(llm_params):  # type: ignore
     return (
         llm_params["service_name"],
@@ -59,4 +79,14 @@ def unwrap_vector_db(vector_db_params):  # type: ignore
         vector_db_params["vector_db_class"],
         vector_db_params["publisher"],
         vector_db_params["version"],
+    )
+
+
+def unwrap_data_loader(data_loader_params):  # type: ignore
+    return (
+        data_loader_params["service_name"],
+        data_loader_params["data_loader_service_builder"],
+        data_loader_params["data_loader_class"],
+        data_loader_params["publisher"],
+        data_loader_params["version"],
     )

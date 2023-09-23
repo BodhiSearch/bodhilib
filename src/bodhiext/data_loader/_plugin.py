@@ -3,6 +3,7 @@ from typing import List
 from bodhilib import Service, service_provider
 
 from ._file import file_loader_service_builder as file_loader_service_builder
+from ._version import __version__
 
 
 @service_provider
@@ -14,6 +15,6 @@ def bodhilib_list_services() -> List[Service]:
             service_type="data_loader",
             publisher="bodhiext",
             service_builder=file_loader_service_builder,
-            version="0.1.0",
+            version=__version__,
         )
     ]

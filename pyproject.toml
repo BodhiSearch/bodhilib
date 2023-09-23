@@ -23,7 +23,7 @@ python-dotenv = "^1.0.0"
 cohere = "^4.21"
 openai = "^0.27.8"
 sentence-transformers = "^2.2.2"
-torch = ">=2.0.0, !=2.0.1" # sentence-transformers dependency
+torch = ">=2.0.0, !=2.0.1"       # sentence-transformers dependency
 # TODO qdrant-client forced to have python<3.12 constraint, need to resolve
 qdrant-client = "^1.5.0" # openai.qdrant dependency
 
