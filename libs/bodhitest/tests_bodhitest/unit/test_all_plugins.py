@@ -1,5 +1,5 @@
 import pytest
-from bodhilib import PluginManager
+from bodhilib import PluginManager, Service
 
 from tests_bodhitest.all_data import all_plugins
 
@@ -72,3 +72,25 @@ def test_all_plugins_service_builder_raises_error_on_invalid_args(invalid_args, 
         )
     print(f"{locals()=}")
     assert str(e.value) == error_message.format(**locals())
+
+
+@pytest.mark.parametrize("plugin_params", all_plugins.keys(), indirect=True)
+def test_all_plugins_list_services(plugin_params):
+    service_name, service_type, service_builder, publisher, version = (
+        plugin_params["service_name"],
+        plugin_params["service_type"],
+        plugin_params["service_builder"],
+        plugin_params["publisher"],
+        plugin_params["version"],
+    )
+    services = PluginManager.instance().list_services(service_type)
+    assert (
+        Service(
+            service_name=service_name,
+            service_type=service_type,
+            publisher=publisher,
+            service_builder=service_builder,
+            version=version,
+        )
+        in services
+    )

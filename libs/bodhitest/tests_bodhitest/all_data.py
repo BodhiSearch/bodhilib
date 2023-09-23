@@ -3,6 +3,7 @@ from bodhiext.cohere import Cohere, cohere_llm_service_builder
 from bodhiext.data_loader import FileLoader, file_loader_service_builder
 from bodhiext.openai import OpenAIChat, OpenAIText, openai_chat_service_builder, openai_text_service_builder
 from bodhiext.qdrant import Qdrant, qdrant_service_builder
+from bodhiext.sentence_transformers import SentenceTransformerEmbedder, sentence_transformer_builder
 from bodhiext.splitter import TextSplitter, text_splitter_service_builder
 
 from .file_loader_helper import setup_file_loader, teardown_file_loader
@@ -86,4 +87,22 @@ bodhiext_splitters = {
     }
 }
 
-all_plugins = {**bodhiext_llms, **bodhiext_vector_dbs, **bodhiext_data_loaders, **bodhiext_splitters}
+bodhiext_embedders = {
+    "sentence_transformers": {
+        "service_name": "sentence_transformers",
+        "service_type": "embedder",
+        "service_class": SentenceTransformerEmbedder,
+        "publisher": "bodhiext",
+        "version": bodhiext.sentence_transformers.__version__,
+        "service_args": {"model": "all-MiniLM-L6-v2"},
+        "service_builder": sentence_transformer_builder,
+    }
+}
+
+all_plugins = {
+    **bodhiext_llms,
+    **bodhiext_vector_dbs,
+    **bodhiext_data_loaders,
+    **bodhiext_splitters,
+    **bodhiext_embedders,
+}

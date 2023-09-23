@@ -57,7 +57,6 @@ def test_all_vector_dbs_list_vector_dbs(vector_db_params):
         vector_db_params["publisher"],
         vector_db_params["version"],
     )
-
     services = list_vector_dbs()
     assert (
         Service(

@@ -3,11 +3,14 @@ import uuid
 from typing import Any, Dict, List, Optional, Union
 
 from bodhilib import Distance, Embedding, Node, Service, VectorDB, VectorDBError, service_provider
+
+# TODO: Once the module is separate, import this from the extension version file
+from bodhilib import __version__ as bodhilib_version
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance as QdrantDistance
 from qdrant_client.http.models import Filter, PointStruct, ScoredPoint, VectorParams
 
-from ._version import __version__ as __version__
+__version__ = bodhilib_version
 
 _qdrant_distance_mapping = {
     Distance.COSINE.value: QdrantDistance.COSINE,

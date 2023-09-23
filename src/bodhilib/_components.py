@@ -440,12 +440,7 @@ def get_embedder(
 
     manager = PluginManager.instance()
     embedder: E = manager.get(
-        service_name=service_name,
-        service_type="embedder",
-        oftype=return_type,
-        publisher=publisher,
-        version=version,
-        **kwargs,
+        service_name, "embedder", oftype=return_type, publisher=publisher, version=version, **kwargs
     )
     return cast(E, embedder)
 

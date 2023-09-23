@@ -4,8 +4,13 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from bodhilib import BaseEmbedder, Embedding, Node, Service, service_provider
+
+# TODO: Once the module is separate, import this from the extension version file
+from bodhilib import __version__ as bodhilib_version
 from bodhilib.logging import logger
 from sentence_transformers import SentenceTransformer
+
+__version__ = bodhilib_version
 
 
 class SentenceTransformerEmbedder(BaseEmbedder):
@@ -92,6 +97,6 @@ def bodhilib_list_services() -> List[Service]:
             service_type="embedder",
             publisher="bodhiext",
             service_builder=sentence_transformer_builder,
-            version="0.1.0",
+            version=__version__,
         )
     ]
