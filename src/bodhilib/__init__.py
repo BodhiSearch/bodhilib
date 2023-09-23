@@ -12,6 +12,7 @@ from ._components import VectorDBError as VectorDBError
 from ._components import get_data_loader as get_data_loader
 from ._components import get_embedder as get_embedder
 from ._components import get_llm as get_llm
+from ._components import get_splitter as get_splitter
 from ._components import get_vector_db as get_vector_db
 from ._components import list_embedders as list_embedders
 from ._components import list_llms as list_llms

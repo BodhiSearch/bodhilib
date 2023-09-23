@@ -3,13 +3,15 @@ from typing import Any, Dict, List, Optional
 from bodhilib import Service, service_provider
 
 from ._text_splitter import TextSplitter
+from ._version import __version__
 
 
 def text_splitter_service_builder(
     *,
-    service_name: Optional[str] = "file",
-    service_type: Optional[str] = "data_loader",
+    service_name: Optional[str] = "text_splitter",
+    service_type: Optional[str] = "splitter",
     publisher: Optional[str] = "bodhiext",
+    version: Optional[str] = None,
     max_len: Optional[int] = None,
     min_len: Optional[int] = None,
     overlap: Optional[int] = None,
@@ -32,6 +34,7 @@ def text_splitter_service_builder(
         **kwargs,
     }
     all_args = {k: v for k, v in all_args.items() if v is not None}
+    # TODO: Add validation for all_args, extra args fails the constructor
     return TextSplitter(**all_args)  # type: ignore
 
 
@@ -44,6 +47,6 @@ def bodhilib_list_services() -> List[Service]:
             service_type="splitter",
             publisher="bodhiext",
             service_builder=text_splitter_service_builder,
-            version="0.1.0",
+            version=__version__,
         )
     ]

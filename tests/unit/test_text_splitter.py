@@ -1,6 +1,11 @@
+import os
+from pathlib import Path
+
 import pytest
 from bodhiext.splitter import TextSplitter
 from bodhilib import Document
+
+current_dir = Path(os.path.dirname(os.path.abspath(__file__)))
 
 
 @pytest.fixture
@@ -61,6 +66,14 @@ def test_preserves_original_text():
     text = _generate_sentence(64)
     splits = list(zero_overlap_splitter.split([Document(text=text)]))
     assert len(splits) == 7
+    assert "".join([s.text for s in splits]) == text
+
+
+def test_zero_overlap_splitter_on_essay():
+    zero_overlap_splitter = TextSplitter(max_len=1000, min_len=100, overlap=0)
+    with open(current_dir / ".." / "test_data" / "pg-great-work.txt", "r") as f:
+        text = f.read()
+    splits = list(zero_overlap_splitter.split([Document(text=text)]))
     assert "".join([s.text for s in splits]) == text
 
 

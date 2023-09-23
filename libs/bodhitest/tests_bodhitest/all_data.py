@@ -3,6 +3,7 @@ from bodhiext.cohere import Cohere, cohere_llm_service_builder
 from bodhiext.data_loader import FileLoader, file_loader_service_builder
 from bodhiext.openai import OpenAIChat, OpenAIText, openai_chat_service_builder, openai_text_service_builder
 from bodhiext.qdrant import Qdrant, qdrant_service_builder
+from bodhiext.splitter import TextSplitter, text_splitter_service_builder
 
 from .file_loader_helper import setup_file_loader, teardown_file_loader
 
@@ -73,4 +74,16 @@ bodhiext_data_loaders = {
     }
 }
 
-all_plugins = {**bodhiext_llms, **bodhiext_vector_dbs, **bodhiext_data_loaders}
+bodhiext_splitters = {
+    "text": {
+        "service_name": "text_splitter",
+        "service_type": "splitter",
+        "service_class": TextSplitter,
+        "publisher": "bodhiext",
+        "version": bodhiext.splitter.__version__,
+        "service_args": {"overlap": 0, "min_len": 100, "max_len": 500},
+        "service_builder": text_splitter_service_builder,
+    }
+}
+
+all_plugins = {**bodhiext_llms, **bodhiext_vector_dbs, **bodhiext_data_loaders, **bodhiext_splitters}

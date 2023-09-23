@@ -368,6 +368,41 @@ def list_data_loaders() -> List[Service]:
     return manager.list_services("data_loader")
 
 
+# Splitter
+S = TypeVar("S", bound=Splitter)
+"""TypeVar for Splitter."""
+
+
+def get_splitter(
+    service_name: str,
+    *,
+    oftype: Optional[Type[S]] = None,
+    publisher: Optional[str] = None,
+    version: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+) -> S:
+    """Get an instance of splitter for given arguments.
+
+    Returns:
+        S (:data:`~bodhilib.S` | :class:`~bodhilib.Splitter`): an instance of Splitter service
+    """
+    if oftype is None:
+        return_type: Type[Any] = Splitter
+    else:
+        return_type = oftype
+
+    manager = PluginManager.instance()
+    splitter: S = manager.get(
+        service_name=service_name,
+        service_type="splitter",
+        oftype=return_type,
+        publisher=publisher,
+        version=version,
+        **kwargs,
+    )
+    return cast(S, splitter)
+
+
 # Embedder
 E = TypeVar("E", bound=Embedder)
 """TypeVar for Embedder."""

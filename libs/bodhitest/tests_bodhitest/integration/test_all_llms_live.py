@@ -14,7 +14,8 @@ def llm_service(request):
     service_name = bodhiext_llms[request.param]["service_name"]
     service_class = bodhiext_llms[request.param]["service_class"]
     service_args = bodhiext_llms[request.param]["service_args"]
-    return get_llm(service_name, service_args.pop("model"), oftype=service_class, **service_args)
+    service_args_copy = {**service_args}  # make a copy to avoid mutating the original, doing a pop in next line
+    return get_llm(service_name, service_args_copy.pop("model"), oftype=service_class, **service_args_copy)
 
 
 @pytest.mark.live

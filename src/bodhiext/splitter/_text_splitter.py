@@ -1,5 +1,5 @@
 import re
-from typing import Callable, Iterable, Iterator, List, Optional, Tuple
+from typing import Callable, Iterable, List, Optional, Tuple
 
 from bodhilib import BaseSplitter, Document, Node
 
@@ -46,72 +46,85 @@ class TextSplitter(BaseSplitter):
         self.word_splitter = _build_word_splitter(eow_patterns)
 
     def _split(self, docs: Iterable[Document]) -> List[Node]:
-        return list(self._split_generator(docs))
-
-    def _split_generator(self, docs: Iterable[Document]) -> Iterator[Node]:
+        nodes = []
         for doc in docs:
             current_words: List[str] = []
             sentences = self.sentence_splitter(doc.text)
             for sentence in sentences:
                 words = self.word_splitter(sentence)
-                nodes, new_current_words, new_words = self._build_nodes(doc, current_words, words)
-                for node in nodes:
-                    yield node
+                # the sentence can be combined without exceeding max_len
+                if len(current_words) + len(words) < self.max_len:
+                    current_words += words
+                    words = []
+                    continue
+                # the sentence cannot be combined without exceeding max_len
+                new_nodes, new_current_words, new_words = self._build_nodes(doc, current_words, words)
+                nodes.extend(new_nodes)
                 assert new_words == [], f"{new_words=} should be empty"
                 current_words = new_current_words
             if len(current_words) > self.overlap:
                 node_text = "".join(current_words)
                 node = Node(text=node_text, parent=doc)
-                yield node
+                nodes.append(node)
+        return nodes
 
     def _build_nodes(
         self, doc: Document, current_words: List[str], words: List[str]
     ) -> Tuple[List[Node], List[str], List[str]]:
-        # exit condition of recursion
-        # will have words == []
-        # the sentence can be combined without exceeding max_len
-        if len(current_words) + len(words) < self.max_len:
-            return [], current_words + words, []
+        nodes = []
+        while True:
+            # start of sentence, take all the words
+            if len(current_words) == 0:
+                current_words = words
+                words = []
+                continue
 
-        # current_words in itself is larger than max_len
-        # chop current_words to max_len and build the node
-        if len(current_words) >= self.max_len:
-            node_text = "".join(current_words[: self.max_len])
-            remaining_words = current_words[self.max_len - self.overlap :]
-            this_nodes = [Node(text=node_text, parent=doc)]
-            nodes, new_current_words, new_words = self._build_nodes(doc, remaining_words, words)
-            return this_nodes + nodes, new_current_words, new_words
+            # the sentence can be combined with next sentence without exceeding max_len
+            if len(words) != 0 and len(current_words) + len(words) < self.max_len:
+                current_words += words
+                words = []
+                continue
 
-        # if the combined words are equal to max_len, build the node and return
-        if len(current_words) + len(words) == self.max_len:
-            all_words = current_words + words
-            node_text = "".join(all_words)
-            remaining_words = all_words[-self.overlap :]
-            this_nodes = [Node(text=node_text, parent=doc)]
-            nodes, new_current_words, new_words = self._build_nodes(doc, remaining_words, [])
-            return this_nodes + nodes, new_current_words, new_words
+            # current sentence has more words than max_len
+            # take the max len words and build the node, pass the remaining words to next iteration
+            if len(current_words) >= self.max_len:
+                node_text = "".join(current_words[: self.max_len])
+                remaining_words = current_words[self.max_len - self.overlap :]
+                new_node = Node(text=node_text, parent=doc)
+                nodes.append(new_node)
+                current_words = remaining_words
+                continue
 
-        # else: cannot be combined with next sentence without exceeding max_len
-        # so, if the current sentence has more words than min_len, build the node with the current words
-        if len(current_words) >= self.min_len:
-            node_text = "".join(current_words)
-            this_nodes = [Node(text=node_text, parent=doc)]
-            remaining_words = current_words[-self.overlap :]
-            nodes, new_current_words, new_words = self._build_nodes(doc, remaining_words, words)
-            return this_nodes + nodes, new_current_words, new_words
-        # else: if current_words is empty, hence start of sentence
-        if len(current_words) == 0:
-            return self._build_nodes(doc, words, [])
+            # if combined  with next sentence, the words will exceed max_len
+            # and current words is more than min_len
+            # so build the node with current words, pass the remaining words to next iteration
+            if len(current_words) + len(words) > self.max_len and len(current_words) >= self.min_len:
+                node_text = "".join(current_words)
+                new_node = Node(text=node_text, parent=doc)
+                nodes.append(new_node)
+                remaining_words = current_words[-self.overlap :] if self.overlap != 0 else []
+                current_words = remaining_words
+                continue
 
-        # else: the current sentence has less words than min_len
-        # and cannot be combined with next sentence without exceeding max_len,
-        # so take as many words required to reach min_len
-        all_words = current_words + words
-        node_text = "".join(all_words[: self.min_len])
-        this_nodes = [Node(text=node_text, parent=doc)]
-        remaining_words = all_words[self.min_len - self.overlap :]
-        nodes, new_current_words, new_words = self._build_nodes(doc, remaining_words, [])
-        return this_nodes + nodes, new_current_words, new_words
+            # if combined  with next sentence, the words will exceed max_len
+            # and current words is less than min_len
+            # so take as many words needed to reach min_len, build the node and return remaining words to next iteration
+            if len(current_words) + len(words) > self.max_len and len(current_words) < self.min_len:
+                all_words = current_words + words
+                node_text = "".join(all_words[: self.min_len])
+                new_node = Node(text=node_text, parent=doc)
+                nodes.append(new_node)
+                remaining_words = all_words[self.min_len - self.overlap :]
+                current_words = remaining_words
+                words = []
+                continue
+
+            # the combined sentence will be less than max_len
+            # add the words and return
+            current_words += words
+            words = []
+            break
+        return nodes, current_words, words
 
 
 def _build_sentence_splitter(eos_patterns: List[str]) -> Callable[[str], List[str]]:
