@@ -155,6 +155,8 @@ def qdrant_service_builder(
     *,
     service_name: Optional[str] = None,
     service_type: Optional[str] = None,
+    publisher: Optional[str] = None,  # QdrantClient fails if passed extra args
+    version: Optional[str] = None,  # QdrantClient fails if passed extra args
     client: Optional[QdrantClient] = None,
     url: Optional[str] = None,
     api_key: Optional[str] = None,
@@ -176,6 +178,7 @@ def qdrant_service_builder(
         "timeout": timeout,
         **kwargs,
     }
+    # TODO filter invalid args, only pass args recognized by QdrantClient
     return Qdrant(**service_args)
 
 

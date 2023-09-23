@@ -120,13 +120,15 @@ class PluginManager:
             "version": version,
             **kwargs,
         }
+        # remove None values
+        all_args = {k: v for k, v in all_args.items() if v is not None}
         for service in self.services:
             if service.service_name == service_name and service.service_type == service_type:
                 component = service.service_builder(**all_args)
                 if not isinstance(component, return_type):
                     raise TypeError(f'Expecting {service_type} of type "{oftype}", but got "{type(component)}"')
                 return cast(C, component)
-        raise ValueError(f"Unknown service: {service_name}, available services: {self.services}")
+        raise ValueError(f"Service {service_name=} of type {service_type=} not found in registered services")
 
     def list_services(self, service_type: str) -> List[Service]:
         """List all services of type service_type installed and available."""

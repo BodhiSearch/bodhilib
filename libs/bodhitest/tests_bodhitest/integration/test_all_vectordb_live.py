@@ -1,15 +1,16 @@
 import pytest
 from bodhilib import Node, VectorDB, get_vector_db
 
-from tests_bodhitest.components import bodhiext_vector_dbs, unwrap_vector_db
+from tests_bodhitest.all_data import bodhiext_vector_dbs
 
 TEST_COLLECTION = "test_collection"
 
 
 @pytest.fixture
 def vector_db_service(request) -> VectorDB:
-    service_name, _, vector_db_class, _, _ = unwrap_vector_db(bodhiext_vector_dbs[request.param])
-    service = get_vector_db(service_name, oftype=vector_db_class)
+    service_name = bodhiext_vector_dbs[request.param]["service_name"]
+    service_class = bodhiext_vector_dbs[request.param]["service_class"]
+    service = get_vector_db(service_name, oftype=service_class)
     service.delete_collection(collection_name=TEST_COLLECTION)
     return service
 

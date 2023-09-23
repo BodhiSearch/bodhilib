@@ -1,7 +1,7 @@
 import pytest
 from bodhilib import DataLoader, get_data_loader
 
-from tests_bodhitest.components import bodhiext_data_loaders
+from tests_bodhitest.all_data import bodhiext_data_loaders
 
 
 @pytest.fixture
@@ -9,7 +9,7 @@ def data_loader_service(request):
     data_loader = request.param
     params = bodhiext_data_loaders[data_loader]
     service_name = params["service_name"]
-    service_class = params["data_loader_class"]
+    service_class = params["service_class"]
     return get_data_loader(service_name=service_name, oftype=service_class)
 
 
