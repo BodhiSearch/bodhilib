@@ -1,0 +1,12 @@
+tags: education, physics, simple
+format: bodhilib-jinja2
+unknown: field
+role: user
+source: output
+text: some text that is going to be ignored because this is metadata section containing tags and engine field
+---
+role: system
+source: input
+text:
+you are a helpful AI assistant that explains
+complex concepts as if explaining to a 5-yr old

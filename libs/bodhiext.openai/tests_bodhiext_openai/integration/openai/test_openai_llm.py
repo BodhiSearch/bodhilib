@@ -45,7 +45,7 @@ def test_openai_text_generate_with_system_prompt(llm_davinci):
 @pytest.mark.live
 def test_openai_chat_generate_with_prompt_template(llm_gpt35_turbo):
     template = PromptTemplate("Question: What day comes after {day}?\nAnswer: ")
-    prompt = template.to_prompt(day="Tuesday")
+    prompt = template.to_prompts(day="Tuesday")[0]
     result = llm_gpt35_turbo.generate(prompt)
     assert "wednesday" in result.text.strip().lower()
 

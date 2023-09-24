@@ -39,6 +39,10 @@ bodhilib
    :special-members: __iter__
    :private-members: _embed, _split, _StrEnumMixin
 
+.. data:: bodhilib.TemplateFormat
+
+   List of possible values for TemplateFormat
+
 .. data:: bodhilib.C
 
    TypeVar for bodhilib Components
@@ -47,9 +51,17 @@ bodhilib
 
    TypeVar for LLM API response
    
+.. data:: bodhilib.PS
+
+   TypeVar for type bound to :class:`~bodhilib.PromptSource`
+
 .. data:: bodhilib.DL
 
    TypeVar for type bound to :class:`~bodhilib.DataLoader`
+
+.. data:: bodhilib.S
+
+   TypeVar for type bound to :class:`~bodhilib.Splitter`
 
 .. data:: bodhilib.E
 

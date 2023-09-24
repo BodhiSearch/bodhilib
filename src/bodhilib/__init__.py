@@ -3,15 +3,18 @@ import inspect
 
 from ._components import LLM as LLM
 from ._components import BaseEmbedder as BaseEmbedder
+from ._components import BasePromptSource as BasePromptSource
 from ._components import BaseSplitter as BaseSplitter
 from ._components import DataLoader as DataLoader
 from ._components import Embedder as Embedder
+from ._components import PromptSource as PromptSource
 from ._components import Splitter as Splitter
 from ._components import VectorDB as VectorDB
 from ._components import VectorDBError as VectorDBError
 from ._components import get_data_loader as get_data_loader
 from ._components import get_embedder as get_embedder
 from ._components import get_llm as get_llm
+from ._components import get_prompt_source as get_prompt_source
 from ._components import get_splitter as get_splitter
 from ._components import get_vector_db as get_vector_db
 from ._components import list_embedders as list_embedders
@@ -48,6 +51,7 @@ from ._models import to_text as to_text
 from ._plugin import PluginManager as PluginManager
 from ._plugin import Service as Service
 from ._plugin import service_provider as service_provider
+from ._utils import parse_prompt_template as parse_prompt_template
 from ._version import __version__ as __version__
 from .common import package_name as package_name
 

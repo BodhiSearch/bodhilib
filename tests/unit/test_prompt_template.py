@@ -1,18 +1,17 @@
 # prompt template
 import textwrap
 
-from bodhilib import (
-    Prompt,
-    PromptTemplate,
-    prompt_with_examples,
-)
+import pytest
+from bodhilib import Prompt, PromptTemplate, parse_prompt_template, prompt_with_examples
+
+from tests.conftest import TEST_DATA_DIR
 
 
 def test_prompt_template():
     template = PromptTemplate(
         "Question: What day of the week comes after {day}?\nAnswer: ", role="user", source="input"
     )
-    assert template.to_prompt(day="Monday") == Prompt(
+    assert template.to_prompts(day="Monday")[0] == Prompt(
         "Question: What day of the week comes after Monday?\nAnswer: ", role="user", source="input"
     )
 
@@ -21,21 +20,35 @@ def test_prompt_template_source_set_correctly():
     template = PromptTemplate(
         "Question: What day of the week comes after {day}?\nAnswer: ", role="user", source="output"
     )
-    assert template.to_prompt(day="Monday") == Prompt(
+    assert template.to_prompts(day="Monday")[0] == Prompt(
         "Question: What day of the week comes after Monday?\nAnswer: ", role="user", source="output"
     )
 
 
 def test_prompt_template_defaults():
     template = PromptTemplate("simple template")
-    assert template.engine == "default"
+    assert template.format == "fstring"
 
 
 def test_prompt_template_defaults_override():
     template = PromptTemplate("simple template", "system", "output", "jinja2")
     assert template.role == "system"
     assert template.source == "output"
-    assert template.engine == "jinja2"
+    assert template.format == "jinja2"
+
+
+@pytest.mark.parametrize("filename", ["simple-prompt.txt", "simple-prompt-fstring.txt"])
+def test_prompt_template_with_bodhilib_format(filename):
+    templates = parse_prompt_template((TEST_DATA_DIR / "prompt-templates" / filename).read_text())
+    assert len(templates) == 1
+    prompts = templates[0].to_prompts()
+    assert len(prompts) == 1
+    # jinja2 strips the trailing newlines
+    assert prompts[0] == Prompt(
+        "\nyou are a helpful AI assistant that explains\ncomplex concepts as if explaining to a 5-yr old\n",
+        "system",
+        "input",
+    )
 
 
 # prompt examples
@@ -58,7 +71,7 @@ def test_prompt_with_examples():
     query = "pirate"
 
     prompt_template = prompt_with_examples(template, examples=examples, query=query)
-    prompt = prompt_template.to_prompt()
+    prompt = prompt_template.to_prompts()[0]
     expected = textwrap.dedent("""
     Below are few examples of location where item is usually found:
 

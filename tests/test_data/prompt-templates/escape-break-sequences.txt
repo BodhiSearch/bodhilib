@@ -1,0 +1,22 @@
+tags: entertainment, jokes, funny
+format: bodhilib-fstring
+---
+role: system
+source: input
+text:
+you are a helpful +++ AI assistant that
+\--- completes high school --- level homework
+---
+role: user
+source: input
+text:
+What happens when you + and ++ and +++ numbers
+\+++ together? Does it matter if you --- or
+\---
++++
+tags: simple
+---
+role: user
+source: input
+text: what is 2---2 and 2+++2 and 2===2
++++

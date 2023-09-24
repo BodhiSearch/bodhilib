@@ -2,6 +2,7 @@ import bodhiext
 from bodhiext.cohere import Cohere, cohere_llm_service_builder
 from bodhiext.data_loader import FileLoader, file_loader_service_builder
 from bodhiext.openai import OpenAIChat, OpenAIText, openai_chat_service_builder, openai_text_service_builder
+from bodhiext.prompt_source import BodhiPromptSource, bodhi_prompt_source_builder
 from bodhiext.qdrant import Qdrant, qdrant_service_builder
 from bodhiext.sentence_transformers import SentenceTransformerEmbedder, sentence_transformer_builder
 from bodhiext.splitter import TextSplitter, text_splitter_service_builder
@@ -96,6 +97,18 @@ bodhiext_embedders = {
         "version": bodhiext.sentence_transformers.__version__,
         "service_args": {"model": "all-MiniLM-L6-v2"},
         "service_builder": sentence_transformer_builder,
+    }
+}
+
+bodhiext_prompt_sources = {
+    "bodhi_prompts": {
+        "service_name": "bodhi_prompts",
+        "service_type": "prompt_source",
+        "service_class": BodhiPromptSource,
+        "publisher": "bodhiext",
+        "version": bodhiext.prompt_source.__version__,
+        "service_args": {},
+        "service_builder": bodhi_prompt_source_builder,
     }
 }
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import itertools
+import re
 import reprlib
 import textwrap
 from enum import Enum
@@ -23,10 +24,9 @@ from typing import (
     no_type_check,
 )
 
+from jinja2 import Template
 from pydantic import BaseModel, Field, validator
 from typing_extensions import TypeAlias
-
-from bodhilib.logging import logger
 
 # region type aliases
 #######################################################################################################################
@@ -303,18 +303,39 @@ def prompt_output(text: str) -> Prompt:
 # region prompt template
 #######################################################################################################################
 
-Engine = Literal["default", "jinja2"]
+TemplateFormat = Literal["fstring", "jinja2", "bodhilib-fstring", "bodhilib-jinja2"]
 
 
-class PromptTemplate:
+class PromptTemplate(BaseModel):
     """PromptTemplate used for generating prompts using a template."""
 
+    template: str
+    """Template for generating prompts."""
+
+    role: Role = Role.USER
+    """Role of the prompt."""
+
+    source: Source = Source.INPUT
+    """Source of the prompt."""
+
+    format: TemplateFormat = "fstring"
+    """Template format to use for rendering."""
+
+    tags: List[str] = Field(default_factory=list)
+    """Searchable tags associated with the template."""
+
+    extras: Dict[str, Any] = Field(default_factory=dict)
+    """The context variables to be used for rendering the template."""
+
+    # overriding __init__ to provide positional argument construction for prompt template.
+    # E.g. `PromptTemplate("my template {context}")`
     def __init__(
         self,
         template: str,
         role: Optional[Role] = None,
         source: Optional[Source] = None,
-        engine: Optional[Engine] = "default",
+        format: Optional[TemplateFormat] = "fstring",
+        tags: Optional[str] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         """Initializes a prompt template.
@@ -323,16 +344,15 @@ class PromptTemplate:
             template: template string
             role: role of the prompt.
             source: source of the prompt.
-            engine: engine to use for rendering the template.
+            format: format to use for rendering the template.
+            tags: the searchable tags for the template
             **kwargs: additional arguments to be used for rendering the template
         """
-        self.template = template
-        self.role = role
-        self.source = source
-        self.engine = engine
-        self.kwargs = kwargs
+        role = role or Role.USER
+        source = source or Source.INPUT
+        super().__init__(template=template, role=role, source=source, format=format, tags=tags or [], extras=kwargs)
 
-    def to_prompt(self, **kwargs: Dict[str, Any]) -> Prompt:
+    def to_prompts(self, **kwargs: Dict[str, Any]) -> List[Prompt]:
         """Converts the PromptTemplate into a Prompt.
 
         Args:
@@ -341,26 +361,65 @@ class PromptTemplate:
         Returns:
             Prompt: prompt generated from the template
         """
-        if self.engine == "default":
-            return Prompt(self.template.format(**{**self.kwargs, **kwargs}), role=self.role, source=self.source)
-        if self.engine == "jinja2":
-            # TODO: remove this check
-            try:
-                import jinja2  # noqa: F401
-            except ImportError as e:
-                logger.error(
-                    "jinja2 is required for advance prompt templates. "
-                    "Install the jinja2 dependency separately using `pip install jinja2`, "
-                    "or install the additional dependencies on bodhilib.prompt package using `pip install"
-                    " bodhilib[prompt]`."
-                )
-                raise e
-            from jinja2 import Template
-
+        all_args = {**self.extras, **kwargs}
+        all_args = {k: v for k, v in all_args.items() if v is not None}
+        if self.format == "fstring":
+            return [Prompt(self.template.format(**all_args), role=self.role, source=self.source)]
+        if self.format == "jinja2":
             template = Template(textwrap.dedent(self.template))
-            result = template.render({**self.kwargs, **kwargs})
-            return Prompt(result, role=self.role, source=self.source)
-        raise ValueError(f"Unknown engine {self.engine}")
+            result = template.render(**all_args)
+            return [Prompt(result, role=self.role, source=self.source)]
+        if self.format.startswith("bodhilib-"):
+            return self._bodhilib_template_to_prompt(**all_args)
+        raise ValueError(
+            f"Unknown format {self.format}, "
+            "allowed values: ['fstring', 'jinja2', 'bodhilib-fstring', 'bodhilib-jinja2']"
+        )
+
+    def _bodhilib_template_to_prompt(self, **kwargs: Dict[str, Any]) -> List[Prompt]:
+        prompt_fields = ["text", "role", "source"]
+        prompt_fields_matcher = "^" + "|".join(prompt_fields) + ":"
+        lines = self.template.splitlines(keepends=True)
+        result: List[Prompt] = []
+        prompt: Dict[str, Any] = {"text": []}
+        text_start = False
+        for line in lines:
+            if re.match(prompt_fields_matcher, line):
+                field, value = line.split(":")
+                if field == "text":
+                    text_start = True
+                    prompt["text"].append(value)
+                else:
+                    text_start = False
+                    prompt[field] = value.strip()
+                continue
+            if line.startswith("---"):
+                if not prompt["text"]:
+                    text_start = False
+                    prompt = {"text": []}
+                    continue
+                p = self._build_prompt(prompt, **kwargs)
+                result.append(p)
+                text_start = False
+                prompt = {"text": []}
+                continue
+            if text_start:
+                prompt["text"].append(line)
+        if prompt["text"]:
+            p = self._build_prompt(prompt, **kwargs)
+            result.append(p)
+        return result
+
+    def _build_prompt(self, prompt: Dict[str, Any], **kwargs: Dict[str, Any]) -> Prompt:
+        template = "".join(prompt.pop("text"))
+        if self.format == "bodhilib-fstring":
+            text = template.format(**kwargs)
+        elif self.format == "bodhilib-jinja2":
+            jinja_template = Template(template, keep_trailing_newline=True)
+            text = jinja_template.render(**kwargs)
+        else:
+            raise ValueError("Unknown format {self.format}, allowed values: ['bodhilib-fstring', 'bodhilib-jinja2']")
+        return Prompt(text, **prompt)
 
 
 def prompt_with_examples(template: str, **kwargs: Dict[str, Any]) -> PromptTemplate:
@@ -379,7 +438,7 @@ def prompt_with_examples(template: str, **kwargs: Dict[str, Any]) -> PromptTempl
     # pop role from kwargs or get None
     role = kwargs.pop("role", None)
     source = kwargs.pop("source", None)
-    return PromptTemplate(template, role=role, source=source, engine="jinja2", **kwargs)  # type: ignore
+    return PromptTemplate(template, role=role, source=source, format="jinja2", **kwargs)  # type: ignore
 
 
 def prompt_with_extractive_qna(template: str, contexts: List[TextLike], **kwargs: Dict[str, Any]) -> PromptTemplate:
@@ -397,7 +456,7 @@ def prompt_with_extractive_qna(template: str, contexts: List[TextLike], **kwargs
     role = kwargs.pop("role", None)
     source = kwargs.pop("source", None)
     return PromptTemplate(
-        template, role=role, source=source, engine="jinja2", contexts=contexts, **kwargs  # type: ignore
+        template, role=role, source=source, format="jinja2", contexts=contexts, **kwargs  # type: ignore
     )
 
 
@@ -531,6 +590,11 @@ def to_node_list(inputs: SerializedInput) -> List[Node]:
         return list(itertools.chain(*result))
     else:
         return [to_node(inputs)]
+
+
+# endregion
+# region utils
+#######################################################################################################################
 
 
 # endregion

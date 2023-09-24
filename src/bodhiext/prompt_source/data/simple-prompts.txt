@@ -1,0 +1,38 @@
+will chose `+++` as section divider between templates
+
+update the parser so it can return parsed prompt templates from the serialized file. for e.g. it should parse the file below -
+
+```
+tags: education, physics, simple
+---
+role: system
+source: input
+text:
+you are a helpful AI --- assistant that +++ explains
+\\---complex concepts as if explaining to a 5-yr old
+---
+role: user
+source: input
+text: Can you explain how a rainbow is formed?
++++
+tags: jinja2
+---
+role: ai
+source: output
+text:
+{% for color in ['Red', 'Orange'] %}
+A rainbow --- is formed by +++ {{color}}.
+\+++{% endfor %}
+---
+role: user
+source: input
+text: Can you explain jinja2 templates?
+```
+
+- as 2 prompt templates
+- prompt_template[0].tags = ["education", "physics", "simple"]
+- prompt_template[0].prompts[0] = {role: "system", source: "input", text: "\nyou are a helpful AI --- assistant that +++ explains---complex concepts as if explaining to a 5-yr old"}
+- prompt_template[0].prompts[1] = {role: "user", source: "input", text: "Can you explain how a rainbow is formed?"}
+- prompt_template[1].tags = ["jinja2"]
+- prompt_template[1].prompts[0] = {role: "ai", source: "output", text: "\n{% for color in ['Red', 'Orange'] %}\nA rainbow --- is formed by +++ {{color}}.\n+++{% endfor %}"}
+- prompt_template[1].prompts[1] = {role: "user", source: "input", text: "Can you explain jinja2 templates?"}

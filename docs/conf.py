@@ -39,15 +39,18 @@ master_doc = "index"
 pygments_style = "sphinx"
 todo_include_todos = False
 nitpick_ignore = [
+    ("py:class", "bodhilib._components.PS"),
     ("py:class", "bodhilib._components.DL"),
     ("py:class", "bodhilib._components.E"),
     ("py:class", "bodhilib._components.L"),
     ("py:class", "bodhilib._components.V"),
+    ("py:class", "bodhilib._components.S"),
     ("py:class", "bodhilib._plugin.C"),
     ("py:class", "bodhilib._models.T"),
     ("py:class", "PathLike"),
     ("py:class", "TextLike"),
     ("py:class", "Embedding"),
+    ("py:class", "TemplateFormat"),
     ("py:class", "TextLikeOrTextLikeList"),
     ("py:class", "SerializedInput"),
     ("py:class", "pydantic.main.BaseModel"),
@@ -75,6 +78,7 @@ autodoc_type_aliases = {
     "PathLike": "PathLike",
     "TextLike": "TextLike",
     "Embedding": "Embedding",
+    "TemplateFormat": "TemplateFormat",
     "TextLikeOrTextLikeList": "TextLikeOrTextLikeList",
     "SerializedInput": "SerializedInput",
 }

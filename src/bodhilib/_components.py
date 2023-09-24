@@ -10,6 +10,7 @@ from ._models import (
     Node,
     Prompt,
     PromptStream,
+    PromptTemplate,
     SerializedInput,
     to_document_list,
     to_node_list,
@@ -17,6 +18,60 @@ from ._models import (
 from ._plugin import PluginManager, Service
 
 
+# region prompt source
+#######################################################################################################################
+class PromptSource(abc.ABC):
+    """Abstract base class for prompt sources.
+
+    A prompt source provides a browsable/searchable interface for prompt templates.
+    """
+
+    @abc.abstractmethod
+    def find(self, tags: Union[str, List[str]]) -> List[PromptTemplate]:
+        """Find a prompt template for given tags.
+
+        Args:
+            tags (str | List[str]): list of tags to search for
+
+        Returns:
+            List[PromptTemplate]: list of prompt templates matching the tags
+        """
+
+    @abc.abstractmethod
+    def list_all(self) -> List[PromptTemplate]:
+        """List all prompt templates in the source.
+
+        Returns:
+            List[PromptTemplate]: list of all prompt templates in the source
+        """
+
+
+class BasePromptSource(PromptSource):
+    """BasePromptSource provides a simpler method for implementing PromptSources.
+
+    Class implementing :class:`~bodhilib.PromptSource` should extend this base class.
+    In case the abstract method changes in :class:`~bodhilib.PromptSource`,
+    this BaseClass tries to safely adapt new changes to old interface.
+    """
+
+    def find(self, tags: Union[str, List[str]]) -> List[PromptTemplate]:
+        if isinstance(tags, str):
+            tags = [tags]
+        return self._find(tags)
+
+    def list_all(self) -> List[PromptTemplate]:
+        return self._list_all()
+
+    @abc.abstractmethod
+    def _find(self, tags: List[str]) -> List[PromptTemplate]:
+        raise NotImplementedError(f"find method is not implemented by class {self.__class__.__name__}")
+
+    @abc.abstractmethod
+    def _list_all(self) -> List[PromptTemplate]:
+        raise NotImplementedError(f"list_all method is not implemented by class {self.__class__.__name__}")
+
+
+# endregion
 # region data loader
 #######################################################################################################################
 class DataLoader(Iterable[Document], abc.ABC):
@@ -312,6 +367,37 @@ class VectorDB(abc.ABC):
 # endregion
 # region plugin
 #######################################################################################################################
+# PromptSource
+PS = TypeVar("PS", bound=PromptSource)
+"""TypeVar for PromptSource."""
+
+
+def get_prompt_source(
+    service_name: str,
+    *,
+    oftype: Optional[Type[PS]] = None,
+    publisher: Optional[str] = None,
+    version: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+) -> PS:
+    """Get an instance of PromptSource for given arguments."""
+    if oftype is None:
+        return_type: Type[Any] = PromptSource
+    else:
+        return_type = oftype
+
+    manager = PluginManager.instance()
+    prompt_source: PS = manager.get(
+        service_name=service_name,
+        service_type="prompt_source",
+        oftype=return_type,
+        publisher=publisher,
+        version=version,
+        **kwargs,
+    )
+    return cast(PS, prompt_source)
+
+
 # DataLoader
 DL = TypeVar("DL", bound=DataLoader)
 """TypeVar for DataLoader."""
