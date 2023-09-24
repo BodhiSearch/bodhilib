@@ -1,11 +1,11 @@
-from bodhiext.prompt_source import BodhiPromptSource
+from bodhiext.prompt_source import LocalDirectoryPromptSource
 from bodhilib import PromptTemplate
 
 from tests.conftest import TEST_DATA_DIR
 
 
 def test_bodhi_prompt_source_returns_tagged_template():
-    sources = BodhiPromptSource(source_dir=str(TEST_DATA_DIR / "prompt-sources"))
+    sources = LocalDirectoryPromptSource(source_dir=str(TEST_DATA_DIR / "prompt-sources"))
     result = sources.find("simple")
     assert len(result) == 2
     t1 = """role: system
@@ -34,6 +34,6 @@ uses the world {{ word1 }}
 
 
 def test_bodhi_prompt_soruce_list_all():
-    sources = BodhiPromptSource(source_dir=str(TEST_DATA_DIR / "prompt-sources"))
+    sources = LocalDirectoryPromptSource(source_dir=str(TEST_DATA_DIR / "prompt-sources"))
     result = sources.list_all()
     assert len(result) == 3

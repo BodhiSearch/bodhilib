@@ -11,7 +11,7 @@ CURRENT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_TEMPLATES_DIR = CURRENT_DIR / "data"
 
 
-class BodhiPromptSource(BasePromptSource):
+class LocalDirectoryPromptSource(BasePromptSource):
     """BodhiPromptSource is a prompt source implementation by bodhiext."""
 
     def __init__(self, source_dir: Optional[str] = None) -> None:
@@ -56,7 +56,7 @@ def bodhilib_list_services() -> List[Service]:
     """
     return [
         Service(
-            service_name="bodhi_prompt_source",
+            service_name="local_dir_prompt_source",
             service_type="prompt_source",
             publisher="bodhiext",
             service_builder=bodhi_prompt_source_builder,
@@ -72,7 +72,7 @@ def bodhi_prompt_source_builder(
     publisher: Optional[str] = None,  # QdrantClient fails if passed extra args
     version: Optional[str] = None,  # QdrantClient fails if passed extra args
     **kwargs: Dict[str, Any],
-) -> BodhiPromptSource:
+) -> LocalDirectoryPromptSource:
     """Returns an instance of BodhiPromptSource."""
     if service_name != "bodhi_prompt_source" or service_type != "prompt_source" or publisher != "bodhiext":
         raise ValueError(
@@ -80,4 +80,4 @@ def bodhi_prompt_source_builder(
             " values are: service_name='bodhi_prompt_source',{service_type='prompt_source', publisher='bodhiext'"
         )
 
-    return BodhiPromptSource()
+    return LocalDirectoryPromptSource()
