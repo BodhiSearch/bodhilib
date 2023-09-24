@@ -118,4 +118,5 @@ all_plugins = {
     **bodhiext_data_loaders,
     **bodhiext_splitters,
     **bodhiext_embedders,
+    **bodhiext_prompt_sources,
 }

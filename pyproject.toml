@@ -48,6 +48,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.plugins.bodhilib]
 "bodhiext.data_loader" = "bodhiext.data_loader"
 "bodhiext.splitter" = "bodhiext.splitter"
+"bodhiext.prompt_source" = "bodhiext.prompt_source"
 
 "bodhiext.openai" = "bodhiext.openai"
 "bodhiext.cohere" = "bodhiext.cohere"

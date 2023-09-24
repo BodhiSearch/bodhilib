@@ -74,10 +74,10 @@ def bodhi_prompt_source_builder(
     **kwargs: Dict[str, Any],
 ) -> LocalDirectoryPromptSource:
     """Returns an instance of BodhiPromptSource."""
-    if service_name != "bodhi_prompt_source" or service_type != "prompt_source" or publisher != "bodhiext":
+    if service_name != "local_dir_prompt_source" or service_type != "prompt_source" or publisher != "bodhiext":
         raise ValueError(
             f"Invalid arguments to the service builder: {service_name=}, {service_type=}, {publisher=}, supported"
-            " values are: service_name='bodhi_prompt_source',{service_type='prompt_source', publisher='bodhiext'"
+            " values are: service_name='local_dir_prompt_source',{service_type='prompt_source', publisher='bodhiext'"
         )
 
     return LocalDirectoryPromptSource()
