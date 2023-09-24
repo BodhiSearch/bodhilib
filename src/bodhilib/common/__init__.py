@@ -1,4 +1,4 @@
-""":mod:`bodhilib.common` module to define common constants that do not dependend on any other modules."""
+""":mod:`bodhilib.common` module to define common constants that do not depend on any other modules."""
 
 package_name = "bodhilib"
 

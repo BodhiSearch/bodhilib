@@ -4,7 +4,7 @@ all: help
 
 help:
 	@echo "clean        - remove all build artifacts"
-	@echo "check        - check poetry file for discrepencies, used by CI"
+	@echo "check        - check poetry file for descrepencies, used by CI"
 	@echo "install      - install all python dependencies"
 	@echo "lint         - run all code quality and linting checks"
 	@echo "test         - run all unit tests with coverage"

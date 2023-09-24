@@ -57,7 +57,7 @@ class PluginManager:
     _instance = None
 
     def __new__(cls) -> "PluginManager":
-        """Override `__new__` incase constructor is directly called."""
+        """Override `__new__` in case constructor is directly called."""
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance

@@ -39,7 +39,7 @@ def test_qdrant_filter_in():
     _ = Filter(**qdrant_filter)
 
 
-def test_qdrant_filter_nin():
+def test_qdrant_filter_not_in():
     mongo_filter = {"name": {"$nin": ["John", "Jane"]}}
     qdrant_filter = _mongodb_to_qdrant_filter(mongo_filter)
     assert qdrant_filter == {

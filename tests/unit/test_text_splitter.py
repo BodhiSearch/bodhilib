@@ -34,12 +34,12 @@ def test_text_splitter_for_document_with_less_than_min_len(text_splitter):
 
 
 def test_text_splitter_for_document_with_two_nodes_in_a_sentence(text_splitter):
-    text = "This is 14 words sentence six seven eight nine ten eleven tweleve thirteen fourteen."
+    text = "This is 14 words sentence six seven eight nine ten eleven twelve thirteen fourteen."
     docs = [Document(text=text)]
     splits = list(text_splitter.split(docs))
     assert len(splits) == 2
     assert splits[0].text == "This is 14 words sentence six seven eight nine ten "
-    assert splits[1].text == "nine ten eleven tweleve thirteen fourteen."
+    assert splits[1].text == "nine ten eleven twelve thirteen fourteen."
 
 
 def test_text_splitter_for_document_with_three_nodes_in_a_sentence(text_splitter):

@@ -28,7 +28,7 @@ def tmp_loader_dir():
 
 
 def test_file_loader_recursive_true(file_loader, tmp_loader_dir):
-    # initialize file loader and add dir as resource with recusive=True
+    # initialize file loader and add dir as resource with recursive=True
     file_loader.add_resource(dir=tmp_loader_dir, recursive=True)
 
     # iterate over documents and check if they are loaded correctly

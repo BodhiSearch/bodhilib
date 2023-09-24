@@ -32,6 +32,7 @@ pre-commit = "^3.3.3"
 flake8 = "^6.1.0"
 mypy = "^1.4.1"
 ruff = "^0.0.284"
+codespell = "^2.2.5"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
@@ -163,3 +164,6 @@ fix = true
 match = "(?!test_|conftest).*\\.py"
 add_ignore = "D102, D107"
 convention = "google"
+
+[tool.codespell]
+ignore-words = 'codespell-ignore.txt'
