@@ -24,6 +24,7 @@ from ._models import Node as Node
 from ._models import PathLike as PathLike
 from ._models import Prompt as Prompt
 from ._models import PromptStream as PromptStream
+from ._models import PromptTemplate as PromptTemplate
 from ._models import Role as Role
 from ._models import SerializedInput as SerializedInput
 from ._models import Source as Source
@@ -35,6 +36,7 @@ from ._models import istextlike as istextlike
 from ._models import prompt_output as prompt_output
 from ._models import prompt_system as prompt_system
 from ._models import prompt_user as prompt_user
+from ._models import prompt_with_examples as prompt_with_examples
 from ._models import supportstext as supportstext
 from ._models import to_document as to_document
 from ._models import to_document_list as to_document_list
@@ -46,8 +48,6 @@ from ._models import to_text as to_text
 from ._plugin import PluginManager as PluginManager
 from ._plugin import Service as Service
 from ._plugin import service_provider as service_provider
-from ._template import PromptTemplate as PromptTemplate
-from ._template import prompt_with_examples as prompt_with_examples
 from ._version import __version__ as __version__
 from .common import package_name as package_name
 
