@@ -1,7 +1,7 @@
 # contains code style and formatting configuration for the complete project
 [tool.poetry]
 name = "bodhilib"
-version = "0.1.6"
+version = "0.1.7"
 description = "intuitive and powerful library to work with LLMs"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
 readme = "README.md"
