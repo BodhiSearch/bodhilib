@@ -29,7 +29,7 @@ class LocalDirectoryPromptSource(BasePromptSource):
     def _find(self, tags: List[str]) -> List[PromptTemplate]:
         if not self.templates:
             self.templates = self._load_templates()
-        return [template for template in self.templates if set(tags).issubset(set(template.metadata.get('tags', [])))]
+        return [template for template in self.templates if set(tags).issubset(set(template.metadata.get("tags", [])))]
 
     def _list_all(self) -> List[PromptTemplate]:
         if not self.templates:

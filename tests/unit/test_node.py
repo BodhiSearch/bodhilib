@@ -39,6 +39,7 @@ def test_to_node_list_returns_same_list_if_already_node_list():
     nodes = [Node(text="hello"), Node(text="world")]
     assert to_node_list(nodes) is nodes
 
+
 def test_to_node_list_returns_different_list_if_contains_any_non_node():
     nodes = [Node(text="hello"), "world"]
     assert to_node_list(nodes) is not nodes

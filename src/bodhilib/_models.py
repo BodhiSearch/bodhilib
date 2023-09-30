@@ -327,8 +327,8 @@ class PromptTemplate(BaseModel):
     metadata: Dict[str, Any] = Field(default_factory=dict)
     """Metadata associated with the template."""
 
-    extras: Dict[str, Any] = Field(default_factory=dict)
-    """The context variables to be used for rendering the template."""
+    vars: Dict[str, Any] = Field(default_factory=dict)
+    """The variables to be used for rendering the template."""
 
     # overriding __init__ to provide positional argument construction for prompt template.
     # E.g. `PromptTemplate("my template {context}")`
@@ -357,7 +357,7 @@ class PromptTemplate(BaseModel):
         role = role or Role.USER
         source = source or Source.INPUT
         super().__init__(
-            template=template, id=id, role=role, source=source, format=format, metadata=metadata or {}, extras=kwargs
+            template=template, id=id, role=role, source=source, format=format, metadata=metadata or {}, vars=kwargs
         )
 
     def to_prompts(self, **kwargs: Dict[str, Any]) -> List[Prompt]:
@@ -369,7 +369,7 @@ class PromptTemplate(BaseModel):
         Returns:
             Prompt: prompt generated from the template
         """
-        all_args = {**self.extras, **kwargs}
+        all_args = {**self.vars, **kwargs}
         all_args = {k: v for k, v in all_args.items() if v is not None}
         if self.format == "fstring":
             return [Prompt(self.template.format(**all_args), role=self.role, source=self.source)]
@@ -594,7 +594,7 @@ def to_node_list(inputs: SerializedInput) -> List[Node]:
         and isinstance(inputs, Iterable)  # if is list
         and all(isinstance(input, Node) for input in inputs)  # and if all are Node instance
     ):
-        return inputs
+        return inputs  # type: ignore
     if istextlike(inputs):
         return [to_node(cast(TextLike, inputs))]  # cast to fix mypy warning
     elif isinstance(inputs, dict):
