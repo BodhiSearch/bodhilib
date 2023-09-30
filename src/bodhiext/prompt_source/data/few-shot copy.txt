@@ -1,0 +1,29 @@
+tags: few-shot, text-classification, sentiment
+description: the prompt below uses few-shot prompt strategy to classify a sentence into positive, negative or neutral sentiment
+---
+role: user
+source: input
+format: bodhilib-jinja2
+inputs: examples: List[('text': str, 'sentiment': str)], text: str
+text: Classify the text below in positive, negative or neutral sentiment.
+{% for example in examples -%}
+text: {{ example['text']}}
+sentiment: {{ example['sentiment']}}
+{% endfor %}
+text: {text}
+sentiment:
++++
+tags: few-shot, classification, custom-category
+description: the prompt below uses few-shot prompt strategy to classify the input in one of the custom categories
+---
+role: user
+source: input
+format: bodhilib-jinja2
+inputs: examples: List[('text': str, 'category': str)], text: str, categories: List[str]
+text: Classify the text below in one of the categories: {% ",".join(categories) %}.
+{% for example in examples -%}
+text: {{ example['text']}}
+category: {{ example['category']}}
+{% endfor %}
+text: {text}
+category:

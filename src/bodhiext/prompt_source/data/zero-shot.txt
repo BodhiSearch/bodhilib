@@ -1,0 +1,15 @@
+tags: zero-shot, text-classification, sentiment
+description: the prompt below uses zero-shot prompt strategy to classify a sentence into positive, negative or neutral sentiment
+---
+role: user
+source: input
+text: Classify the text below in positive, negative or neutral sentiment.
+{text}
++++
+tags: zero-shot, text-classification, sentiment
+description: the prompt below uses zero-shot prompt strategy to classify a sentence into positive or negative
+---
+role: user
+source: input
+text: Classify the text below in positive, negative or neutral sentiment.
+{text}

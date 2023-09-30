@@ -1,0 +1,25 @@
+tags: few-shot, text-classification, sentiment
+---
+role: user
+source: input
+format: bodhilib-jinja2
+text: Classify the text below in positive, negative or neutral sentiment.
+{% for example in examples -%}
+text: {{ example['text']}}
+sentiment: {{ example['sentiment']}}
+{% endfor %}
+text: {text}
+sentiment:
++++
+tags: few-shot, classification, custom-category
+---
+role: user
+source: input
+format: bodhilib-jinja2
+text: Classify the text below in one of the categories: {% ",".join(categories) %}.
+{% for example in examples -%}
+text: {{ example['text']}}
+category: {{ example['category']}}
+{% endfor %}
+text: {text}
+category:

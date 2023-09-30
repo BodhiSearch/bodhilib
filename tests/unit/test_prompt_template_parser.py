@@ -14,15 +14,16 @@ text:
 you are a helpful AI assistant that explains
 complex concepts as if explaining to a 5-yr old
 """
-    assert parse_prompt_template(template) == [
-        PromptTemplate(
-            template=result,
-            role="user",
-            source="input",
-            format="bodhilib-jinja2",
-            tags=["education", "physics", "simple"],
-        )
-    ]
+    actual = parse_prompt_template(template)
+    expected = PromptTemplate(
+        template=result,
+        role="user",
+        source="input",
+        format="bodhilib-jinja2",
+        metadata={"tags": ["education", "physics", "simple"]},
+    )
+    assert actual[0].template == expected.template
+    assert actual == [expected]
 
 
 def test_prompt_template_parser_with_multiple_templates():
@@ -50,8 +51,8 @@ text: tell me a joke, the joke should be-
 - should be funny
 - should be related to australia
 """
-    pt1 = PromptTemplate(template=t1, format="bodhilib-jinja2", tags=["education", "physics", "simple"])
-    pt2 = PromptTemplate(template=t2, format="bodhilib-fstring", tags=["entertainment", "jokes", "funny"])
+    pt1 = PromptTemplate(template=t1, format="bodhilib-jinja2", metadata={"tags": ["education", "physics", "simple"]})
+    pt2 = PromptTemplate(template=t2, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]})
     assert parse_prompt_template(template) == [pt1, pt2]
 
 
@@ -74,6 +75,6 @@ What happens when you + and ++ and +++ numbers
 source: input
 text: what is 2---2 and 2+++2 and 2===2
 """
-    pt1 = PromptTemplate(template=t1, format="bodhilib-fstring", tags=["entertainment", "jokes", "funny"])
-    pt2 = PromptTemplate(template=t2, format="bodhilib-fstring", tags=["simple"])
+    pt1 = PromptTemplate(template=t1, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]})
+    pt2 = PromptTemplate(template=t2, format="bodhilib-fstring", metadata={"tags": ["simple"]})
     assert parse_prompt_template(template) == [pt1, pt2]

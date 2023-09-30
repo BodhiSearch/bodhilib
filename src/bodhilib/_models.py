@@ -309,6 +309,9 @@ TemplateFormat = Literal["fstring", "jinja2", "bodhilib-fstring", "bodhilib-jinj
 class PromptTemplate(BaseModel):
     """PromptTemplate used for generating prompts using a template."""
 
+    id: Optional[str]
+    """Optional identifier for prompt template"""
+
     template: str
     """Template for generating prompts."""
 
@@ -321,8 +324,8 @@ class PromptTemplate(BaseModel):
     format: TemplateFormat = "fstring"
     """Template format to use for rendering."""
 
-    tags: List[str] = Field(default_factory=list)
-    """Searchable tags associated with the template."""
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+    """Metadata associated with the template."""
 
     extras: Dict[str, Any] = Field(default_factory=dict)
     """The context variables to be used for rendering the template."""
@@ -332,25 +335,30 @@ class PromptTemplate(BaseModel):
     def __init__(
         self,
         template: str,
+        *,
+        id: Optional[str] = None,
         role: Optional[Role] = None,
         source: Optional[Source] = None,
         format: Optional[TemplateFormat] = "fstring",
-        tags: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
         **kwargs: Dict[str, Any],
     ) -> None:
         """Initializes a prompt template.
 
         Args:
             template: template string
-            role: role of the prompt.
-            source: source of the prompt.
+            id: optional identifier for the template
+            role: role of the prompt, defaults to "user"
+            source: source of the prompt, defaults to "input"
             format: format to use for rendering the template.
-            tags: the searchable tags for the template
+            metadata: the metadata associated with the prompt template
             **kwargs: additional arguments to be used for rendering the template
         """
         role = role or Role.USER
         source = source or Source.INPUT
-        super().__init__(template=template, role=role, source=source, format=format, tags=tags or [], extras=kwargs)
+        super().__init__(
+            template=template, id=id, role=role, source=source, format=format, metadata=metadata or {}, extras=kwargs
+        )
 
     def to_prompts(self, **kwargs: Dict[str, Any]) -> List[Prompt]:
         """Converts the PromptTemplate into a Prompt.
@@ -581,6 +589,12 @@ def to_document_list(inputs: SerializedInput) -> List[Document]:
 
 def to_node_list(inputs: SerializedInput) -> List[Node]:
     """Converts a :data:`~bodhilib.SerializedInput` to list of :class:`~Node`."""
+    if (
+        not isinstance(inputs, BaseModel)  # BaseModel is Iterable
+        and isinstance(inputs, Iterable)  # if is list
+        and all(isinstance(input, Node) for input in inputs)  # and if all are Node instance
+    ):
+        return inputs
     if istextlike(inputs):
         return [to_node(cast(TextLike, inputs))]  # cast to fix mypy warning
     elif isinstance(inputs, dict):

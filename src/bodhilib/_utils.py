@@ -13,7 +13,7 @@ def parse_prompt_template(text: str) -> List[PromptTemplate]:
     """Parses a bodhilib-* template format to PromptTemplate."""
     lines = text.splitlines(keepends=True)
     result: List[PromptTemplate] = []
-    prompt_template: Dict[str, Any] = {"template": []}
+    prompt_template: Dict[str, Any] = {"template": [], "metadata": {}}
     metadata_section = False
     for line in lines:
         if re.match(metadata_field_pattern, line):
@@ -22,7 +22,7 @@ def parse_prompt_template(text: str) -> List[PromptTemplate]:
             if field_name == "tags":
                 field_vals = field_vals.split(",")  # type: ignore
                 field_vals = [val.strip() for val in field_vals]  # type: ignore
-            prompt_template[field_name] = field_vals
+            prompt_template["metadata"][field_name] = field_vals
             metadata_section = True
             continue
         if line.startswith(BREAK_PROMPT) and metadata_section:
@@ -33,7 +33,7 @@ def parse_prompt_template(text: str) -> List[PromptTemplate]:
         if line.startswith(BREAK_TEMPLATE):
             if "template" in prompt_template and prompt_template["template"]:
                 result.append(_build_prompt_template(prompt_template))
-            prompt_template = {"template": []}
+            prompt_template = {"template": [], "metadata": {}}
             continue
         prompt_template["template"].append(line)
     if "template" in prompt_template and prompt_template["template"]:
@@ -44,7 +44,9 @@ def parse_prompt_template(text: str) -> List[PromptTemplate]:
 def _build_prompt_template(prompt_template: Dict[str, Any]) -> PromptTemplate:
     template = prompt_template.pop("template")
     prompt_template["template"] = "".join(template)
-    if "format" not in prompt_template:
+    if "format" not in prompt_template["metadata"]:
         prompt_template["format"] = "bodhilib-fstring"
+    else:
+        prompt_template["format"] = prompt_template["metadata"].pop("format")
     pt = PromptTemplate(**prompt_template)
     return pt

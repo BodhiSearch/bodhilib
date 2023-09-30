@@ -376,7 +376,7 @@ def get_prompt_source(
     service_name: str,
     *,
     oftype: Optional[Type[PS]] = None,
-    publisher: Optional[str] = None,
+    publisher: Optional[str] = "bodhiext",
     version: Optional[str] = None,
     **kwargs: Dict[str, Any],
 ) -> PS:

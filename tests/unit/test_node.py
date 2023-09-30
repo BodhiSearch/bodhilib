@@ -35,6 +35,15 @@ def test_to_node_list_converts_valid_arg_to_node_list(valid_arg):
     assert nodes[0].text == "hello"
 
 
+def test_to_node_list_returns_same_list_if_already_node_list():
+    nodes = [Node(text="hello"), Node(text="world")]
+    assert to_node_list(nodes) is nodes
+
+def test_to_node_list_returns_different_list_if_contains_any_non_node():
+    nodes = [Node(text="hello"), "world"]
+    assert to_node_list(nodes) is not nodes
+
+
 def test_to_node_list_raises_exception_for_invalid_arg():
     with pytest.raises(ValueError) as e:
         _ = to_node_list(object())

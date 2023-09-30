@@ -29,8 +29,10 @@ text: Tell me a joke that is on the topic of {{ topic }}, and
 involves characters {{ c1 }} and {{ c2 }}, and
 uses the world {{ word1 }}
 """
-    assert result[0] == PromptTemplate(template=t1, format="bodhilib-fstring", tags=["education", "simple"])
-    assert result[1] == PromptTemplate(template=t2, format="bodhilib-jinja2", tags=["funny", "simple"])
+    expected = PromptTemplate(template=t1, format="bodhilib-fstring", metadata={"tags": ["education", "simple"]})
+    assert result[0].template == expected.template
+    assert result[0] == expected
+    assert result[1] == PromptTemplate(template=t2, format="bodhilib-jinja2", metadata={"tags": ["funny", "simple"]})
 
 
 def test_bodhi_prompt_soruce_list_all():

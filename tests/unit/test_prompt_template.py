@@ -31,7 +31,7 @@ def test_prompt_template_defaults():
 
 
 def test_prompt_template_defaults_override():
-    template = PromptTemplate("simple template", "system", "output", "jinja2")
+    template = PromptTemplate("simple template", role="system", source="output", format="jinja2")
     assert template.role == "system"
     assert template.source == "output"
     assert template.format == "jinja2"
