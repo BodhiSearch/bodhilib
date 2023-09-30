@@ -263,6 +263,8 @@ class PromptStream(Iterator[Prompt]):
 
     @property
     def text(self) -> str:
+        # TODO change it to first read all the stream content, and then return the text
+        # Create another property to return so-far accumulated text
         """Returns the text accumulated over the stream of responses."""
         return self.output.getvalue()
 
@@ -430,6 +432,7 @@ class PromptTemplate(BaseModel):
         return Prompt(text, **prompt)
 
 
+# TODO deprecate and remove
 def prompt_with_examples(template: str, **kwargs: Dict[str, Any]) -> PromptTemplate:
     """Factory method to generate a prompt template with examples.
 
@@ -449,6 +452,7 @@ def prompt_with_examples(template: str, **kwargs: Dict[str, Any]) -> PromptTempl
     return PromptTemplate(template, role=role, source=source, format="jinja2", **kwargs)  # type: ignore
 
 
+# TODO deprecate and remove
 def prompt_with_extractive_qna(template: str, contexts: List[TextLike], **kwargs: Dict[str, Any]) -> PromptTemplate:
     """Factory method to generate a prompt template for extractive QnA.
 
