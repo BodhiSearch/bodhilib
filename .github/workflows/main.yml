@@ -91,7 +91,7 @@ jobs:
       - name: Publish to GitHub Packages
         run: |
           poetry config repositories.github https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-          poetry publish --repository github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+          poetry publish --repository github --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }}
 
   release:
     needs: [pre-commit, test]
