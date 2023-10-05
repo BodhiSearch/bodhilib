@@ -12,7 +12,7 @@ on:
       - main
     inputs:
       release:
-        description: 'Create a release? (yes/no)'
+        description: 'Publish a release (yes) or pre-release (pre) or none (no)? (yes/pre/no)'
         required: false
         default: 'no'
 
@@ -45,10 +45,6 @@ jobs:
   test:
     needs: [prepare]
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: write
-      packages: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -56,22 +52,35 @@ jobs:
         uses: './.github/actions/setup'
       - name: Copy .env.ci to .env.test
         run: cp .env.ci .env.test
-      # - name: Run tests
-      #   run: make test
-      # - name: Upload coverage report
-      #   uses: actions/upload-artifact@v3
-      #   with:
-      #     name: coverage
-      #     path: htmlcov
+      - name: Run tests
+        run: make test
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage
+          path: htmlcov
+
+  prerelease:
+    needs: [pre-commit, test]
+    if: github.event.inputs.release == 'pre'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: './.github/actions/setup'
       - name: Get current version
         id: current-version
         run: |
           echo "CURRENT_VERSION=$(poetry version --short)" >> $GITHUB_ENV
-      - name: Set new version
+      - name: Set new pre-release version
         id: new-version
         run: |
           echo "NEW_VERSION=${{ env.CURRENT_VERSION }}-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
-      - name: Set pre-release version with timestamp
+      - name: Update version to pre-release version
         run: |
           # Using poetry's version command to set a new version
           poetry version "${{ env.NEW_VERSION }}"
@@ -86,7 +95,7 @@ jobs:
         with:
           artifacts: 'dist/*'
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: v${{ env.NEW_VERSION }}
+          tag: v${{ env.NEW_VERSION }}
           prerelease: true
 
   release:
