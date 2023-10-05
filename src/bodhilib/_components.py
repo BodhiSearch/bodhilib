@@ -14,6 +14,7 @@ from ._models import (
     SerializedInput,
     to_document_list,
     to_node_list,
+    to_prompt_list,
 )
 from ._plugin import PluginManager, Service
 
@@ -253,6 +254,86 @@ class LLM(abc.ABC):
             :class:`~bodhilib.Prompt`: a Prompt object, if stream is False
             Iterator[:class:`~bodhilib.Prompt`]: an iterator of Prompt objects, if stream is True
         """
+
+
+class BaseLLM(LLM):
+    """BaseLLM provides a simpler method for implementing LLM.
+
+    Class implementing :class:`~bodhilib.LLM` should extend this base class.
+    In case the abstract method changes in :class:`~bodhilib.LLM`,
+    this base class tries to safely adapt new changes to old interface.
+    """
+
+    def generate(
+        self,
+        prompt_input: SerializedInput,
+        *,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+        n: Optional[int] = None,
+        stop: Optional[List[str]] = None,
+        max_tokens: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        user: Optional[str] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Union[Prompt, PromptStream]:
+        prompts = to_prompt_list(prompt_input)
+        return self._generate(
+            prompts,
+            stream=stream,
+            temperature=temperature,
+            top_p=top_p,
+            top_k=top_k,
+            n=n,
+            stop=stop,
+            max_tokens=max_tokens,
+            presence_penalty=presence_penalty,
+            frequency_penalty=frequency_penalty,
+            user=user,
+            **kwargs,
+        )
+
+    @abc.abstractmethod
+    def _generate(
+        self,
+        prompts: List[Prompt],
+        *,
+        stream: Optional[bool] = None,
+        temperature: Optional[float] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
+        n: Optional[int] = None,
+        stop: Optional[List[str]] = None,
+        max_tokens: Optional[int] = None,
+        presence_penalty: Optional[float] = None,
+        frequency_penalty: Optional[float] = None,
+        user: Optional[str] = None,
+        **kwargs: Dict[str, Any],
+    ) -> Union[Prompt, PromptStream]:
+        """Generate a response from the LLM service given a List of Prompt.
+
+        Args:
+            prompts (List[:data:`bodhilib.Prompt`]): list of prompts as input to LLM service
+            stream (bool): whether to stream the response from the LLM service
+            temperature (Optional[float]): temperature or randomness of the generation
+            top_p (Optional[float]): token consideration probability top_p for the generation
+            top_k (Optional[int]): token consideration number top_k for the generation
+            n (Optional[int]): number of responses to generate
+            stop (Optional[List[str]]): list of stop tokens to stop the generation
+            max_tokens (Optional[int]): maximum number of tokens to generate
+            presence_penalty (Optional[float]): presence penalty for the generation, between -2 and 2
+            frequency_penalty (Optional[float]): frequency penalty for the generation, between -2 and 2
+            user (Optional[str]): user making the request, for monitoring purpose
+            kwargs (Dict[str, Any]): pass through arguments for the LLM service
+
+        Returns:
+            :class:`~bodhilib.Prompt`: a Prompt object, if stream is False
+            Iterator[:class:`~bodhilib.Prompt`]: an iterator of Prompt objects, if stream is True
+        """
+        raise NotImplementedError(f"_generate method is not implemented by class {self.__class__.__name__}")
 
 
 # endregion

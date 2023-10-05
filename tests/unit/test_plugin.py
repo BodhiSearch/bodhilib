@@ -28,8 +28,9 @@ def test_list_services():
     manager = PluginManager.instance()
     services = manager.list_services("llm")
     assert len(services) == 3
-    assert services[0].service_name == "openai_chat"
-    assert services[1].service_name == "openai_text"
-    assert services[2].service_name == "cohere"
+    service_names = [service.service_name for service in services]
+    assert "openai_chat" in service_names
+    assert "openai_text" in service_names
+    assert "cohere" in service_names
     assert all([service.service_type == "llm" for service in services])
     assert all([service.publisher == "bodhiext" for service in services])

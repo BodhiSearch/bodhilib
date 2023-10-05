@@ -38,4 +38,4 @@ docs: clean_docs
 	docs/docs.py
 
 run_docs:
-	poetry run python -m http.server -d docs/_build 8000
+	poetry run python -m http.server -d docs/_build/html 8000
