@@ -81,17 +81,13 @@ jobs:
           echo "__version__ = \"${{ env.NEW_VERSION }}\"" >> src/bodhilib/_version.py
       - name: Build package
         run: make build
-      # - name: Create pre-release
-      #   uses: ncipollo/release-action@v1
-      #   with:
-      #     artifacts: 'dist/*'
-      #     token: ${{ secrets.GITHUB_TOKEN }}
-      #     tag: v${{ env.NEW_VERSION }}
-      #     commit: main
-      - name: Publish to GitHub Packages
-        run: |
-          poetry config repositories.github https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-          poetry publish --repository github --username ${{ github.repository_owner }} --password ${{ secrets.GITHUB_TOKEN }}
+      - name: Create pre-release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'dist/*'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: v${{ env.NEW_VERSION }}
+          prerelease: true
 
   release:
     needs: [pre-commit, test]
