@@ -9,8 +9,6 @@ packages = [
   { include = "bodhilib", from = "src" },
   { include = "bodhiext", from = "src" },
   { include = "bodhiext", from = "libs/bodhiext.cohere/src" },
-  { include = "bodhiext", from = "libs/bodhiext.openai/src" },
-  { include = "bodhiext", from = "libs/bodhiext.sentence_transformers/src" },
   { include = "bodhiext", from = "libs/bodhiext.qdrant/src" },
 ]
 
@@ -21,11 +19,8 @@ pluggy = "^1.2.0"
 pydantic = "^1"
 python-dotenv = "^1.0.0"
 cohere = "^4.21"
-openai = "^0.27.8"
-sentence-transformers = "^2.2.2"
-torch = ">=2.0.0, !=2.0.1"       # sentence-transformers dependency
 # TODO qdrant-client forced to have python<3.12 constraint, need to resolve
-qdrant-client = "^1.5.0" # openai.qdrant dependency
+qdrant-client = "^1.5.0" # qdrant dependency
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.3"
@@ -50,24 +45,18 @@ build-backend = "poetry.core.masonry.api"
 "bodhiext.splitter" = "bodhiext.splitter"
 "bodhiext.prompt_source" = "bodhiext.prompt_source"
 
-"bodhiext.openai" = "bodhiext.openai"
 "bodhiext.cohere" = "bodhiext.cohere"
-"bodhiext.sentence_transformers" = "bodhiext.sentence_transformers"
 "bodhiext.qdrant" = "bodhiext.qdrant"
 
 [tool.pytest.ini_options]
 pythonpath = [
   "src",
   "libs/bodhiext.cohere/src",
-  "libs/bodhiext.openai/src",
-  "libs/bodhiext.sentence_transformers/src",
   "libs/bodhiext.qdrant/src",
 ]
 testpaths = [
   "tests",
   "libs/bodhiext.cohere/tests_bodhiext_cohere",
-  "libs/bodhiext.openai/tests_bodhiext_openai",
-  "libs/bodhiext.sentence_transformers/tests_bodhiext_sentence_transformers",
   "libs/bodhiext.qdrant/tests_bodhiext_qdrant",
   "libs/bodhitest/tests_bodhitest",
 ]
@@ -113,8 +102,6 @@ exclude = '(?x)(test\_.*|conftest\.py|docs/.*/conf\.py)'
 mypy_path = [
   "src",
   "libs/bodhiext.cohere/src",
-  "libs/bodhiext.openai/src",
-  "libs/bodhiext.sentence_transformers/src",
   "libs/bodhiext.qdrant/src",
 ]
 disallow_incomplete_defs = true

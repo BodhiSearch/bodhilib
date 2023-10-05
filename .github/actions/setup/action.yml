@@ -17,7 +17,7 @@ inputs:
   poetry-version:
     description: Poetry version
     required: false
-    default: 1.5.1
+    default: 1.6.1
 
   install-command:
     description: Command run for installing dependencies

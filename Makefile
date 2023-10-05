@@ -16,8 +16,7 @@ help:
 clean: clean_docs clean_guides
 
 check:
-	poetry check
-	poetry lock --check
+	poetry check --lock
 
 install:
 	poetry install --compile

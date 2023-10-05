@@ -190,7 +190,7 @@ class BaseEmbedder(Embedder):
                 or a serialized dict of the object.
 
         Returns:
-            List[:data:`~bodhilib.Node`]: list of :class:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
+            List[:class:`~bodhilib.Node`]: list of :class:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
         """
         nodes = to_node_list(inputs)
         return self._embed(nodes)
