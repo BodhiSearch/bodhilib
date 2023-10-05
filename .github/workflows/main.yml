@@ -47,7 +47,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      packages: write
       contents: read
     steps:
       - name: Checkout code
@@ -78,12 +77,27 @@ jobs:
           echo "__version__ = \"$NEW_VERSION\"" >> src/bodhilib/_version.py
       - name: Build package
         run: make build
-      - name: Publish to GitHub Packages
-        run: |
-          poetry config repositories.github https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json
-          poetry config --list
-          echo "debug: --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}"
-          poetry publish --repository github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+      - name: Store the distribution packages
+        uses: actions/upload-artifact@v3
+        with:
+          name: python-package-distributions
+          path: dist/
+      - name: Sign the dists with Sigstore
+        uses: sigstore/gh-action-sigstore-python@v2.1.0
+        with:
+          inputs: >-
+            ./dist/*.tar.gz
+            ./dist/*.whl
+      - name: Upload artifact signatures to GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        # Upload to GitHub Release using the `gh` CLI.
+        # `dist/` contains the built packages, and the
+        # sigstore-produced signatures and certificates.
+        run: >-
+          gh release upload
+          '${{ github.ref_name }}' dist/**
+          --repo '${{ github.repository }}'
 
   release:
     needs: [pre-commit, test]
