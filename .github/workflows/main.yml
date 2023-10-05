@@ -88,11 +88,13 @@ jobs:
           inputs: >-
             ./dist/*.tar.gz
             ./dist/*.whl
-      - name: Create GitHub release and upload package
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create ${{ github.ref }} dist/* --title "pre-release ${{ env.NEW_VERSION }} for commit ${{ github.ref }}" --notes "pre-release ${{ env.NEW_VERSION }} for commit ${{ github.ref }}, do not install the pre-release, install the stable release from pypi"
+      - name: Create pre-release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: 'dist/*'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ env.NEW_VERSION }}
+          commit: main
 
   release:
     needs: [pre-commit, test]
