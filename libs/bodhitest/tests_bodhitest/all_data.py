@@ -1,39 +1,15 @@
 from typing import Any, Dict
 
 import bodhiext
-from bodhiext.cohere import Cohere, cohere_llm_service_builder
 from bodhiext.data_loader import FileLoader, file_loader_service_builder
 from bodhiext.prompt_source import LocalDirectoryPromptSource, bodhi_prompt_source_builder
-from bodhiext.qdrant import Qdrant, qdrant_service_builder
 from bodhiext.splitter import TextSplitter, text_splitter_service_builder
 
 from .file_loader_helper import setup_file_loader, teardown_file_loader
 
-bodhiext_llms = {
-    "cohere": {
-        "service_name": "cohere",
-        "service_type": "llm",
-        "service_class": Cohere,
-        "publisher": "bodhiext",
-        "version": bodhiext.cohere.__version__,
-        "service_args": {
-            "model": "command",
-        },
-        "service_builder": cohere_llm_service_builder,
-    },
-}
+bodhiext_llms: Dict[str, Any] = {}
 
-bodhiext_vector_dbs = {
-    "qdrant": {
-        "service_name": "qdrant",
-        "service_type": "vector_db",
-        "service_class": Qdrant,
-        "publisher": "bodhiext",
-        "version": bodhiext.qdrant.__version__,
-        "service_args": {},
-        "service_builder": qdrant_service_builder,
-    }
-}
+bodhiext_vector_dbs: Dict[str, Any] = {}
 
 
 bodhiext_data_loaders = {

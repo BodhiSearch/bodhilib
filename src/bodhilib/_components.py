@@ -354,7 +354,7 @@ class VectorDB(abc.ABC):
             True if the database is up and running.
 
         Raises:
-            VectorDBError: Wraps any connection error raised by the underlying database and raises.
+            bodhilib.VectorDBError: Wraps any connection error raised by the underlying database and raises.
         """
 
     @abc.abstractmethod
@@ -365,7 +365,7 @@ class VectorDB(abc.ABC):
             True if the connection with vector db is successful.
 
         Raises:
-            VectorDBError: Wraps any connection error raised by the underlying database and raises.
+            bodhilib.VectorDBError: Wraps any connection error raised by the underlying database and raises.
         """
 
     @abc.abstractmethod
@@ -376,7 +376,7 @@ class VectorDB(abc.ABC):
             True if the connection with vector db is closed successfully.
 
         Raises:
-            VectorDBError: Wraps any connection error raised by the underlying database and raises.
+            bodhilib.VectorDBError: Wraps any connection error raised by the underlying database and raises.
         """
 
     @abc.abstractmethod
@@ -387,7 +387,7 @@ class VectorDB(abc.ABC):
             List of vector database names.
 
         Raises:
-            VectorDBError: Wraps any database list error raised by the underlying database.
+            bodhilib.VectorDBError: Wraps any database list error raised by the underlying database.
         """
 
     @abc.abstractmethod

@@ -56,8 +56,6 @@ nitpick_ignore = [
     ("py:class", "pydantic.main.BaseModel"),
     ("py:class", "T"),
     ("py:data", "T"),
-    ("py:class", "qdrant_client.qdrant_client.QdrantClient"),
-    ("py:class", "cohere.client.Client"),
 ]
 
 # -- Options for HTML output -------------------------------------------------
@@ -66,12 +64,10 @@ html_static_path = ["_static"]
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/", None),
-    "cohere": ("https://cohere.readthedocs.io/en/latest/", None),
-    "sentence_transformer": ("https://www.sbert.net/", None),
 }
 autodoc_default_options = {
     "typehints": "description",
-    "mock_imports": ["torch", "pydantic", "qdrant_client", "sentence_transformers"],
+    "mock_imports": ["pydantic"],
     "members": True,
 }
 autodoc_type_aliases = {

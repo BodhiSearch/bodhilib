@@ -8,9 +8,9 @@ readme = "README.md"
 packages = [
   { include = "bodhilib", from = "src" },
   { include = "bodhiext", from = "src" },
-  { include = "bodhiext", from = "libs/bodhiext.cohere/src" },
-  { include = "bodhiext", from = "libs/bodhiext.qdrant/src" },
 ]
+license = "MIT"
+include = ["LICENSE"]
 
 [tool.poetry.dependencies]
 python = "^3.8.1,<3.12"
@@ -18,9 +18,6 @@ jinja2 = "^3.1.2"
 pluggy = "^1.2.0"
 pydantic = "^1"
 python-dotenv = "^1.0.0"
-cohere = "^4.21"
-# TODO qdrant-client forced to have python<3.12 constraint, need to resolve
-qdrant-client = "^1.5.0" # qdrant dependency
 
 [tool.poetry.group.dev.dependencies]
 pre-commit = "^3.3.3"
@@ -45,19 +42,12 @@ build-backend = "poetry.core.masonry.api"
 "bodhiext.splitter" = "bodhiext.splitter"
 "bodhiext.prompt_source" = "bodhiext.prompt_source"
 
-"bodhiext.cohere" = "bodhiext.cohere"
-"bodhiext.qdrant" = "bodhiext.qdrant"
-
 [tool.pytest.ini_options]
 pythonpath = [
   "src",
-  "libs/bodhiext.cohere/src",
-  "libs/bodhiext.qdrant/src",
 ]
 testpaths = [
   "tests",
-  "libs/bodhiext.cohere/tests_bodhiext_cohere",
-  "libs/bodhiext.qdrant/tests_bodhiext_qdrant",
   "libs/bodhitest/tests_bodhitest",
 ]
 filterwarnings = ["error", "ignore::DeprecationWarning:httpx._content"]
@@ -101,8 +91,6 @@ plugins = ['pydantic.mypy']
 exclude = '(?x)(test\_.*|conftest\.py|docs/.*/conf\.py)'
 mypy_path = [
   "src",
-  "libs/bodhiext.cohere/src",
-  "libs/bodhiext.qdrant/src",
 ]
 disallow_incomplete_defs = true
 disallow_untyped_defs = true
