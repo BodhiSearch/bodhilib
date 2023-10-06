@@ -226,9 +226,6 @@ pydocstyle==6.3.0 ; python_full_version >= "3.8.1" and python_version < "3.12" \
 pygments==2.16.1 ; python_full_version >= "3.8.1" and python_version < "3.12" \
     --hash=sha256:13fc09fa63bc8d8671a6d247e1eb303c4b343eaee81d861f3404db2935653692 \
     --hash=sha256:1daff0494820c69bc8941e407aa20f577374ee88364ee10a98fdbe0aece96e29
-python-dotenv==1.0.0 ; python_full_version >= "3.8.1" and python_version < "3.12" \
-    --hash=sha256:a8df96034aae6d2d50a4ebe8216326c61c3eb64836776504fcca410e5937a3ba \
-    --hash=sha256:f5971a9226b701070a4bf2c38c89e5a3f0d64de8debda981d1db98583009122a
 pytz==2023.3.post1 ; python_full_version >= "3.8.1" and python_version < "3.9" \
     --hash=sha256:7b4fddbeb94a1eba4b557da24f19fdf9db575192544270a9101d8509f9f43d7b \
     --hash=sha256:ce42d816b81b68506614c11e8937d3aa9e41007ceb50bfdcb0749b921bf646c7
@@ -274,9 +271,9 @@ toml==0.10.2 ; python_full_version >= "3.8.1" and python_version < "3.12" \
 typing-extensions==4.8.0 ; python_full_version >= "3.8.1" and python_version < "3.12" \
     --hash=sha256:8f92fc8806f9a6b641eaa5318da32b44d401efaac0f6678c9bc448ba3605faa0 \
     --hash=sha256:df8e4339e9cb77357558cbdbceca33c303714cf861d1eef15e1070055ae8b7ef
-urllib3==1.26.17 ; python_full_version >= "3.8.1" and python_version < "3.12" \
-    --hash=sha256:24d6a242c28d29af46c3fae832c36db3bbebcc533dd1bb549172cd739c82df21 \
-    --hash=sha256:94a757d178c9be92ef5539b8840d48dc9cf1b2709c9d6b588232a055c524458b
+urllib3==2.0.6 ; python_full_version >= "3.8.1" and python_version < "3.12" \
+    --hash=sha256:7a7c7003b000adf9e7ca2a377c9688bbc54ed41b985789ed576570342a375cd2 \
+    --hash=sha256:b19e1a85d206b56d7df1d5e683df4a7725252a964e3993648dd0fb5a1c157564
 zipp==3.17.0 ; python_full_version >= "3.8.1" and python_version < "3.10" \
     --hash=sha256:0e923e726174922dce09c53c59ad483ff7bbb8e572e00c7f7c46b88556409f31 \
     --hash=sha256:84e64a1c28cf7e91ed2078bb8cc8c259cb19b76942096c8d7b84947690cabaf0

@@ -41,3 +41,12 @@ repos:
         args: [export, --format, requirements.txt, --with, docs, --output, docs/requirements.txt]
         language: system
         pass_filenames: false
+  - repo: local
+    hooks:
+      - id: check-poetry-lock
+        name: check-poetry-lock
+        description: 'Check poetry.lock file is in sync with pyproject.toml'
+        entry: poetry
+        args: [check, --lock]
+        language: system
+        pass_filenames: false
