@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/BodhiSearch/bodhilib/blob/main/LICENSE)
 ![pypi](https://img.shields.io/pypi/v/bodhilib.svg)
 [![CI/CD](https://github.com/BodhiSearch/bodhilib/actions/workflows/main.yml/badge.svg)](https://github.com/BodhiSearch/bodhilib/actions/workflows/main.yml)
-![[Documentation Status](https://readthedocs.org/projects/bodhilib/badge/?version=stable)](https://bodhilib.readthedocs.io/en/latest/?version=stable)
+[![Documentation Status](https://readthedocs.io/projects/bodhilib/badge/?version=stable)](https://bodhilib.readthedocs.io/en/latest/?version=stable)
 [![codecov](https://codecov.io/gh/BodhiSearch/bodhilib/branch/main/graph/badge.svg?token=EXFQHNBA9Z)](https://codecov.io/gh/BodhiSearch/bodhilib/)
 
 Bodhilib is a pluggable and extensible LLM framework.
