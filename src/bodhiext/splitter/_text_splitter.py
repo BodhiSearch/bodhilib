@@ -1,10 +1,10 @@
 import re
-from typing import Callable, Iterable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
-from bodhilib import BaseSplitter, Document, Node
+from bodhilib import Document, Node, SerializedInput, Splitter, to_document_list
 
 
-class TextSplitter(BaseSplitter):
+class TextSplitter(Splitter):
     """Splitter splits a :class:`~bodhilib.Document` into :class:`~bodhilib.Node`."""
 
     def __init__(
@@ -45,7 +45,8 @@ class TextSplitter(BaseSplitter):
             eow_patterns = [r"\s", r"-", r":", r"\.", r"\?", r"\!", r"\n"]
         self.word_splitter = _build_word_splitter(eow_patterns)
 
-    def _split(self, docs: Iterable[Document]) -> List[Node]:
+    def split(self, inputs: SerializedInput) -> List[Node]:
+        docs = to_document_list(inputs)
         nodes = []
         for doc in docs:
             current_words: List[str] = []

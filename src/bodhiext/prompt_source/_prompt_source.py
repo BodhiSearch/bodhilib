@@ -1,8 +1,8 @@
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
-from bodhilib import BasePromptSource, Service, parse_prompt_template, service_provider
+from bodhilib import PromptSource, Service, parse_prompt_template, service_provider
 from bodhilib._models import PromptTemplate
 
 from ._version import __version__
@@ -11,7 +11,7 @@ CURRENT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_TEMPLATES_DIR = CURRENT_DIR / "data"
 
 
-class LocalDirectoryPromptSource(BasePromptSource):
+class LocalDirectoryPromptSource(PromptSource):
     """BodhiPromptSource is a prompt source implementation by bodhiext."""
 
     def __init__(self, source_dir: Optional[str] = None) -> None:
@@ -26,12 +26,14 @@ class LocalDirectoryPromptSource(BasePromptSource):
         self.source_dir = source_dir
         self.templates: Optional[List[PromptTemplate]] = None
 
-    def _find(self, tags: List[str]) -> List[PromptTemplate]:
+    def find(self, tags: Union[str, List[str]]) -> List[PromptTemplate]:
+        if isinstance(tags, str):
+            tags = [tags]
         if not self.templates:
             self.templates = self._load_templates()
         return [template for template in self.templates if set(tags).issubset(set(template.metadata.get("tags", [])))]
 
-    def _list_all(self) -> List[PromptTemplate]:
+    def list_all(self) -> List[PromptTemplate]:
         if not self.templates:
             self.templates = self._load_templates()
         return self.templates

@@ -2,10 +2,6 @@
 import inspect
 
 from ._components import LLM as LLM
-from ._components import BaseEmbedder as BaseEmbedder
-from ._components import BaseLLM as BaseLLM
-from ._components import BasePromptSource as BasePromptSource
-from ._components import BaseSplitter as BaseSplitter
 from ._components import DataLoader as DataLoader
 from ._components import Embedder as Embedder
 from ._components import PromptSource as PromptSource

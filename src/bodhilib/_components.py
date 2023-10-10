@@ -12,9 +12,6 @@ from ._models import (
     PromptStream,
     PromptTemplate,
     SerializedInput,
-    to_document_list,
-    to_node_list,
-    to_prompt_list,
 )
 from ._plugin import PluginManager, Service
 
@@ -28,11 +25,8 @@ class PromptSource(abc.ABC):
     """
 
     @abc.abstractmethod
-    def find(self, tags: Union[str, List[str]]) -> List[PromptTemplate]:
+    def find(self, tags: List[str]) -> List[PromptTemplate]:
         """Find a prompt template for given tags.
-
-        Args:
-            tags (str | List[str]): list of tags to search for
 
         Returns:
             List[PromptTemplate]: list of prompt templates matching the tags
@@ -45,31 +39,6 @@ class PromptSource(abc.ABC):
         Returns:
             List[PromptTemplate]: list of all prompt templates in the source
         """
-
-
-class BasePromptSource(PromptSource):
-    """BasePromptSource provides a simpler method for implementing PromptSources.
-
-    Class implementing :class:`~bodhilib.PromptSource` should extend this base class.
-    In case the abstract method changes in :class:`~bodhilib.PromptSource`,
-    this BaseClass tries to safely adapt new changes to old interface.
-    """
-
-    def find(self, tags: Union[str, List[str]]) -> List[PromptTemplate]:
-        if isinstance(tags, str):
-            tags = [tags]
-        return self._find(tags)
-
-    def list_all(self) -> List[PromptTemplate]:
-        return self._list_all()
-
-    @abc.abstractmethod
-    def _find(self, tags: List[str]) -> List[PromptTemplate]:
-        raise NotImplementedError(f"find method is not implemented by class {self.__class__.__name__}")
-
-    @abc.abstractmethod
-    def _list_all(self) -> List[PromptTemplate]:
-        raise NotImplementedError(f"list_all method is not implemented by class {self.__class__.__name__}")
 
 
 # endregion
@@ -122,26 +91,6 @@ class Splitter(abc.ABC):
         """
 
 
-class BaseSplitter(Splitter):
-    """BaseSplitter provides a simpler method for implementing Splitters.
-
-    BaseSplitter overrides the abstract Splitter method :func:`~bodhilib.Splitter.split`, massages the data
-    and converts it to a list of :class:`~bodhilib.Document`
-    and passes to implementing :func:`~bodhilib.BaseSplitter._split` method.
-    """
-
-    def split(self, inputs: SerializedInput) -> List[Node]:
-        docs = to_document_list(inputs)
-        return self._split(docs)
-
-    @abc.abstractmethod
-    def _split(self, docs: Iterable[Document]) -> List[Node]:
-        """Split a list of :class:`~bodhilib.Document` into list of :class:`~bodhilib.Node`.
-
-        The split method preserves the relationship and copies the metadata associated with Document to the Node.
-        """
-
-
 # endregion
 # region embedder
 #######################################################################################################################
@@ -168,43 +117,6 @@ class Embedder(abc.ABC):
     @abc.abstractmethod
     def dimension(self) -> int:
         """Dimension of the embeddings."""
-
-
-class BaseEmbedder(Embedder):
-    """BaseEmbedder provides a simpler method for implementing Embedders.
-
-    BaseEmbedder overrides the abstract Embedder method :func:`~bodhilib.Embedder.embed`,
-    massages the data and converts the input to a list of :class:`~bodhilib.Node`,
-    and passes to the abstract method to implement :func:`~bodhilib.BaseEmbedder._embed`.
-    """
-
-    def embed(self, inputs: SerializedInput) -> List[Node]:
-        """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
-
-        Massages the data and converts the input to a list of :class:`~bodhilib.Node`. Then passes to
-        the :func:`~bodhilib.BaseEmbedder._embed` for processing.
-
-        Args:
-            inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
-                a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
-                or a serialized dict of the object.
-
-        Returns:
-            List[:class:`~bodhilib.Node`]: list of :class:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
-        """
-        nodes = to_node_list(inputs)
-        return self._embed(nodes)
-
-    @abc.abstractmethod
-    def _embed(self, nodes: List[Node]) -> List[Node]:
-        """Embed a list of :class:`~bodhilib.Node` using the embedder service.
-
-        Args:
-            nodes (List[:class:`~bodhilib.Node`]): list of :class:`~bodhilib.Node` to embed
-
-        Returns:
-            List[:data:`~bodhilib.Node`]: list of :class:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
-        """
 
 
 # endregion
@@ -254,86 +166,6 @@ class LLM(abc.ABC):
             :class:`~bodhilib.Prompt`: a Prompt object, if stream is False
             Iterator[:class:`~bodhilib.Prompt`]: an iterator of Prompt objects, if stream is True
         """
-
-
-class BaseLLM(LLM):
-    """BaseLLM provides a simpler method for implementing LLM.
-
-    Class implementing :class:`~bodhilib.LLM` should extend this base class.
-    In case the abstract method changes in :class:`~bodhilib.LLM`,
-    this base class tries to safely adapt new changes to old interface.
-    """
-
-    def generate(
-        self,
-        prompt_input: SerializedInput,
-        *,
-        stream: Optional[bool] = None,
-        temperature: Optional[float] = None,
-        top_p: Optional[float] = None,
-        top_k: Optional[int] = None,
-        n: Optional[int] = None,
-        stop: Optional[List[str]] = None,
-        max_tokens: Optional[int] = None,
-        presence_penalty: Optional[float] = None,
-        frequency_penalty: Optional[float] = None,
-        user: Optional[str] = None,
-        **kwargs: Dict[str, Any],
-    ) -> Union[Prompt, PromptStream]:
-        prompts = to_prompt_list(prompt_input)
-        return self._generate(
-            prompts,
-            stream=stream,
-            temperature=temperature,
-            top_p=top_p,
-            top_k=top_k,
-            n=n,
-            stop=stop,
-            max_tokens=max_tokens,
-            presence_penalty=presence_penalty,
-            frequency_penalty=frequency_penalty,
-            user=user,
-            **kwargs,
-        )
-
-    @abc.abstractmethod
-    def _generate(
-        self,
-        prompts: List[Prompt],
-        *,
-        stream: Optional[bool] = None,
-        temperature: Optional[float] = None,
-        top_p: Optional[float] = None,
-        top_k: Optional[int] = None,
-        n: Optional[int] = None,
-        stop: Optional[List[str]] = None,
-        max_tokens: Optional[int] = None,
-        presence_penalty: Optional[float] = None,
-        frequency_penalty: Optional[float] = None,
-        user: Optional[str] = None,
-        **kwargs: Dict[str, Any],
-    ) -> Union[Prompt, PromptStream]:
-        """Generate a response from the LLM service given a List of Prompt.
-
-        Args:
-            prompts (List[:data:`bodhilib.Prompt`]): list of prompts as input to LLM service
-            stream (bool): whether to stream the response from the LLM service
-            temperature (Optional[float]): temperature or randomness of the generation
-            top_p (Optional[float]): token consideration probability top_p for the generation
-            top_k (Optional[int]): token consideration number top_k for the generation
-            n (Optional[int]): number of responses to generate
-            stop (Optional[List[str]]): list of stop tokens to stop the generation
-            max_tokens (Optional[int]): maximum number of tokens to generate
-            presence_penalty (Optional[float]): presence penalty for the generation, between -2 and 2
-            frequency_penalty (Optional[float]): frequency penalty for the generation, between -2 and 2
-            user (Optional[str]): user making the request, for monitoring purpose
-            kwargs (Dict[str, Any]): pass through arguments for the LLM service
-
-        Returns:
-            :class:`~bodhilib.Prompt`: a Prompt object, if stream is False
-            Iterator[:class:`~bodhilib.Prompt`]: an iterator of Prompt objects, if stream is True
-        """
-        raise NotImplementedError(f"_generate method is not implemented by class {self.__class__.__name__}")
 
 
 # endregion
@@ -433,9 +265,19 @@ class VectorDB(abc.ABC):
 
     @abc.abstractmethod
     def query(
-        self, collection_name: str, embedding: Embedding, filter: Optional[Dict[str, Any]], **kwargs: Dict[str, Any]
+        self,
+        collection_name: str,
+        embedding: Embedding,
+        filter: Optional[Dict[str, Any]],
+        **kwargs: Dict[str, Any],
     ) -> List[Node]:
         """Search for the nearest vectors in the database.
+
+        Args:
+            collection_name (str): name of the collection
+            embedding (Embedding): embedding to search for
+            filter (Optional[Dict[str, Any]]): filter to apply on the metadata of the record
+            **kwargs (Dict[str, Any]): pass through arguments for the vector db
 
         Returns:
             List of nodes with metadata.
