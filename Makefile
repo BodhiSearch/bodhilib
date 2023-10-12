@@ -1,34 +1,29 @@
-.PHONY: help clean clean_docs docs run_docs clean_guides guides run_guides autodocs
+.PHONY: run exec ci.check ci.install ci.lint ci.test ci.build clean_docs docs run_docs
 
-all: help
+run:
+	@# Invoke the Python script with 'run' and all passed arguments.
+	python make.py run $(filter-out $@,$(MAKECMDGOALS))
+	@:
 
-help:
-	@echo "clean        - remove all build artifacts"
-	@echo "check        - check poetry file for descrepencies, used by CI"
-	@echo "install      - install all python dependencies"
-	@echo "lint         - run all code quality and linting checks"
-	@echo "test         - run all unit tests with coverage"
-	@echo "build        - build the python package"
-	@echo "clean_docs   - remove all doc build artifacts"
-	@echo "docs         - compile the documentation using Sphinx"
-	@echo "run_docs     - run the docs on port 8000"
+exec:
+	@# Invoke the Python script with 'exec' and all passed arguments.
+	python make.py exec $(filter-out $@,$(MAKECMDGOALS))
+	@:
 
-clean: clean_docs clean_guides
+ci.check:
+	@python make.py exec all check --lock
 
-check:
-	poetry check --lock
+ci.install:
+	@python make.py exec all install --compile
 
-install:
-	poetry install --compile
+ci.lint:
+	pre-commit run --all-files
 
-lint: install
-	poetry run pre-commit run --all-files
+ci.test:
+	@python make.py run all pytest --cov=src --cov-report=xml --cov-report=html
 
-test: install
-	poetry run pytest --cov=src --cov-report=xml --cov-report=html
-
-build: clean install
-	poetry build
+ci.build:
+	@python make.py exec all build
 
 clean_docs:
 	rm -rf docs/_build
@@ -38,3 +33,6 @@ docs: clean_docs
 
 run_docs:
 	poetry run python -m http.server -d docs/_build/html 8000
+
+%:
+	@echo "Unknown target '$@'":

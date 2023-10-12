@@ -4,7 +4,7 @@ import os
 
 def update_mypy_ini() -> None:
     dirs_with_src = [root for root, dirs, _ in os.walk("plugins") if "src" in dirs]
-    dirs_with_src.insert(0, "src")
+    dirs_with_src.insert(0, "core/src")
 
     with open("mypy.ini", "r") as f:
         content = f.readlines()
@@ -40,12 +40,12 @@ def update_pytest_ini() -> None:
     src_dirs = [
         root for root, _, _ in os.walk("plugins") if os.path.basename(root) == "src"
     ]
-    src_dirs.insert(0, "src")
+    src_dirs.insert(0, "core/src")
     new_pythonpath = f"pythonpath = {' '.join(src_dirs)}\n"
     test_dirs = [
         root for root, _, _ in os.walk("plugins") if os.path.basename(root) == "tests"
     ]
-    test_dirs.insert(0, "tests")
+    test_dirs.insert(0, "core/tests")
     new_testpaths = f"testpaths = {' '.join(test_dirs)}\n"
     for idx, line in enumerate(content):
         if line.startswith("pythonpath = "):
