@@ -11,6 +11,7 @@ repos:
       - id: mypy
         additional_dependencies:
           - 'pydantic'
+          - 'types-PyYAML'
         exclude: '(?x)(test\_.*|conftest\.py|docs/conf\.py)'
         args: [--config, mypy.ini]
   - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -31,7 +32,7 @@ repos:
         name: update-docs-requirements-txt
         description: 'Generate docs/requirements.txt based on poetry.lock'
         entry: poetry
-        args: [export, --format, requirements.txt, --with, docs, --output, docs/requirements.txt]
+        args: [export, --format, requirements.txt, --with, docs, --without-hashes, --output, docs/requirements.txt]
         language: system
         pass_filenames: false
   - repo: local

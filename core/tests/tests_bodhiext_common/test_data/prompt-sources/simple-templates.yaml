@@ -1,0 +1,36 @@
+templates:
+- tags: ["education", "simple"]
+  format: fstring
+  prompts:
+  - role: system
+    source: input
+    text: |
+      you are a helpful AI assistant that explains
+      complex concepts as if explaining to a 5-yr old
+  - role: user
+    source: input
+    text: How are rainbows formed?
+- tags: ["funny", "simple"]
+  format: jinja2
+  prompts:
+  - role: system
+    source: input
+    text: |
+      you are a smart and funny AI assistant telling
+      excellent original jokes
+  - role: user
+    source: input
+    text: |
+      Tell me a joke that is on the topic of {{ topic }}, and
+      involves characters {{ c1 }} and {{ c2 }}, and
+      uses the world {{ word1 }}
+- tags: ["funny"]
+  format: fstring
+  prompts:
+  - role: system
+    source: input
+    text: |
+      you are a helpful AI assistant that entertains using funny jokes
+  - role: user
+    source: input
+    text: tell me a joke, the about astronatus and cowboys

@@ -50,7 +50,6 @@ nitpick_ignore = [
     ("py:class", "PathLike"),
     ("py:class", "TextLike"),
     ("py:class", "Embedding"),
-    ("py:class", "TemplateFormat"),
     ("py:class", "TextLikeOrTextLikeList"),
     ("py:class", "SerializedInput"),
     ("py:class", "pydantic.main.BaseModel"),
@@ -74,7 +73,6 @@ autodoc_type_aliases = {
     "PathLike": "PathLike",
     "TextLike": "TextLike",
     "Embedding": "Embedding",
-    "TemplateFormat": "TemplateFormat",
     "TextLikeOrTextLikeList": "TextLikeOrTextLikeList",
     "SerializedInput": "SerializedInput",
 }

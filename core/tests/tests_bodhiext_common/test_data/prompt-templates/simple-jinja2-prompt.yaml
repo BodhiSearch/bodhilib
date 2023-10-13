@@ -1,0 +1,7 @@
+templates:
+- tags: ['education', 'physics', 'simple']
+  format: jinja2
+  prompts:
+  - role: system
+    source: input
+    text: you are a {{ adjective }} AI assistant that explains complex concepts as if explaining to a 5-yr old

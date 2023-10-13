@@ -2,8 +2,10 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from bodhiext.prompt_template import parse_prompt_template
+import yaml
+from bodhiext.prompt_template import StringPromptTemplate
 from bodhilib import PromptSource, PromptTemplate, Service, service_provider
+from bodhilib.logging import logger
 
 from ._version import __version__
 
@@ -22,6 +24,7 @@ class LocalDirectoryPromptSource(PromptSource):
                 If None, defaults to bodhiext's default prompt template directory.
         """
         if source_dir is None:
+            # TODO: seed with popular prompts
             source_dir = str(DEFAULT_TEMPLATES_DIR)
         if not os.path.exists(source_dir):
             raise ValueError(f"Directory does not exists: {source_dir=}")
@@ -44,14 +47,26 @@ class LocalDirectoryPromptSource(PromptSource):
 
     def _load_templates(self) -> List[PromptTemplate]:
         templates = []
-        # recursively find all files in the source_dir and parse templates
         for root, _, files in os.walk(self.source_dir):
             for file in files:
-                with open(os.path.join(root, file), "r") as f:
-                    text = f.read()
-                    parsed_templates = parse_prompt_template(text)
-                    templates.extend(parsed_templates)
+                file_path = os.path.join(root, file)
+                if not file_path.endswith((".yml", ".yaml")):
+                    logger.debug(f"skipping parsing file for prompt templates: {file_path}")
+                    continue
+                parsed_templates = parse_prompt_template_yaml(file_path)
+                templates.extend(parsed_templates)
         return templates
+
+
+def parse_prompt_template_yaml(file_path: str) -> List[PromptTemplate]:
+    templates: List[PromptTemplate] = []
+    with open(file_path, "r") as f:
+        parsed_templates = yaml.safe_load(f.read())
+    for parsed_template in parsed_templates["templates"]:
+        prompts = parsed_template.pop("prompts")
+        template = StringPromptTemplate(**{"metadata": parsed_template, "prompts": prompts})
+        templates.append(template)
+    return templates
 
 
 @service_provider

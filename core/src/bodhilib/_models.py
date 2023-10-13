@@ -148,9 +148,6 @@ class Distance(_StrEnumMixin, str, Enum):
 class Prompt(BaseModel):
     """Prompt encapsulating input/output schema to interact with LLM service."""
 
-    text: str
-    """The text or content or input component of the prompt."""
-
     role: Role = Role.USER
     """The role of the prompt.
 
@@ -160,6 +157,12 @@ class Prompt(BaseModel):
     """The source of the prompt.
 
     Defaults to :obj:`Source.INPUT`."""
+
+    text: str
+    """The text or content or input component of the prompt."""
+
+    class Config:
+        use_enum_values = True
 
     # overriding __init__ to provide positional argument construction for prompt. E.g. `Prompt("text")`
     def __init__(

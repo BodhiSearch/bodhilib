@@ -39,10 +39,6 @@ bodhilib
    :special-members: __iter__
    :private-members: _embed, _split, _StrEnumMixin
 
-.. data:: bodhilib.TemplateFormat
-
-   List of possible values for TemplateFormat
-
 .. data:: bodhilib.C
 
    TypeVar for bodhilib Components

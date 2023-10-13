@@ -15,9 +15,14 @@ python = "^3.8.1,<3.12"
 jinja2 = "^3.1.2"
 pluggy = "^1.2.0"
 pydantic = "^1"
+types-pyyaml = "^6.0.12.12"
 
 [tool.poetry.group.test.dependencies]
 bodhilib-mono = {path = "..", extras = ["test"], develop = true}
+
+
+[tool.poetry.group.dev.dependencies]
+types-pyyaml = "^6.0.12.12"
 
 [build-system]
 requires = ["poetry-core"]

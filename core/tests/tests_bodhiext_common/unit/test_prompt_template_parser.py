@@ -1,86 +1,91 @@
 import pytest
-from bodhiext.prompt_template import StringPromptTemplate, parse_prompt_template
+from bodhiext.prompt_source import parse_prompt_template_yaml
+from bodhiext.prompt_template import StringPromptTemplate
+from bodhilib import Prompt
 
 from tests_bodhiext_common.conftest import TEST_DATA_DIR
 
 
-@pytest.mark.parametrize("filename", ["simple-prompt.txt", "ignores-unknown-metafields.txt"])
-def test_prompt_template_parser_parses_simple_prompt(filename):
-    # read file and close handle in single line
-    template = (TEST_DATA_DIR / "prompt-templates" / filename).read_text()
-    result = r"""role: system
-source: input
-text:
-you are a helpful AI assistant that explains
-complex concepts as if explaining to a 5-yr old
-"""
-    actual = parse_prompt_template(template)
-    expected = StringPromptTemplate(
-        template=result,
-        role="user",
-        source="input",
-        format="bodhilib-jinja2",
-        metadata={"tags": ["education", "physics", "simple"]},
-    )
-    assert actual[0].template == expected.template
-    assert actual == [expected]
+@pytest.mark.parametrize(
+    ["filename", "format"], [("simple-fstring-prompt.yaml", "fstring"), ("simple-jinja2-prompt.yaml", "jinja2")]
+)
+def test_prompt_template_parser_parses_simple_templated_prompt(filename, format):
+    template = str((TEST_DATA_DIR / "prompt-templates" / filename).resolve())
+    actual = parse_prompt_template_yaml(template)
+    prompts = [
+        Prompt(
+            "you are a helpful AI assistant that explains complex concepts as if explaining to a 5-yr old",
+            role="system",
+            source="input",
+        )
+    ]
+    assert actual[0].to_prompts(adjective="helpful") == prompts
+    assert actual[0].metadata == {"tags": ["education", "physics", "simple"], "format": format}
+
+
+def test_parse_prompt_template_jinja2_few_shot_template():
+    template = str((TEST_DATA_DIR / "prompt-templates" / "jinja2-few-shot.yaml").resolve())
+    actual = parse_prompt_template_yaml(template)
+    examples = [
+        {"input": "pirate", "output": "ship"},
+        {"input": "pilot", "output": "plane"},
+        {"input": "driver", "output": "car"},
+    ]
+    assert actual[0].to_prompts(examples=examples, query="pirate") == [
+        Prompt(
+            """Below are few examples of location where item is usually found:
+
+Example input: pirate
+Example output: ship
+
+Example input: pilot
+Example output: plane
+
+Example input: driver
+Example output: car
+
+Example input: pirate
+Example output:""",
+            role="user",
+            source="input",
+        )
+    ]
+
+
+def test_parse_prompt_template_collects_metadata():
+    filename = "supports-unknown-metafields.yaml"
+    template = str((TEST_DATA_DIR / "prompt-templates" / filename).resolve())
+    actual = parse_prompt_template_yaml(template)
+    assert len(actual) == 1
+    assert actual[0].metadata == {"tags": ["education", "physics", "simple"], "format": "jinja2", "unknown": "field"}
 
 
 def test_prompt_template_parser_with_multiple_templates():
-    template = (TEST_DATA_DIR / "prompt-templates" / "multiple-templates.txt").read_text()
-    t1 = r"""role: system
-source: input
-text:
-you are a helpful AI assistant that explains
-complex concepts as if explaining to a 5-yr old
----
-role: user
-source: input
-text: what is a black hole?
-Explain in detail in minimum of 3000 words.
-"""
-    t2 = r"""role: system
-source: input
-text:
-you are a helpful AI assistant that entertains using funny jokes
----
-role: user
-source: input
-text: tell me a joke, the joke should be-
-- about astronatus and cowboys
-- should be funny
-- should be related to australia
-"""
-    pt1 = StringPromptTemplate(
-        template=t1, format="bodhilib-jinja2", metadata={"tags": ["education", "physics", "simple"]}
-    )
-    pt2 = StringPromptTemplate(
-        template=t2, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]}
-    )
-    assert parse_prompt_template(template) == [pt1, pt2]
-
-
-def test_prompt_template_parser_escape_break_sequences():
-    template = (TEST_DATA_DIR / "prompt-templates" / "escape-break-sequences.txt").read_text()
-    t1 = r"""role: system
-source: input
-text:
-you are a helpful +++ AI assistant that
-\--- completes high school --- level homework
----
-role: user
-source: input
-text:
-What happens when you + and ++ and +++ numbers
-\+++ together? Does it matter if you --- or
-\---
-"""
-    t2 = r"""role: user
-source: input
-text: what is 2---2 and 2+++2 and 2===2
-"""
-    pt1 = StringPromptTemplate(
-        template=t1, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]}
-    )
-    pt2 = StringPromptTemplate(template=t2, format="bodhilib-fstring", metadata={"tags": ["simple"]})
-    assert parse_prompt_template(template) == [pt1, pt2]
+    template = str((TEST_DATA_DIR / "prompt-templates" / "multiple-templates.yaml").resolve())
+    p1 = [
+        Prompt(
+            "you are a helpful AI assistant that explains\ncomplex concepts as if explaining to a 5-yr old\n",
+            "system",
+            "input",
+        ),
+        Prompt("what is a black hole?\nExplain in detail in minimum of 3000 words.\n", "user", "input"),
+    ]
+    p2 = [
+        Prompt("you are a helpful AI assistant that entertains using funny jokes", "system", "input"),
+        Prompt(
+            (
+                "tell me a joke, the joke should be-\n"
+                "- about astronatus and cowboys\n"
+                "- should be funny\n"
+                "- should be related to australia\n"
+            ),
+            "user",
+            "input",
+        ),
+    ]
+    pt1 = StringPromptTemplate(prompts=p1, metadata={"tags": ["education", "physics", "simple"], "format": "jinja2"})
+    pt2 = StringPromptTemplate(prompts=p2, metadata={"tags": ["entertainment", "jokes", "funny"], "format": "fstring"})
+    actual = parse_prompt_template_yaml(template)
+    assert len(actual) == 2
+    assert actual[0] == pt1
+    assert actual[1] == pt2

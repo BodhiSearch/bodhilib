@@ -48,6 +48,7 @@ from ._plugin import PluginManager as PluginManager
 from ._plugin import Service as Service
 from ._plugin import service_provider as service_provider
 from ._version import __version__ as __version__
+from ._yaml import yaml_dump as yaml_dump
 from .common import package_name as package_name
 
 __all__ = [name for name, obj in globals().items() if not (name.startswith("_") or inspect.ismodule(obj))]
