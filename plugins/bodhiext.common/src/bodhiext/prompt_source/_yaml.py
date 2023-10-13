@@ -15,7 +15,7 @@ def load_prompt_template_yaml(file_path: str) -> List[PromptTemplate]:
         parsed_templates = yaml_load(f.read())
     for parsed_template in parsed_templates["templates"]:
         prompts = parsed_template.pop("prompts")
-        template = StringPromptTemplate(**{"metadata": parsed_template, "prompts": prompts})
+        template = StringPromptTemplate(prompts=prompts, metadata=parsed_template)
         templates.append(template)
     return templates
 

@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
 from bodhiext.common import __version__
-from bodhilib import PromptSource, PromptTemplate, Service, service_provider
+from bodhilib import Filter, PromptSource, PromptTemplate, Service, service_provider
 
 from ._yaml import load_prompt_template_yaml
 
@@ -31,12 +31,12 @@ class LocalDirectoryPromptSource(PromptSource):
         self.source_dir = source_dir
         self.templates: Optional[List[PromptTemplate]] = None
 
-    def find(self, tags: Union[str, List[str]]) -> List[PromptTemplate]:
-        if isinstance(tags, str):
-            tags = [tags]
+    def find(self, filter: Union[Filter, Dict[str, Any]]) -> List[PromptTemplate]:
+        if isinstance(filter, dict):
+            filter = Filter.from_dict(filter)
         if not self.templates:
             self.templates = self._load_templates()
-        return [template for template in self.templates if set(tags).issubset(set(template.metadata.get("tags", [])))]
+        return [template for template in self.templates if filter.evaluate(template.metadata)]
 
     def list_all(self) -> List[PromptTemplate]:
         if not self.templates:

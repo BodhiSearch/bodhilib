@@ -18,6 +18,12 @@ from ._components import get_vector_db as get_vector_db
 from ._components import list_embedders as list_embedders
 from ._components import list_llms as list_llms
 from ._components import list_vector_dbs as list_vector_dbs
+from ._filter import And as And
+from ._filter import Condition as Condition
+from ._filter import Filter as Filter
+from ._filter import Nor as Nor
+from ._filter import OperatorCondition as OperatorCondition
+from ._filter import Or as Or
 from ._models import Distance as Distance
 from ._models import Document as Document
 from ._models import Embedding as Embedding

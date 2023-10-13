@@ -1,6 +1,7 @@
 templates:
-- tags: ["education", "simple"]
+- id: 1
   format: fstring
+  tags: ["education", "simple"]
   prompts:
   - role: system
     source: input
@@ -10,8 +11,9 @@ templates:
   - role: user
     source: input
     text: How are rainbows formed?
-- tags: ["funny", "simple"]
+- id: 2
   format: jinja2
+  tags: ["funny", "simple"]
   prompts:
   - role: system
     source: input
@@ -24,8 +26,9 @@ templates:
       Tell me a joke that is on the topic of {{ topic }}, and
       involves characters {{ c1 }} and {{ c2 }}, and
       uses the world {{ word1 }}
-- tags: ["funny"]
+- id: 3
   format: fstring
+  tags: ["funny"]
   prompts:
   - role: system
     source: input

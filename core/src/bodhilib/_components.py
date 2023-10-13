@@ -14,6 +14,7 @@ from typing import (
     cast,
 )
 
+from ._filter import Filter
 from ._models import (
     Distance,
     Document,
@@ -76,7 +77,7 @@ class PromptSource(abc.ABC):
     """
 
     @abc.abstractmethod
-    def find(self, tags: List[str]) -> List[PromptTemplate]:
+    def find(self, filter: Filter) -> List[PromptTemplate]:
         """Find a prompt template for given tags.
 
         Returns:
@@ -319,7 +320,7 @@ class VectorDB(abc.ABC):
         self,
         collection_name: str,
         embedding: Embedding,
-        filter: Optional[Dict[str, Any]],
+        filter: Optional[Union[Dict[str, Any], Filter]] = None,
         **kwargs: Dict[str, Any],
     ) -> List[Node]:
         """Search for the nearest vectors in the database.
@@ -327,7 +328,8 @@ class VectorDB(abc.ABC):
         Args:
             collection_name (str): name of the collection
             embedding (Embedding): embedding to search for
-            filter (Optional[Dict[str, Any]]): filter to apply on the metadata of the record
+            filter (Optional[Union[Dict[str, Any], :class:`~bodhilib.Filter`]]): filter to apply on
+                the metadata of the record
             **kwargs (Dict[str, Any]): pass through arguments for the vector db
 
         Returns:
