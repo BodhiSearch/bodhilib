@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "bodhiext.common"
+version = "0.1.0"
+description = "A collection of independent common plugins for bodhilib"
+authors = ["Amir Nagri <amir.nagri@proton.me>"]
+readme = "README.md"
+packages = [
+  { include = "bodhiext", from = "src" },
+]
+license = "MIT"
+include = ["LICENSE"]
+
+[tool.poetry.dependencies]
+python = "^3.8.1,<3.12"
+bodhilib = {path = "../../core", develop = true}
+
+[tool.poetry.group.test.dependencies]
+bodhilib-mono = {path = "../..", extras = ["test"], develop = true}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.plugins.bodhilib]
+"bodhiext.data_loader" = "bodhiext.data_loader"
+"bodhiext.splitter" = "bodhiext.splitter"
+"bodhiext.prompt_source" = "bodhiext.prompt_source"

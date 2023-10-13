@@ -4,9 +4,7 @@ version = "0.1.11"
 description = "An Open Source, Plugin Architecture based, Pythonic and Composable LLM Library"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
 readme = "README.md"
-packages = [
-  { include = "bodhilib", from = "src" },
-]
+packages = [{ include = "bodhilib", from = "src" }]
 license = "MIT"
 include = ["LICENSE"]
 
@@ -17,8 +15,7 @@ pluggy = "^1.2.0"
 pydantic = "^1"
 
 [tool.poetry.group.test.dependencies]
-bodhilib-mono = {path = "..", extras = ["test"], develop = true}
-
+bodhilib-mono = { path = "..", extras = ["test"], develop = true }
 
 [tool.poetry.group.dev.dependencies]
 types-pyyaml = "^6.0.12.12"
@@ -26,8 +23,3 @@ types-pyyaml = "^6.0.12.12"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.plugins.bodhilib]
-"bodhiext.data_loader" = "bodhiext.data_loader"
-"bodhiext.splitter" = "bodhiext.splitter"
-"bodhiext.prompt_source" = "bodhiext.prompt_source"

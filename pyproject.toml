@@ -6,7 +6,7 @@ description = "Mono-repo for bodhiLib"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
 license = "MIT"
 include = ["LICENSE", "README.md"]
-packages = [{ include = "bodhilib_mono", from = "mono" }]
+packages = [{ include = "mono" }]
 
 [tool.poetry.dependencies]
 python = "^3.8.1,<3.12"
