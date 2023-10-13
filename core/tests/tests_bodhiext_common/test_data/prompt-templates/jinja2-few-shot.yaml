@@ -1,6 +1,6 @@
 templates:
-- tags: ["few-shot"]
-  format: "jinja2"
+- format: "jinja2"
+  tags: ["few-shot"]
   prompts:
   - role: "user"
     source: "input"

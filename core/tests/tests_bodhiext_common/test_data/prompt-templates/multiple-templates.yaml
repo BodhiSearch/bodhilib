@@ -1,6 +1,6 @@
 templates:
-- tags: ["education", "physics", "simple"]
-  format: jinja2
+- format: jinja2
+  tags: [education, physics, simple]
   prompts:
   - role: system
     source: input
@@ -12,8 +12,8 @@ templates:
     text: |
       what is a black hole?
       Explain in detail in minimum of 3000 words.
-- tags: ["entertainment", "jokes", "funny"]
-  format: fstring
+- format: fstring
+  tags: [entertainment, jokes, funny]
   prompts:
   - role: system
     source: input

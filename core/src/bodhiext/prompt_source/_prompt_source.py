@@ -2,12 +2,10 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-import yaml
-from bodhiext.prompt_template import StringPromptTemplate
 from bodhilib import PromptSource, PromptTemplate, Service, service_provider
-from bodhilib.logging import logger
 
 from ._version import __version__
+from ._yaml import load_prompt_template_yaml
 
 CURRENT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))
 DEFAULT_TEMPLATES_DIR = CURRENT_DIR / "data"
@@ -50,23 +48,9 @@ class LocalDirectoryPromptSource(PromptSource):
         for root, _, files in os.walk(self.source_dir):
             for file in files:
                 file_path = os.path.join(root, file)
-                if not file_path.endswith((".yml", ".yaml")):
-                    logger.debug(f"skipping parsing file for prompt templates: {file_path}")
-                    continue
-                parsed_templates = parse_prompt_template_yaml(file_path)
+                parsed_templates = load_prompt_template_yaml(file_path)
                 templates.extend(parsed_templates)
         return templates
-
-
-def parse_prompt_template_yaml(file_path: str) -> List[PromptTemplate]:
-    templates: List[PromptTemplate] = []
-    with open(file_path, "r") as f:
-        parsed_templates = yaml.safe_load(f.read())
-    for parsed_template in parsed_templates["templates"]:
-        prompts = parsed_template.pop("prompts")
-        template = StringPromptTemplate(**{"metadata": parsed_template, "prompts": prompts})
-        templates.append(template)
-    return templates
 
 
 @service_provider

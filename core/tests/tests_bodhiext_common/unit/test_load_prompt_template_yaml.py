@@ -1,5 +1,5 @@
 import pytest
-from bodhiext.prompt_source import parse_prompt_template_yaml
+from bodhiext.prompt_source import load_prompt_template_yaml
 from bodhiext.prompt_template import StringPromptTemplate
 from bodhilib import Prompt
 
@@ -11,7 +11,7 @@ from tests_bodhiext_common.conftest import TEST_DATA_DIR
 )
 def test_prompt_template_parser_parses_simple_templated_prompt(filename, format):
     template = str((TEST_DATA_DIR / "prompt-templates" / filename).resolve())
-    actual = parse_prompt_template_yaml(template)
+    actual = load_prompt_template_yaml(template)
     prompts = [
         Prompt(
             "you are a helpful AI assistant that explains complex concepts as if explaining to a 5-yr old",
@@ -25,7 +25,7 @@ def test_prompt_template_parser_parses_simple_templated_prompt(filename, format)
 
 def test_parse_prompt_template_jinja2_few_shot_template():
     template = str((TEST_DATA_DIR / "prompt-templates" / "jinja2-few-shot.yaml").resolve())
-    actual = parse_prompt_template_yaml(template)
+    actual = load_prompt_template_yaml(template)
     examples = [
         {"input": "pirate", "output": "ship"},
         {"input": "pilot", "output": "plane"},
@@ -55,7 +55,7 @@ Example output:""",
 def test_parse_prompt_template_collects_metadata():
     filename = "supports-unknown-metafields.yaml"
     template = str((TEST_DATA_DIR / "prompt-templates" / filename).resolve())
-    actual = parse_prompt_template_yaml(template)
+    actual = load_prompt_template_yaml(template)
     assert len(actual) == 1
     assert actual[0].metadata == {"tags": ["education", "physics", "simple"], "format": "jinja2", "unknown": "field"}
 
@@ -85,7 +85,7 @@ def test_prompt_template_parser_with_multiple_templates():
     ]
     pt1 = StringPromptTemplate(prompts=p1, metadata={"tags": ["education", "physics", "simple"], "format": "jinja2"})
     pt2 = StringPromptTemplate(prompts=p2, metadata={"tags": ["entertainment", "jokes", "funny"], "format": "fstring"})
-    actual = parse_prompt_template_yaml(template)
+    actual = load_prompt_template_yaml(template)
     assert len(actual) == 2
     assert actual[0] == pt1
     assert actual[1] == pt2
