@@ -10,11 +10,11 @@ files = []
 develop = true
 
 [package.dependencies]
-pytest = {version = "==7.4.2", optional = true}
-pytest-cov = {version = "==4.1.0", optional = true}
-pytest-dotenv = {version = "==0.5.2", optional = true}
-pytest-socket = {version = "==0.6.0", optional = true}
-pytest-timeout = {version = "==2.2.0", optional = true}
+pytest = "==7.4.2"
+pytest-cov = "==4.1.0"
+pytest-dotenv = "==0.5.2"
+pytest-socket = "==0.6.0"
+pytest-timeout = "==2.2.0"
 
 [package.extras]
 test = ["pytest (==7.4.2)", "pytest-cov (==4.1.0)", "pytest-dotenv (==0.5.2)", "pytest-socket (==0.6.0)", "pytest-timeout (==2.2.0)"]
@@ -423,4 +423,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8.1,<3.12"
-content-hash = "57f624e3f6451c750aa7fc631227d0fb97865e7b331cdb2ef1e7bb4c7220b5e6"
+content-hash = "13bfeba55d0db3b4d688e1daf0bc2442ab0b6e5eff7fb6388ee97da73ab23798"
