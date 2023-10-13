@@ -44,7 +44,8 @@ def execute_command(run: str, dirs: List[str], command_args: List[str]) -> None:
 
 if __name__ == "__main__":
     all_args = sys.argv
-    print("Running: python", " ".join(all_args))
+    all_args = [arg for arg in all_args if arg != ""]
+    print("Running: python", all_args)
     if len(all_args) < 3:
         print("Usage: python make.py <run|exec> [<directory>] <command> [<other args>]")
         sys.exit(1)
@@ -55,7 +56,7 @@ if __name__ == "__main__":
         sys.exit(1)
     may_be_dir = all_args[2]
     if may_be_dir in ["all", "core"] or os.path.exists(
-        f"plugins/bodhiext.{all_args[1]}"
+        f"plugins/bodhiext.{may_be_dir}"
     ):
         if len(all_args) < 4:
             print(
