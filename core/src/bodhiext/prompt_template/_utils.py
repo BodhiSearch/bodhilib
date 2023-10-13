@@ -1,7 +1,9 @@
 import re
 from typing import Any, Dict, List
 
-from ._models import PromptTemplate
+from bodhilib import PromptTemplate
+
+from ._string_prompt_template import StringPromptTemplate
 
 BREAK_TEMPLATE = "+++"
 BREAK_PROMPT = "---"
@@ -48,5 +50,5 @@ def _build_prompt_template(prompt_template: Dict[str, Any]) -> PromptTemplate:
         prompt_template["format"] = "bodhilib-fstring"
     else:
         prompt_template["format"] = prompt_template["metadata"].pop("format")
-    pt = PromptTemplate(**prompt_template)
+    pt = StringPromptTemplate(**prompt_template)
     return pt

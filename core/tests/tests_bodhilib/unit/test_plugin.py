@@ -1,7 +1,7 @@
 import pytest
 from bodhilib import PluginManager, get_llm
 
-from tests.prompt_utils import gpt35turbo
+from tests_bodhilib.prompt_utils import gpt35turbo
 
 
 class _TestLLM:
@@ -13,7 +13,7 @@ def test_get_llm_raises_type_error_if_oftype_mismatch():
     with pytest.raises(TypeError) as e:
         _ = get_llm("openai_chat", gpt35turbo, oftype=_TestLLM)
     expected = (
-        "Expecting llm of type \"<class 'tests.unit.test_plugin._TestLLM'>\", "
+        "Expecting llm of type \"<class 'tests_bodhilib.unit.test_plugin._TestLLM'>\", "
         "but got \"<class 'bodhiext.openai._openai_llm.OpenAIChat'>\""
     )
     assert str(e.value) == expected

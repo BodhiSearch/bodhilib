@@ -2,13 +2,16 @@
 import textwrap
 
 import pytest
-from bodhilib import Prompt, PromptTemplate, parse_prompt_template, prompt_with_examples
+from bodhiext.prompt_template import StringPromptTemplate, parse_prompt_template, prompt_with_examples
+from bodhilib import (
+    Prompt,
+)
 
-from tests.conftest import TEST_DATA_DIR
+from tests_bodhiext_common.conftest import TEST_DATA_DIR
 
 
 def test_prompt_template():
-    template = PromptTemplate(
+    template = StringPromptTemplate(
         "Question: What day of the week comes after {day}?\nAnswer: ", role="user", source="input"
     )
     assert template.to_prompts(day="Monday")[0] == Prompt(
@@ -17,21 +20,23 @@ def test_prompt_template():
 
 
 def test_prompt_template_source_set_correctly():
-    template = PromptTemplate(
+    template = StringPromptTemplate(
         "Question: What day of the week comes after {day}?\nAnswer: ", role="user", source="output"
     )
     assert template.to_prompts(day="Monday")[0] == Prompt(
-        "Question: What day of the week comes after Monday?\nAnswer: ", role="user", source="output"
+        "Question: What day of the week comes after Monday?\nAnswer: ",
+        role="user",
+        source="output",
     )
 
 
 def test_prompt_template_defaults():
-    template = PromptTemplate("simple template")
+    template = StringPromptTemplate("simple template")
     assert template.format == "fstring"
 
 
 def test_prompt_template_defaults_override():
-    template = PromptTemplate("simple template", role="system", source="output", format="jinja2")
+    template = StringPromptTemplate("simple template", role="system", source="output", format="jinja2")
     assert template.role == "system"
     assert template.source == "output"
     assert template.format == "jinja2"

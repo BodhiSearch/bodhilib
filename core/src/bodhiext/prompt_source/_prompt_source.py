@@ -2,8 +2,8 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-from bodhilib import PromptSource, Service, parse_prompt_template, service_provider
-from bodhilib._models import PromptTemplate
+from bodhiext.prompt_template import parse_prompt_template
+from bodhilib import PromptSource, PromptTemplate, Service, service_provider
 
 from ._version import __version__
 
@@ -23,6 +23,10 @@ class LocalDirectoryPromptSource(PromptSource):
         """
         if source_dir is None:
             source_dir = str(DEFAULT_TEMPLATES_DIR)
+        if not os.path.exists(source_dir):
+            raise ValueError(f"Directory does not exists: {source_dir=}")
+        if not os.path.isdir(source_dir):
+            raise ValueError(f"Path is not a directory: {source_dir=}")
         self.source_dir = source_dir
         self.templates: Optional[List[PromptTemplate]] = None
 

@@ -1,7 +1,7 @@
 import pytest
-from bodhilib import PromptTemplate, parse_prompt_template
+from bodhiext.prompt_template import StringPromptTemplate, parse_prompt_template
 
-from tests.conftest import TEST_DATA_DIR
+from tests_bodhiext_common.conftest import TEST_DATA_DIR
 
 
 @pytest.mark.parametrize("filename", ["simple-prompt.txt", "ignores-unknown-metafields.txt"])
@@ -15,7 +15,7 @@ you are a helpful AI assistant that explains
 complex concepts as if explaining to a 5-yr old
 """
     actual = parse_prompt_template(template)
-    expected = PromptTemplate(
+    expected = StringPromptTemplate(
         template=result,
         role="user",
         source="input",
@@ -51,8 +51,12 @@ text: tell me a joke, the joke should be-
 - should be funny
 - should be related to australia
 """
-    pt1 = PromptTemplate(template=t1, format="bodhilib-jinja2", metadata={"tags": ["education", "physics", "simple"]})
-    pt2 = PromptTemplate(template=t2, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]})
+    pt1 = StringPromptTemplate(
+        template=t1, format="bodhilib-jinja2", metadata={"tags": ["education", "physics", "simple"]}
+    )
+    pt2 = StringPromptTemplate(
+        template=t2, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]}
+    )
     assert parse_prompt_template(template) == [pt1, pt2]
 
 
@@ -75,6 +79,8 @@ What happens when you + and ++ and +++ numbers
 source: input
 text: what is 2---2 and 2+++2 and 2===2
 """
-    pt1 = PromptTemplate(template=t1, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]})
-    pt2 = PromptTemplate(template=t2, format="bodhilib-fstring", metadata={"tags": ["simple"]})
+    pt1 = StringPromptTemplate(
+        template=t1, format="bodhilib-fstring", metadata={"tags": ["entertainment", "jokes", "funny"]}
+    )
+    pt2 = StringPromptTemplate(template=t2, format="bodhilib-fstring", metadata={"tags": ["simple"]})
     assert parse_prompt_template(template) == [pt1, pt2]

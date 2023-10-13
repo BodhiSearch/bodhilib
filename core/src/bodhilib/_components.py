@@ -1,7 +1,18 @@
 from __future__ import annotations
 
 import abc
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Type, TypeVar, Union, cast
+from typing import (
+    Any,
+    Dict,
+    Iterable,
+    Iterator,
+    List,
+    Optional,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 from ._models import (
     Distance,
@@ -10,12 +21,52 @@ from ._models import (
     Node,
     Prompt,
     PromptStream,
-    PromptTemplate,
     SerializedInput,
 )
 from ._plugin import PluginManager, Service
 
 
+# region prompt template
+#######################################################################################################################
+class PromptTemplate(abc.ABC):
+    """Abstract base class for prompt templates.
+
+    A prompt template provides a template for generating prompts.
+    """
+
+    @property
+    @abc.abstractmethod
+    def template(self) -> str:
+        """The raw template represented as string."""
+
+    @property
+    @abc.abstractmethod
+    def metadata(self) -> Dict[str, Any]:
+        """All the metadata associated with the PromptTemplate."""
+
+    @property
+    @abc.abstractmethod
+    def vars(self) -> Dict[str, Type]:
+        """All the variables required by PromptTemplate."""
+
+    @property
+    @abc.abstractmethod
+    def format(self) -> str:
+        """The type of PromptTemplate."""
+
+    @abc.abstractmethod
+    def to_prompts(self, **kwargs: Dict[str, Any]) -> List[Prompt]:
+        """Generate prompts from the template passing the variables as dict.
+
+        Args:
+            **kwargs (Dict[str, Any]): variable names as key, and replacement as value for rendering the template
+
+        Returns:
+            List[Prompt]: list of prompts generated from the template
+        """
+
+
+# endregion
 # region prompt source
 #######################################################################################################################
 class PromptSource(abc.ABC):

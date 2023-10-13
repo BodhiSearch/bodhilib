@@ -3,7 +3,7 @@ import itertools
 import pytest
 from bodhiext.splitter._text_splitter import _build_sentence_splitter, _build_symbol_splitter
 
-from tests.unit.test_text_splitter import _generate_sentence
+from tests_bodhiext_common.unit.test_text_splitter import _generate_sentence
 
 
 @pytest.fixture
