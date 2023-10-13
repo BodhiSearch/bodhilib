@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional
 from bodhilib import Service, service_provider
 
 from ._text_splitter import TextSplitter
-from ._version import __version__
+from bodhiext.common import __version__
 
 
 def text_splitter_service_builder(

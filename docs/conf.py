@@ -4,15 +4,14 @@ from pathlib import Path
 import toml
 
 DOCS_DIR = Path(__file__).parent.absolute()
-PROJ_DIR = DOCS_DIR / ".."
-LIBS_DIR = PROJ_DIR / "libs"
-for plugin_dir in LIBS_DIR.glob("*"):
-    plugin_dir = plugin_dir / "src"
-    sys.path.insert(0, str(plugin_dir))
-SRC_DIR = PROJ_DIR / "src"
-sys.path.insert(0, str(SRC_DIR))
+ROOT_DIR = DOCS_DIR / ".."
+PLUGINS_DIR = ROOT_DIR / "plugins"
+for plugin_dir in PLUGINS_DIR.glob("*"):
+    sys.path.insert(0, str(plugin_dir / "src"))
+CORE_DIR = ROOT_DIR / "core"
+sys.path.insert(0, str(CORE_DIR / "src"))
 
-with open(PROJ_DIR / "pyproject.toml") as f:
+with open(CORE_DIR / "pyproject.toml") as f:
     pyproj_file = toml.load(f)
 
 # -- Project information -----------------------------------------------------

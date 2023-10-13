@@ -3,7 +3,7 @@ from typing import List
 from bodhilib import Service, service_provider
 
 from ._file import file_loader_service_builder as file_loader_service_builder
-from ._version import __version__
+from bodhiext.common._version import __version__
 
 
 @service_provider

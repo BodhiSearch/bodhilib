@@ -2,9 +2,9 @@ import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
+from bodhiext.common import __version__
 from bodhilib import PromptSource, PromptTemplate, Service, service_provider
 
-from ._version import __version__
 from ._yaml import load_prompt_template_yaml
 
 CURRENT_DIR = Path(os.path.dirname(os.path.abspath(__file__)))

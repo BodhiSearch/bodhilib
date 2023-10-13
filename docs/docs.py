@@ -11,7 +11,7 @@ def main() -> None:
     docs_dir = Path(__file__).parent.absolute()
     os.chdir(docs_dir)
     output_path = "reference"
-    src_path = docs_dir / ".." / "src" / "bodhilib"
+    src_path = docs_dir / ".." / "core" / "src" / "bodhilib"
     subprocess.run(
         [
             "poetry",
@@ -29,7 +29,7 @@ def main() -> None:
     )
 
     # Build the api documentation
-    libs_root = glob.glob(os.path.join(docs_dir / ".." / "libs", "*"))
+    libs_root = glob.glob(os.path.join(docs_dir / ".." / "plugins", "*"))
     exts_src = [Path(lib_root) / "src" / "bodhiext" for lib_root in libs_root]
     exts_src.insert(0, docs_dir / ".." / "src" / "bodhiext")
     for ext_src in exts_src:
