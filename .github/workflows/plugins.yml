@@ -49,8 +49,6 @@ jobs:
   determine_plugin:
     runs-on: ubuntu-latest
     needs: [pre-commit]
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -81,15 +79,13 @@ jobs:
               | uniq \
               | jq -R -s -c 'split("\n")[:-1]')
           fi
-
-          MATRIX_VALUE="{\"plugin\": $PLUGINS}"
-          echo "MATRIX_JSON=$MATRIX_VALUE" >> $GITHUB_ENV
+          echo "MATRIX_JSON=$PLUGINS" >> $GITHUB_ENV
   test:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{fromJson(needs.determine_plugin.outputs.matrix)}}
+        plugin: ${{fromJson(${{ env.MATRIX_JSON }})}}
     steps:
       - name: Send PLUGIN envs to ENV
         run: |
@@ -130,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{fromJson(needs.determine_plugin.outputs.matrix)}}
+        plugin: ${{fromJson(${{ env.MATRIX_JSON }})}}
     permissions:
       id-token: write
       contents: write
