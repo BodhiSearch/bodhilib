@@ -79,7 +79,7 @@ jobs:
             PLUGINS=$(git diff --dirstat=files,0 $LAST_SUCCESS_COMMIT..$GITHUB_SHA \
               | grep 'plugins/' \
               | cut -d '/' -f2 \
-              | uniq
+              | uniq \
               | tr '\n' ' ')
           fi
           echo "matrix=\"$PLUGINS\"" >> "$GITHUB_OUTPUT"
