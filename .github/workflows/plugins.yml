@@ -81,8 +81,8 @@ jobs:
               | uniq \
               | jq -R -s -c 'split("\n")[:-1]')
           fi
-          echo "matrix=\"$PLUGINS\"" # debug
-          echo "matrix=\"$PLUGINS\"" >> "$GITHUB_OUTPUT"
+          echo "matrix='$PLUGINS'" # debug
+          echo "matrix='$PLUGINS'" >> "$GITHUB_OUTPUT"
   test:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
