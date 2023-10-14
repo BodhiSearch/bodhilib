@@ -81,14 +81,13 @@ jobs:
               | uniq \
               | jq -R -s -c 'split("\n")[:-1]')
           fi
-          echo "matrix='$PLUGINS'" # debug
-          echo "matrix='$PLUGINS'" >> "$GITHUB_OUTPUT"
+          echo "matrix={\"plugin\": $PLUGINS}" # debug
+          echo "matrix={\"plugin\": $PLUGINS}" >> "$GITHUB_OUTPUT"
   test:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
       - name: Send PLUGIN envs to ENV
         run: |
