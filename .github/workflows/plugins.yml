@@ -81,6 +81,7 @@ jobs:
               | uniq \
               | jq -R -s -c 'split("\n")[:-1]')
           fi
+          echo "matrix=\"$PLUGINS\"" # debug
           echo "matrix=\"$PLUGINS\"" >> "$GITHUB_OUTPUT"
   test:
     needs: [determine_plugin]
@@ -151,15 +152,16 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          echo "CURRENT_VERSION=$(poetry version --short --directory ${{ env.PLUGIN_DIR }})" >> $GITHUB_ENV
+          echo "CURRENT_VERSION=$(poetry version --short --directory \"${{ env.PLUGIN_DIR }}\")" >> $GITHUB_ENV
       - name: Set new pre-release version
         id: new-version
         run: |
+          echo "NEW_VERSION=${{ env.CURRENT_VERSION }}-$(date +'%Y%m%d%H%M%S')" # debug
           echo "NEW_VERSION=${{ env.CURRENT_VERSION }}-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
       - name: Update version to pre-release version
         run: |
           VERSION_FILE='${{ env.PLUGIN_DIR }}/src/bodhiext/${{ env.PLUGIN_NAME }}/_version.py'
-          poetry version "${{ env.NEW_VERSION }}"
+          poetry version "${{ env.NEW_VERSION }}" --directory "${{ env.PLUGIN_DIR }}"
           echo "__version__ = \"${{ env.NEW_VERSION }}\"" >> ${VERSION_FILE}
       - name: Build package
         run: make ci.build ${{ env.PLUGIN_NAME }}
@@ -199,7 +201,7 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          echo "CURRENT_VERSION=$(poetry version --short --directory ${{ env.PLUGIN_DIR }})" >> $GITHUB_ENV
+          echo "CURRENT_VERSION=$(poetry version --short --directory \"${{ env.PLUGIN_DIR }}\")" >> $GITHUB_ENV
       - name: Build package
         run: make ci.build ${{ env.PLUGIN_NAME }}
       - name: Create Release
@@ -219,7 +221,7 @@ jobs:
           IFS='.' read -ra ADDR <<< "$CURRENT_VERSION"
           new_patch=$(( ${ADDR[2]} + 1 ))
           NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch"
-          poetry version "$NEW_VERSION" --directory ${{ env.PLUGIN_DIR }}
+          poetry version "$NEW_VERSION" --directory "${{ env.PLUGIN_DIR }}"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           VERSION_FILE='${{ env.PLUGIN_DIR }}/src/bodhiext/${{ env.PLUGIN_NAME }}/_version.py'
 
