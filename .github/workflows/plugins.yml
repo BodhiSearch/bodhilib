@@ -49,6 +49,8 @@ jobs:
   determine_plugin:
     runs-on: ubuntu-latest
     needs: [pre-commit]
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -63,10 +65,11 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             if [[ "${{ github.event.inputs.plugin }}" == "all" ]]; then
               # Get all directories with pattern bodhiext.* inside the plugins directory
-              PLUGINS=$(ls -d plugins/bodhiext.* | cut -d'/' -f2 | jq -R -s -c 'split("\n")[:-1]')
+              PLUGINS=$(ls -d plugins/bodhiext.* | cut -d'/' -f2)
+              PLUGINS=$(echo "$PLUGINS" | tr '\n' ' ')
             else
               # If a specific plugin is provided as input
-              PLUGINS=$(echo "[\"${{ github.event.inputs.plugin }}\"]")
+              PLUGINS="${{ github.event.inputs.plugin }}"
             fi
           else
             # Logic based on git diff for push events
@@ -76,16 +79,16 @@ jobs:
             PLUGINS=$(git diff --dirstat=files,0 $LAST_SUCCESS_COMMIT..$GITHUB_SHA \
               | grep 'plugins/' \
               | cut -d '/' -f2 \
-              | uniq \
-              | jq -R -s -c 'split("\n")[:-1]')
+              | uniq
+              | tr '\n' ' ')
           fi
-          echo "MATRIX_JSON=$PLUGINS" >> $GITHUB_ENV
+          echo "matrix=\"$PLUGINS\"" >> "$GITHUB_OUTPUT"
   test:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{ fromJson(env.PLUGINS) }}
+        plugin: ${{ needs.determine_plugin.outputs.matrix }}
     steps:
       - name: Send PLUGIN envs to ENV
         run: |
@@ -126,7 +129,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{ fromJson(env.PLUGINS) }}
+        plugin: ${{ needs.determine_plugin.outputs.matrix }}
     permissions:
       id-token: write
       contents: write
@@ -174,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{ fromJson(env.PLUGINS) }}
+        plugin: ${{ needs.determine_plugin.outputs.matrix }}
     permissions:
       id-token: write
       contents: write
