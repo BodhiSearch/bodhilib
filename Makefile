@@ -6,12 +6,12 @@ install:
 	@:
 
 build:
-	@# Invoke the Python script to 'install' and all passed arguments.
+	@# Invoke the Python script to 'build' and all passed arguments.
 	python make.py exec $(filter-out $@,$(MAKECMDGOALS)) build
 	@:
 
-pytest:
-	@# Invoke the Python script to 'install' and all passed arguments.
+test:
+	@# Invoke the Python script to 'test' and all passed arguments.
 	python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest
 	@:
 
@@ -25,17 +25,11 @@ exec:
 	python make.py exec $(filter-out $@,$(MAKECMDGOALS))
 	@:
 
-ci.check:
+all.check:
 	@python make.py exec all check --lock
 
-ci.install:
-	@python make.py exec all install --compile
-
 ci.test:
-	@python make.py run all pytest --cov=src --cov-report=xml --cov-report=html
-
-ci.build:
-	@python make.py exec all build
+	@python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest --cov=src --cov-report=xml --cov-report=html
 
 lint:
 	pre-commit run --all-files
