@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     tags: [v*]
-    paths: [plugins/**]
+    # paths: [plugins/**]
   workflow_dispatch:
     branches: [main]
     inputs:
@@ -53,7 +53,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install jq
         run: sudo apt-get install -y jq
       - name: Determine plugin(s) based on workflow input or git diff
@@ -82,8 +82,8 @@ jobs:
               | jq -R -s -c 'split("\n")[:-1]')
           fi
 
-          # Set the output for matrix
-          echo "::set-output name=matrix::{\"plugin\": $PLUGINS}"
+          MATRIX_VALUE="{\"plugin\": $PLUGINS}"
+          echo "MATRIX_JSON=$MATRIX_VALUE" >> $GITHUB_ENV
   test:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
