@@ -15,15 +15,7 @@ from typing import (
 )
 
 from ._filter import Filter
-from ._models import (
-    Distance,
-    Document,
-    Embedding,
-    Node,
-    Prompt,
-    PromptStream,
-    SerializedInput,
-)
+from ._models import Distance, Document, Embedding, Node, Prompt, PromptStream, SerializedInput, SupportsEmbedding
 from ._plugin import PluginManager, Service
 
 
@@ -319,7 +311,7 @@ class VectorDB(abc.ABC):
     def query(
         self,
         collection_name: str,
-        embedding: Embedding,
+        embedding: Union[Embedding, SupportsEmbedding],
         filter: Optional[Union[Dict[str, Any], Filter]] = None,
         **kwargs: Dict[str, Any],
     ) -> List[Node]:

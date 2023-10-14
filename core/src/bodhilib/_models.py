@@ -54,6 +54,14 @@ class SupportsText(Protocol):
         """Return the content of the object as string."""
 
 
+class SupportsEmbedding(Protocol):
+    """SupportsEmbedding matches the types that contains a field `embedding` of type :data:`~bodhilib.Embedding`."""
+
+    @property
+    def embedding(self) -> Embedding:
+        """Return the embedding of the object as :data:`~bodhilib.Embedding`."""
+
+
 def supportstext(obj: object) -> bool:
     """Returns True if the object supports :data:`~bodhilib.SupportsText` protocol."""
     return hasattr(obj, "text")
@@ -62,6 +70,11 @@ def supportstext(obj: object) -> bool:
 def istextlike(obj: object) -> bool:
     """Returns True if the object is a :data:`~TextLike`."""
     return isinstance(obj, str) or supportstext(obj)
+
+
+def supportsembedding(obj: object) -> bool:
+    """Returns True if the object supports :data:`~bodhilib.SupportsEmbedding` protocol."""
+    return hasattr(obj, "embedding")
 
 
 # endregion
