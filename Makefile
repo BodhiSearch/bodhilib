@@ -1,4 +1,4 @@
-.PHONY: run exec install build ci.check ci.install ci.lint ci.test ci.build clean_docs docs run_docs
+.PHONY: install build test run exec all.check ci.test ci.build lint clean_docs docs run_docs
 
 install:
 	@# Invoke the Python script to 'install' and all passed arguments.
@@ -30,6 +30,12 @@ all.check:
 
 ci.test:
 	@python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest --cov=src --cov-report=xml --cov-report=html
+	@:
+
+ci.build:
+	@# Invoke the Python script to 'build' and all passed arguments.
+	python make.py exec $(filter-out $@,$(MAKECMDGOALS)) build
+	@:
 
 lint:
 	pre-commit run --all-files
@@ -44,4 +50,4 @@ run_docs:
 	poetry run python -m http.server -d docs/_build/html 8000
 
 %:
-	@echo "Unknown target '$@'":
+	@:

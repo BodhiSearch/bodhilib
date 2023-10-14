@@ -46,9 +46,9 @@ repos:
         pass_filenames: false
   - repo: local
     hooks:
-      - id: update-configs
-        name: update-configs
-        description: 'Update mypy.ini for plugin folder'
-        entry: ./update-configs.py
+      - id: update_configs
+        name: update_configs
+        description: 'Update mypy.ini, pytest.ini, and .github/workflows/plugins.yml for plugin folder'
+        entry: ./update_configs.py
         language: script
         pass_filenames: false

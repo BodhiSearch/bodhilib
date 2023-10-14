@@ -41,8 +41,9 @@ runs:
       id: poetry-cache-key
       shell: bash
       run: |
-        echo "POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}" >> $GITHUB_ENV
-        echo "POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}"
+        POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('${{ inputs.working-directory }}/poetry.lock') }}
+        echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}" >> $GITHUB_ENV
+        echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}"
     - name: Check Poetry cache
       id: check-poetry-cache
       shell: bash
@@ -69,7 +70,7 @@ runs:
           ~/.cache/pypoetry/virtualenvs
           ~/.cache/pypoetry/cache
           ~/.cache/pypoetry/artifacts
-        key: poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
+        key: ${{ env.POETRY_CACHE_KEY }}
     - run: pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
       shell: bash
       if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'

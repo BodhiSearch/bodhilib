@@ -1,0 +1,239 @@
+name: plugins
+on:
+  pull_request:
+  push:
+    branches: [main]
+    tags: [v*]
+    paths: [plugins/**]
+  workflow_dispatch:
+    branches: [main]
+    inputs:
+      release:
+        description: Publish a plugin library release (yes) or pre-release (pre) or
+          none (no)? (yes/pre/no)
+        required: false
+        default: 'no'
+      plugin:
+        description: Plugin to release?
+        type: choice
+        options:
+          - all
+          - bodhiext.common
+        required: true
+        default: all
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
+        with:
+          setup-only: 'true'
+          install-command: poetry install --compile
+  pre-commit:
+    needs: [prepare]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
+      - name: Check poetry files
+        shell: bash
+        run: |
+          make all.check
+      - name: Pre-commit
+        uses: pre-commit/action@v3.0.0
+  determine_plugin:
+    runs-on: ubuntu-latest
+    needs: [pre-commit]
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Install jq
+        run: sudo apt-get install -y jq
+      - name: Determine plugin(s) based on workflow input or git diff
+        id: set-matrix
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # If the workflow was triggered manually with workflow_dispatch
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ "${{ github.event.inputs.plugin }}" == "all" ]]; then
+              # Get all directories with pattern bodhiext.* inside the plugins directory
+              PLUGINS=$(ls -d plugins/bodhiext.* | cut -d'/' -f2 | jq -R -s -c 'split("\n")[:-1]')
+            else
+              # If a specific plugin is provided as input
+              PLUGINS=$(echo "[\"${{ github.event.inputs.plugin }}\"]")
+            fi
+          else
+            # Logic based on git diff for push events
+            LAST_SUCCESS_COMMIT=$(curl -H "Authorization: token $GITHUB_TOKEN" \
+              "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/plugins.yml/runs?status=success&per_page=1" \
+              | jq -r '.workflow_runs[0].head_sha')
+            PLUGINS=$(git diff --dirstat=files,0 $LAST_SUCCESS_COMMIT..$GITHUB_SHA \
+              | grep 'plugins/' \
+              | cut -d '/' -f2 \
+              | uniq \
+              | jq -R -s -c 'split("\n")[:-1]')
+          fi
+
+          # Set the output for matrix
+          echo "::set-output name=matrix::{\"plugin\": $PLUGINS}"
+  test:
+    needs: [determine_plugin]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        plugin: ${{fromJson(needs.determine_plugin.outputs.matrix)}}
+    steps:
+      - name: Send PLUGIN envs to ENV
+        run: |
+          PLUGIN=${{ matrix.plugin }}
+          PLUGIN_DIR=plugins/${PLUGIN}
+          PLUGIN_NAME=$(echo ${PLUGIN} | | sed 's/bodhiext.//')
+          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
+        with:
+          working-directory: ${{ env.PLUGIN_DIR }}
+          install-command: poetry install --compile
+      - name: Copy .env.ci to .env.test
+        run: |
+          cd ${{ env.PLUGIN_DIR }}
+          cp .env.ci .env.test
+      - name: Run tests
+        run: |
+          make ci.test ${{ env.PLUGIN_NAME }}
+      - name: Build
+        run: |
+          make ci.build ${{ env.PLUGIN_NAME }}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          env_vars: OS,PYTHON
+          files: ${{ env.PLUGIN_DIR }}/coverage.xml
+          flags: unittests,${{ env.PLUGIN }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  prerelease:
+    needs: [test]
+    if: github.event.inputs.release == 'pre'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        plugin: ${{fromJson(needs.determine_plugin.outputs.matrix)}}
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Send PLUGIN envs to ENV
+        run: |
+          PLUGIN=${{ matrix.plugin }}
+          PLUGIN_DIR=plugins/${PLUGIN}
+          PLUGIN_NAME=$(echo ${PLUGIN} | | sed 's/bodhiext.//')
+          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
+        with:
+          working-directory: ${{ env.PLUGIN_DIR }}
+          install-command: poetry install --compile
+      - name: Get current version
+        id: current-version
+        run: |
+          echo "CURRENT_VERSION=$(poetry version --short --directory ${{ env.PLUGIN_DIR }})" >> $GITHUB_ENV
+      - name: Set new pre-release version
+        id: new-version
+        run: |
+          echo "NEW_VERSION=${{ env.CURRENT_VERSION }}-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+      - name: Update version to pre-release version
+        run: |
+          VERSION_FILE='${{ env.PLUGIN_DIR }}/src/bodhiext/${{ env.PLUGIN_NAME }}/_version.py'
+          poetry version "${{ env.NEW_VERSION }}"
+          echo "__version__ = \"${{ env.NEW_VERSION }}\"" >> ${VERSION_FILE}
+      - name: Build package
+        run: make ci.build ${{ env.PLUGIN_NAME }}
+      - name: Create pre-release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ${{ env.PLUGIN_DIR }}/dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ env.NEW_VERSION }}
+          prerelease: true
+  release:
+    needs: [test]
+    if: github.event.inputs.release == 'yes'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        plugin: ${{fromJson(needs.determine_plugin.outputs.matrix)}}
+    permissions:
+      id-token: write
+      contents: write
+    steps:
+      - name: Send PLUGIN envs to ENV
+        run: |
+          PLUGIN=${{ matrix.plugin }}
+          PLUGIN_DIR=plugins/${PLUGIN}
+          PLUGIN_NAME=$(echo ${PLUGIN} | | sed 's/bodhiext.//')
+          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
+        with:
+          working-directory: ${{ env.PLUGIN_DIR }}
+          install-command: poetry install --compile
+      - name: Get current version
+        id: current-version
+        run: |
+          echo "CURRENT_VERSION=$(poetry version --short --directory ${{ env.PLUGIN_DIR }})" >> $GITHUB_ENV
+      - name: Build package
+        run: make ci.build ${{ env.PLUGIN_NAME }}
+      - name: Create Release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: ${{ env.PLUGIN_DIR }}/dist/*
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: v${{ env.CURRENT_VERSION }}
+          commit: main
+      - name: Publish package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          verbose: true
+          print-hash: true
+      - name: Bump patch version
+        run: |
+          IFS='.' read -ra ADDR <<< "$CURRENT_VERSION"
+          new_patch=$(( ${ADDR[2]} + 1 ))
+          NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch"
+          poetry version "$NEW_VERSION" --directory ${{ env.PLUGIN_DIR }}
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
+          VERSION_FILE='${{ env.PLUGIN_DIR }}/src/bodhiext/${{ env.PLUGIN_NAME }}/_version.py'
+
+          # Overwrite the _version.py file with the new version
+          echo "# this file is automatically generated and overwritten by CI process" > ${VERSION_FILE}
+          echo "# to modify the content, modify the CI workflow file - .github/workflows/main.yml, job: \"Bump patch version\"" >> ${VERSION_FILE}
+          echo "__version__ = \"$NEW_VERSION\"" >> ${VERSION_FILE}
+      - name: Commit and push changes
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<github-actions@users.noreply.github.com>"
+          git add pyproject.toml
+          git add ${VERSION_FILE}
+          git commit -m "[Github Workflows] bumping up the ${{ env.PLUGIN }} patch version to ${NEW_VERSION}"
+          git push
