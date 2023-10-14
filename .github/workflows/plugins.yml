@@ -52,10 +52,10 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
       - name: Install jq
         run: sudo apt-get install -y jq
+      - name: Checkout repository
+        uses: actions/checkout@v3
       - name: Determine plugin(s) based on workflow input or git diff
         id: set-matrix
         env:
@@ -75,6 +75,7 @@ jobs:
             LAST_SUCCESS_COMMIT=$(curl -H "Authorization: token $GITHUB_TOKEN" \
               "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/workflows/plugins.yml/runs?status=success&per_page=1" \
               | jq -r '.workflow_runs[0].head_sha')
+            git fetch origin $LAST_SUCCESS_COMMIT
             PLUGINS=$(git diff --dirstat=files,0 $LAST_SUCCESS_COMMIT..$GITHUB_SHA \
               | grep 'plugins/' \
               | cut -d '/' -f2 \
