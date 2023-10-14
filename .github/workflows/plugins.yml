@@ -65,11 +65,10 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             if [[ "${{ github.event.inputs.plugin }}" == "all" ]]; then
               # Get all directories with pattern bodhiext.* inside the plugins directory
-              PLUGINS=$(ls -d plugins/bodhiext.* | cut -d'/' -f2)
-              PLUGINS=$(echo "$PLUGINS" | tr '\n' ' ')
+              PLUGINS=$(ls -d plugins/bodhiext.* | cut -d'/' -f2 | jq -R -s -c 'split("\n")[:-1]')
             else
               # If a specific plugin is provided as input
-              PLUGINS=${{ github.event.inputs.plugin }}
+              PLUGINS=$(echo "[\"${{ github.event.inputs.plugin }}\"]")
             fi
           else
             # Logic based on git diff for push events
@@ -80,7 +79,7 @@ jobs:
               | grep 'plugins/' \
               | cut -d '/' -f2 \
               | uniq \
-              | tr '\n' ' ')
+              | jq -R -s -c 'split("\n")[:-1]')
           fi
           echo "matrix=\"$PLUGINS\"" >> "$GITHUB_OUTPUT"
   test:
@@ -88,13 +87,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{ needs.determine_plugin.outputs.matrix }}
+        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
       - name: Send PLUGIN envs to ENV
         run: |
           PLUGIN=${{ matrix.plugin }}
           PLUGIN_DIR=plugins/${PLUGIN}
-          PLUGIN_NAME=$(echo ${PLUGIN} | | sed 's/bodhiext.//')
+          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
           echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
@@ -129,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{ needs.determine_plugin.outputs.matrix }}
+        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     permissions:
       id-token: write
       contents: write
@@ -138,7 +137,7 @@ jobs:
         run: |
           PLUGIN=${{ matrix.plugin }}
           PLUGIN_DIR=plugins/${PLUGIN}
-          PLUGIN_NAME=$(echo ${PLUGIN} | | sed 's/bodhiext.//')
+          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
           echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
@@ -177,7 +176,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{ needs.determine_plugin.outputs.matrix }}
+        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     permissions:
       id-token: write
       contents: write
@@ -186,7 +185,7 @@ jobs:
         run: |
           PLUGIN=${{ matrix.plugin }}
           PLUGIN_DIR=plugins/${PLUGIN}
-          PLUGIN_NAME=$(echo ${PLUGIN} | | sed 's/bodhiext.//')
+          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
           echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
