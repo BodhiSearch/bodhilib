@@ -29,7 +29,6 @@ jobs:
         with:
           setup-only: 'true'
           working-directory: core
-          install-command: poetry install --compile
 
   pre-commit:
     needs: [prepare]

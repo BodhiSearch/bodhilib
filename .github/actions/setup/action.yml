@@ -22,7 +22,7 @@ inputs:
   install-command:
     description: Command run for installing dependencies
     required: false
-    default: make install
+    default: poetry install --compile
 
   working-directory:
     description: Directory to run install-command in

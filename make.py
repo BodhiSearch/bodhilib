@@ -31,7 +31,7 @@ def get_directories(arg: str) -> List[str]:
     return dirs
 
 
-def execute_command(run: str, dirs: List[str], command_args: List[str]) -> None:
+def execute_command(run: str, dirs: List[str], command_args: List[str]) -> int:
     for dir_path in dirs:
         cmd: List[str] = ["poetry"]
         if run == "run":
@@ -39,7 +39,10 @@ def execute_command(run: str, dirs: List[str], command_args: List[str]) -> None:
         cmd.extend(command_args)
         with change_dir(dir_path):
             print(f"Executing: {' '.join(cmd)} in directory {dir_path}...")
-            subprocess.run(cmd)
+            result = subprocess.run(cmd)
+            if result.returncode != 0:
+                return result.returncode
+    return 0
 
 
 if __name__ == "__main__":
@@ -55,17 +58,13 @@ if __name__ == "__main__":
         print(f"argument='{run_or_exec}' is not one of 'run' or 'exec'")
         sys.exit(1)
     may_be_dir = all_args[2]
-    if may_be_dir in ["all", "core"] or os.path.exists(
-        f"plugins/bodhiext.{may_be_dir}"
-    ):
+    if may_be_dir in ["all", "core"] or os.path.exists(f"plugins/bodhiext.{may_be_dir}"):
         if len(all_args) < 4:
-            print(
-                "Usage: python make.py <run|exec> [<directory>] <command> [<other args>]"
-            )
+            print("Usage: python make.py <run|exec> [<directory>] <command> [<other args>]")
             print("<command> not provided")
             sys.exit(1)
         dirs = get_directories(may_be_dir)
-        execute_command(run_or_exec, dirs, all_args[3:])
+        sys.exit(execute_command(run_or_exec, dirs, all_args[3:]))
     else:
         dirs = get_directories("all")
-        execute_command(run_or_exec, dirs, all_args[2:])
+        sys.exit(execute_command(run_or_exec, dirs, all_args[2:]))
