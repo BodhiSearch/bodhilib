@@ -85,7 +85,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{fromJson(${{ env.MATRIX_JSON }})}}
+        plugin: ${{ fromJson(env.PLUGINS) }}
     steps:
       - name: Send PLUGIN envs to ENV
         run: |
@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{fromJson(${{ env.MATRIX_JSON }})}}
+        plugin: ${{ fromJson(env.PLUGINS) }}
     permissions:
       id-token: write
       contents: write
@@ -174,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        plugin: ${{fromJson(needs.determine_plugin.outputs.matrix)}}
+        plugin: ${{ fromJson(env.PLUGINS) }}
     permissions:
       id-token: write
       contents: write
