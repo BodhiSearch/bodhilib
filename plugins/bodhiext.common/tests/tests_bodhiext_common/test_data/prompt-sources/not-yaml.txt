@@ -1,0 +1,9 @@
+templates:
+- id: 1
+  format: fstring
+  tags: ["not-loaded"]
+  prompts:
+  - role: user
+    source: input
+    text: |
+      This is a text file, should not be loaded by the prompt source.

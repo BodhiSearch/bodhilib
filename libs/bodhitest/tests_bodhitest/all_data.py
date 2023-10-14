@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 import bodhiext
 from bodhiext.data_loader import FileLoader, file_loader_service_builder
-from bodhiext.prompt_source import LocalDirectoryPromptSource, bodhi_prompt_source_builder
+from bodhiext.prompt_source import LocalPromptSource, bodhi_prompt_source_builder
 from bodhiext.splitter import TextSplitter, text_splitter_service_builder
 
 from .file_loader_helper import setup_file_loader, teardown_file_loader
@@ -45,10 +45,10 @@ bodhiext_splitters = {
 bodhiext_embedders: Dict[str, Any] = {}
 
 bodhiext_prompt_sources = {
-    "local_dir_prompt_source": {
-        "service_name": "local_dir_prompt_source",
+    "local_prompt_source": {
+        "service_name": "local_prompt_source",
         "service_type": "prompt_source",
-        "service_class": LocalDirectoryPromptSource,
+        "service_class": LocalPromptSource,
         "publisher": "bodhiext",
         "version": bodhiext.prompt_source.__version__,
         "service_args": {},

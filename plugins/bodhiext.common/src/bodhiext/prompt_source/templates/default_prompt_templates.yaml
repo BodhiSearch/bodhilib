@@ -1,0 +1,20 @@
+templates:
+- id: "default-1"
+  tags: ["few-shot"]
+  description: |
+    A few-shot prompt template. Takes in examples and query and tries to generate a response.
+  format: "jinja2"
+  prompts:
+  - role: "system"
+    source: "input"
+    text: "You are a helpful AI assistant"
+  - role: "user"
+    source: "input"
+    text: |
+      Below are few examples of location where item is usually found:
+      {% for example in examples -%}
+      Example input: {{example.input}}
+      Example output: {{example.output}}
+      {% endfor %}
+      Example input: {{query}}
+      Example output:
