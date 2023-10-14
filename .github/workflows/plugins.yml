@@ -69,7 +69,7 @@ jobs:
               PLUGINS=$(echo "$PLUGINS" | tr '\n' ' ')
             else
               # If a specific plugin is provided as input
-              PLUGINS="${{ github.event.inputs.plugin }}"
+              PLUGINS=${{ github.event.inputs.plugin }}
             fi
           else
             # Logic based on git diff for push events
