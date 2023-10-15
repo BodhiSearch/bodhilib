@@ -9,6 +9,7 @@ on:
       - v*
     paths:
       - core/**
+      - .github/**
   workflow_dispatch:
     branches:
       - main
