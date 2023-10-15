@@ -37,16 +37,25 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Export the poetry.lock location
+      id: poetry_lock_file
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        echo "Current Working Directory is: $(pwd)"
+        POETRY_LOCK_FILE=${{ inputs.working-directory }}/poetry.lock
+        echo "poetry_lock_file=${POETRY_LOCK_FILE}"
+        echo "poetry_lock_file=${POETRY_LOCK_FILE}" >> $GITHUB_OUTPUT
     - name: Set the cache key
       id: poetry-cache-key
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
         echo "Current Working Directory is: $(pwd)"
-        POETRY_LOCK_HASH=${{ hashFiles('poetry.lock') }}
+        POETRY_LOCK_HASH=${{ hashFiles(steps.poetry_lock_file.outputs.poetry_lock_file) }}
         POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${POETRY_LOCK_HASH}
-        echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}" >> $GITHUB_ENV
         echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}"
+        echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}" >> $GITHUB_ENV
     - name: Check Poetry cache
       id: check-poetry-cache
       shell: bash
