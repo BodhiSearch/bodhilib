@@ -1,6 +1,6 @@
 import importlib.resources
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 from bodhiext.common import __version__
 from bodhilib import Filter, PathLike, PromptSource, PromptTemplate, Service, service_provider
@@ -51,16 +51,25 @@ class LocalPromptSource(PromptSource):
             raise ValueError("No files found to load")
         self.templates: Optional[List[PromptTemplate]] = None
 
-    def find(self, filter: Union[Filter, Dict[str, Any]]) -> List[PromptTemplate]:
+    def find(
+        self, filter: Union[Filter, Dict[str, Any]], stream: bool = False
+    ) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
         if isinstance(filter, dict):
             filter = Filter.from_dict(filter)
         if not self.templates:
             self.templates = self._load_templates()
-        return [template for template in self.templates if filter.evaluate(template.metadata)]
+        templates = [template for template in self.templates if filter.evaluate(template.metadata)]
+        # TODO: implement stream for find
+        if stream:
+            return iter(templates)
+        return templates
 
-    def list_all(self) -> List[PromptTemplate]:
+    def list_all(self, stream: bool = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
         if not self.templates:
             self.templates = self._load_templates()
+        # TODO: implement stream for list_all
+        if stream:
+            return iter(self.templates)
         return self.templates
 
     def _load_files(self, dir: PathLike) -> List[str]:

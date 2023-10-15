@@ -69,19 +69,31 @@ class PromptSource(abc.ABC):
     """
 
     @abc.abstractmethod
-    def find(self, filter: Filter) -> List[PromptTemplate]:
+    def find(self, filter: Filter, stream: bool = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
         """Find a prompt template for given tags.
 
+        Args:
+            filter (:class:`~bodhilib.Filter`): filter to apply on the prompt templates
+            stream (Optional[bool]): option to stream the prompt templates as they are ready.
+                If True, finds the prompt templates lazily on demand and returns when ready.
+                If False, finds the prompt templates eagerly and returns all prompt templates.
+
         Returns:
-            List[PromptTemplate]: list of prompt templates matching the tags
+            List[:class:`~bodhilib.PromptTemplate`] | Iterator[:class:`~bodhilib.PromptTemplate`]: list or iterator of
+                prompt templates matching the tags
         """
 
     @abc.abstractmethod
-    def list_all(self) -> List[PromptTemplate]:
+    def list_all(self, stream: bool = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
         """List all prompt templates in the source.
 
+        Args:
+            stream (Optional[bool]): option to stream the prompt templates.
+                If True, loads the prompt templates lazily on demand and returns when queried.
+                If False, lists the prompt templates eagerly and returns all prompt templates.
+
         Returns:
-            List[PromptTemplate]: list of all prompt templates in the source
+            Iterator[PromptTemplate]: list iterator of all prompt templates in the source
         """
 
 
@@ -105,8 +117,16 @@ class DataLoader(Iterable[Document], abc.ABC):
         It is for the sub-class to ensure the `__iter__` method returns a new instance of iterator
         """
 
-    def load(self) -> List[Document]:
-        """Returns the document as list."""
+    def load(self, stream: bool = False) -> Union[List[Document], Iterator[Document]]:
+        """Returns the document as list or list iterator.
+
+        Args:
+            stream (Optional[bool]): option to stream the document as they load.
+                If True, loads the document lazily on demand and returns when ready.
+                If False, loads the documents eagerly and returns all documents.
+        """
+        if stream:
+            return iter(self)
         return list(self)
 
 
@@ -122,13 +142,16 @@ class Splitter(abc.ABC):
     """
 
     @abc.abstractmethod
-    def split(self, inputs: SerializedInput) -> List[Node]:
+    def split(self, inputs: SerializedInput, stream: bool = False) -> Union[List[Node], Iterator[Node]]:
         """Split a :data:`~bodhilib.SerializedInput` into a list of :class:`~bodhilib.Node`.
 
         Args:
             inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
                 a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
                 or a serialized dict of the object.
+            stream (Optional[bool]): option to stream the splits as they are ready.
+                If True, splits the document lazily on demand and returns when ready.
+                If False, splits the document eagerly and returns all splits.
 
         Returns:
             List[:class:`~bodhilib.Node`]: a list of :class:`~bodhilib.Node` as result of the split
@@ -145,16 +168,20 @@ class Embedder(abc.ABC):
     """
 
     @abc.abstractmethod
-    def embed(self, inputs: SerializedInput) -> List[Node]:
+    def embed(self, inputs: SerializedInput, stream: bool = False) -> Union[List[Node], Iterator[Node]]:
         """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
 
         Args:
             inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
                 a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
                 or a serialized dict of the object.
+            stream (Optional[bool]): option to stream the embeddings as they are ready.
+                If True, embeds the document lazily on demand and returns when ready.
+                If False, embeds the document eagerly and returns all embeddings.
 
         Returns:
-            List[:data:`~bodhilib.Node`]: list of :data:`~bodhilib.Node` enriched with :data:`~bodhilib.Embedding`
+            List[:data:`~bodhilib.Node`] | Iterator[:data:`~bodhilib.Node`]: list or iterator of :data:`~bodhilib.Node`
+                enriched with :data:`~bodhilib.Embedding`
         """
 
     @property

@@ -1,5 +1,5 @@
 import re
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Iterator, List, Optional, Tuple, Union
 
 from bodhilib import Document, Node, SerializedInput, Splitter, to_document_list
 
@@ -45,7 +45,7 @@ class TextSplitter(Splitter):
             eow_patterns = [r"\s", r"-", r":", r"\.", r"\?", r"\!", r"\n"]
         self.word_splitter = _build_word_splitter(eow_patterns)
 
-    def split(self, inputs: SerializedInput) -> List[Node]:
+    def split(self, inputs: SerializedInput, stream: bool = False) -> Union[List[Node], Iterator[Node]]:
         docs = to_document_list(inputs)
         nodes = []
         for doc in docs:
@@ -67,6 +67,9 @@ class TextSplitter(Splitter):
                 node_text = "".join(current_words)
                 node = Node(text=node_text, parent=doc)
                 nodes.append(node)
+        # TODO: implement streaming for text splitter
+        if stream:
+            return iter(nodes)
         return nodes
 
     def _build_nodes(
