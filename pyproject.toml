@@ -27,6 +27,12 @@ ruff = "^0.0.292"
 codespell = "^2.2.6"
 pydocstyle = "^6.3.0"
 
+[tool.poetry.group.compat.dependencies]
+poetry = "^1.6.1"
+tox = "^4.11.3"
+requests = "^2.31.0"
+types-requests = "^2.31.0.9"
+
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.1.2"
 sphinx-copybutton = "^0.5.2"

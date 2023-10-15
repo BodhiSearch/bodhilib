@@ -1,5 +1,6 @@
 import importlib.resources
 import os
+import sys
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 from bodhiext.common import __version__
@@ -103,12 +104,19 @@ class LocalPromptSource(PromptSource):
 
     def _load_from_pkg(self, pkg: str) -> List[PromptTemplate]:
         templates = []
-        with importlib.resources.path(pkg, "") as package_dir:
-            package_contents = importlib.resources.contents(pkg)
-            for resource_name in package_contents:
-                if _is_yaml(resource_name):
-                    file_path = package_dir / resource_name
-                    parsed_templates = load_prompt_template_yaml(file_path)
+        if sys.version_info < (3, 9):
+            with importlib.resources.path(pkg, "") as package_dir:
+                package_contents = importlib.resources.contents(pkg)
+                for resource_name in package_contents:
+                    if _is_yaml(resource_name):
+                        file_path = package_dir / resource_name
+                        parsed_templates = load_prompt_template_yaml(file_path)
+                        templates.extend(parsed_templates)
+        else:
+            resources = importlib.resources.files(pkg).iterdir()
+            for resource in resources:
+                if _is_yaml(resource):
+                    parsed_templates = load_prompt_template_yaml(resource)
                     templates.extend(parsed_templates)
         return templates
 

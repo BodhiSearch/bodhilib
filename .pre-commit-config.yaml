@@ -12,6 +12,7 @@ repos:
         additional_dependencies:
           - 'pydantic'
           - 'types-PyYAML'
+          - 'types-requests'
         exclude: '(?x)(test\_.*|conftest\.py|docs/conf\.py)'
         args: [--config, mypy.ini]
   - repo: https://github.com/astral-sh/ruff-pre-commit

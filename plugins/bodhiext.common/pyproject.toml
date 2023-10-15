@@ -17,6 +17,9 @@ bodhilib = {path = "../../core", develop = true}
 [tool.poetry.group.test.dependencies]
 bodhilib-mono = {path = "../..", extras = ["test"], develop = true}
 
+[tool.poetry.group.compat.dependencies]
+bodhilib-mono = {path = "../..", extras = ["compat"], develop = true}
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
@@ -25,3 +28,6 @@ build-backend = "poetry.core.masonry.api"
 "bodhiext.data_loader" = "bodhiext.data_loader"
 "bodhiext.splitter" = "bodhiext.splitter"
 "bodhiext.prompt_source" = "bodhiext.prompt_source"
+
+[tool.bodhilib]
+version = "0.1.11"
