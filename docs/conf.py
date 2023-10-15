@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-import toml
+import tomli
 
 DOCS_DIR = Path(__file__).parent.absolute()
 ROOT_DIR = DOCS_DIR / ".."
@@ -12,7 +12,7 @@ CORE_DIR = ROOT_DIR / "core"
 sys.path.insert(0, str(CORE_DIR / "src"))
 
 with open(CORE_DIR / "pyproject.toml") as f:
-    pyproj_file = toml.load(f)
+    pyproj_file = tomli.load(f)
 
 # -- Project information -----------------------------------------------------
 project = "bodhilib"
