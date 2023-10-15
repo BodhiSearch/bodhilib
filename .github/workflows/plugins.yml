@@ -125,7 +125,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   prerelease:
     needs: [test]
-    if: github.event.inputs.release == 'pre' && needs.determine_plugin.outputs.matrix != '[]'
+    if: ${{ github.event.inputs.release == 'pre' && fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -173,7 +173,7 @@ jobs:
           prerelease: true
   release:
     needs: [test]
-    if: github.event.inputs.release == 'yes' && needs.determine_plugin.outputs.matrix != '[]'
+    if: ${{ github.event.inputs.release == 'yes' && fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
