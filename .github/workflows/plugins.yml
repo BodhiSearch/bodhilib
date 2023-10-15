@@ -87,6 +87,7 @@ jobs:
   test:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
+    if: ${{ needs.determine_plugin.outputs.matrix != '[]' }}
     strategy:
       matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
@@ -124,7 +125,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   prerelease:
     needs: [test]
-    if: github.event.inputs.release == 'pre'
+    if: github.event.inputs.release == 'pre' && needs.determine_plugin.outputs.matrix != '[]'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -172,7 +173,7 @@ jobs:
           prerelease: true
   release:
     needs: [test]
-    if: github.event.inputs.release == 'yes'
+    if: github.event.inputs.release == 'yes' && needs.determine_plugin.outputs.matrix != '[]'
     runs-on: ubuntu-latest
     strategy:
       matrix:
