@@ -42,7 +42,9 @@ runs:
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
-        POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${{ hashFiles('poetry.lock') }}
+        echo "Current Working Directory is: $(pwd)"
+        POETRY_LOCK_HASH=${{ hashFiles('poetry.lock') }}
+        POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${POETRY_LOCK_HASH}
         echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}" >> $GITHUB_ENV
         echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}"
     - name: Check Poetry cache
