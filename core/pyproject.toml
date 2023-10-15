@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhilib"
-version = "0.1.11"
+version = "0.1.12"
 description = "An Open Source, Plugin Architecture based, Pythonic and Composable LLM Library"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
 readme = "README.md"
@@ -15,11 +15,14 @@ pluggy = "^1.2.0"
 pydantic = "^1"
 pyyaml = "^6.0.1"
 
+[tool.poetry.group.dev.dependencies]
+bodhilib-mono = { path = "..", extras = ["dev"], develop = true }
+
 [tool.poetry.group.test.dependencies]
 bodhilib-mono = { path = "..", extras = ["test"], develop = true }
 
-[tool.poetry.group.dev.dependencies]
-types-pyyaml = "^6.0.12.12"
+[tool.poetry.group.compat.dependencies]
+bodhilib-mono = {path = "..", extras = ["compat"], develop = true}
 
 [build-system]
 requires = ["poetry-core"]

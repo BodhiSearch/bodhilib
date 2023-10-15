@@ -1,93 +1,107 @@
 #!/usr/bin/env python3
 import argparse
-import contextlib
 import os
 import subprocess
 import sys
-from pathlib import Path
-from typing import Iterator, List, cast
+from typing import List, cast
 
-import requests
-from poetry.factory import Factory
-from poetry.poetry import Poetry
+import tomli
 
-python_versions = ["py38", "py39", "py310", "py311"]
+from update_configs import fetch_versions, plugin_dirs, plugin_names, python_versions
 
-
-@contextlib.contextmanager
-def change_dir(target_dir: str) -> Iterator[None]:
-    """Context manager to change the working directory."""
-    original_dir = os.getcwd()  # Store the original directory
-    os.chdir(target_dir)
-    try:
-        yield
-    finally:
-        os.chdir(original_dir)  # Always revert back to the original directory
+dir_opts = tuple(["core", "all"] + list(plugin_names))
 
 
-def get_directories(arg: str) -> List[str]:
+def get_plugin_dirs(arg: str) -> List[str]:
     if arg == "all":
-        dirs: List[str] = ["core"]
-        ext_dirs = [d for d in os.listdir("plugins") if d.startswith("bodhiext.")]
-        dirs.extend(os.path.join("plugins", d) for d in ext_dirs)
-    elif arg == "core":
-        dirs = ["core"]
+        return list(plugin_dirs)
     else:
         plugin_path = f"plugins/bodhiext.{arg}"
         if not os.path.exists(plugin_path):
             raise ValueError(f"Plugin {plugin_path} does not exist")
-        dirs = [plugin_path]
-    return dirs
+        return [plugin_path]
+
+
+def get_project_dirs(arg: str) -> List[str]:
+    if arg == "core":
+        return ["core"]
+    elif arg == "all":
+        return ["core"] + get_plugin_dirs(arg)
+    else:
+        return get_plugin_dirs(arg)
 
 
 def execute_command(dirs: List[str], command: List[str]) -> int:
     for dir_path in dirs:
-        with change_dir(dir_path):
-            print(f"Executing: {' '.join(command)} in directory {dir_path}...")
-            result = subprocess.run(command)
-            if result.returncode != 0:
-                return result.returncode
+        print(f"Executing: {' '.join(command)} in directory {dir_path}...")
+        result = subprocess.run(command, cwd=dir_path)
+        if result.returncode != 0:
+            return result.returncode
     return 0
 
 
-def fetch_versions(package_name: str, min_version: str) -> List[str]:
-    response = requests.get(f"https://pypi.org/pypi/{package_name}/json")
-    releases = response.json()["releases"].keys()
-    min_version_ints = tuple(map(int, min_version.split(".")))
-    valid_versions = [v for v in releases if tuple(map(int, v.split("."))) >= min_version_ints]
-    return valid_versions
+def run_poetry_cmd(plugin_dir: str, args: List[str]) -> List[str]:
+    errors = []
+    result = subprocess.run(["poetry"] + args, stderr=subprocess.PIPE, cwd=plugin_dir)
+    if result.returncode != 0:
+        error = result.stderr.decode("utf-8")
+        errors.append(f"Error running poetry command `poetry {' '.join(args)}` in {plugin_dir=}")
+        errors.append(error)
+    return errors
 
 
 def run_tox(bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
     errors = []
+    pyproj_file = os.path.join(plugin_dir, "pyproject.toml")
+    with open(pyproj_file, "r") as file:
+        content = file.read()
     for python_version in python_versions:
         for bodhilib_version in bodhilib_versions:
+            if error := run_poetry_cmd(plugin_dir, ["check", "--lock"]):
+                errors.extend(error)
+                continue
+            # update bodhilib version
+            if error := run_poetry_cmd(plugin_dir, ["add", f"bodhilib=={bodhilib_version}"]):
+                errors.extend(error)
+                continue
             bodhilib_version_str = bodhilib_version.replace(".", "_")
-            env = f"{python_version}-bodhilib{bodhilib_version_str}"
-            env_vars = os.environ.copy()
-            env_vars["BODHILIB_VERSION"] = bodhilib_version
-            env_vars["PLUGIN_DIR"] = plugin_dir
+            plugin_name = plugin_dir.replace("plugins/bodhiext.", "")
+            env = f"{python_version}-plugins_{plugin_name}-bodhilib_{bodhilib_version_str}"
             command = [
                 "tox",
                 "-e",
                 env,
             ]
             print(f"Running command='{' '.join(command)}' for {env}...")
-            result = subprocess.run(
-                command,
-                stderr=subprocess.PIPE,
-                env=env_vars,
-            )
+            result = subprocess.run(command, stderr=subprocess.PIPE, cwd=plugin_dir)
             if result.returncode != 0:
-                error = result.stderr.decode("utf-8")
-                errors.append(f"Error running tox for {python_version=}, {bodhilib_version=}\n {error=}")
+                error_msg = result.stderr.decode("utf-8")
+                errors.append(f"Error running tox for {python_version=}, {bodhilib_version=}\n")
+                errors.append(error_msg)
+    with open(pyproj_file, "w") as file:
+        file.write(content)
+    if error := run_poetry_cmd(plugin_dir, ["lock", "--no-update"]):
+        errors.extend(error)
     return errors
 
 
 def load_pyproject(dir_path: str) -> dict:
-    poetry: Poetry = Factory().create_poetry(Path(dir_path))
-    pyproject_data = poetry.pyproject.data
-    return cast(dict, pyproject_data)
+    with open(f"{dir_path}/pyproject.toml", "r") as file:
+        content = file.readlines()
+    bodhilib_section = []
+    bodhilib_section_start = False
+    for line in content:
+        if line.startswith("[tool.bodhilib]"):
+            bodhilib_section.append(line)
+            bodhilib_section_start = True
+            continue
+        if bodhilib_section_start:
+            if line.startswith("["):
+                break
+            bodhilib_section.append(line)
+    bodhilib_config = tomli.loads("\n".join(bodhilib_section))
+    print(bodhilib_config)
+    return cast(dict, bodhilib_config)
 
 
 def exec_compat(dirs: List[str]) -> int:
@@ -100,16 +114,14 @@ def exec_compat(dirs: List[str]) -> int:
         errors.extend(result)
     if errors:
         print("test failed")
-        print("\n".join(errors))
+        for error in errors:
+            print(error, end="")
+            print("")
         return 1
     return 0
 
 
 def main() -> None:
-    dir_opts = ["core", "all"]
-    plugin_names = [d.replace("bodhiext.", "") for d in os.listdir("plugins") if d.startswith("bodhiext.")]
-    dir_opts.extend(plugin_names)
-
     parser = argparse.ArgumentParser(description="Python library to automate and orchestrate bodhilib build process.")
     subparsers = parser.add_subparsers(dest="top_command", required=True)
     # 'run' command
@@ -150,7 +162,7 @@ def main() -> None:
     compat_parser.add_argument(
         "target",
         type=str,
-        choices=["all"] + plugin_names,
+        choices=["all"] + list(plugin_names),
         nargs="?",
         default="all",
         help="Project to run compatibility check against",
@@ -161,12 +173,13 @@ def main() -> None:
         print(f"Error: Directory for target '{args.target}' does not exist: plugins/bodhiext.{args.target}")
         sys.exit(1)
 
-    dirs = get_directories(args.target)
+    dirs = get_project_dirs(args.target)
     if args.top_command == "run":
         sys.exit(execute_command(dirs, ["poetry", "run", args.command] + args.other_args))
     elif args.top_command == "exec":
         sys.exit(execute_command(dirs, ["poetry", args.command] + args.other_args))
     elif args.top_command == "compat":
+        dirs = get_plugin_dirs(args.target)
         sys.exit(exec_compat(dirs))
 
 

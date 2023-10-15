@@ -31,9 +31,18 @@ repos:
     hooks:
       - id: update-docs-requirements-txt
         name: update-docs-requirements-txt
-        description: 'Generate docs/requirements.txt based on poetry.lock'
+        description: 'Generate docs/requirements.txt based on poetry.lock group docs'
         entry: poetry
-        args: [export, --format, requirements.txt, --with, docs, --without-hashes, --output, docs/requirements.txt]
+        args: [export, --format, requirements.txt, --only, docs, --without-hashes, --output, docs/requirements.txt]
+        language: system
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: update-ci-requirements-txt
+        name: update-ci-requirements-txt
+        description: 'Generate ci/requirements.txt based on poetry.lock group ci'
+        entry: poetry
+        args: [export, --format, requirements.txt, --only, ci, --without-hashes, --output, ci/requirements.txt]
         language: system
         pass_filenames: false
   - repo: local
@@ -49,7 +58,7 @@ repos:
     hooks:
       - id: update_configs
         name: update_configs
-        description: 'Update mypy.ini, pytest.ini, and .github/workflows/plugins.yml for plugin folder'
+        description: 'Update mypy.ini, pytest.ini, .github/workflows/plugins.yml, tox.ini'
         entry: ./update_configs.py
         language: script
         pass_filenames: false

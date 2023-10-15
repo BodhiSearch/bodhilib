@@ -31,7 +31,8 @@ jobs:
       - name: Set up Python with Poetry
         uses: ./.github/actions/setup
         with:
-          setup-only: 'true'
+          setup: 'true'
+          install-command: "echo 'packages installed from ci/requirements.txt'"
   pre-commit:
     needs: [prepare]
     runs-on: ubuntu-latest
@@ -84,20 +85,43 @@ jobs:
           fi
           echo "matrix={\"plugin\": $PLUGINS}" # debug
           echo "matrix={\"plugin\": $PLUGINS}" >> "$GITHUB_OUTPUT"
-  test:
+  prepare-plugin:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
     if: ${{ fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
     strategy:
       matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
-      - name: Send PLUGIN envs to ENV
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set PLUGIN_DIR
+        run: |
+          PLUGIN=${{ matrix.plugin }}
+          PLUGIN_DIR=plugins/${PLUGIN}
+          echo "PLUGIN_DIR=plugins/${PLUGIN}" # debug
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
+        with:
+          setup: 'true'
+          working-directory: ${{ env.PLUGIN_DIR }}
+  test:
+    needs: [prepare-plugin]
+    runs-on: ubuntu-latest
+    if: ${{ fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
+    strategy:
+      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+    steps:
+      - name: Set PLUGIN envs
         run: |
           PLUGIN=${{ matrix.plugin }}
           PLUGIN_DIR=plugins/${PLUGIN}
           PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
+          echo "PLUGIN=${PLUGIN}" # debug
           echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
@@ -128,19 +152,21 @@ jobs:
     if: ${{ github.event.inputs.release == 'pre' && fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     permissions:
       id-token: write
       contents: write
     steps:
-      - name: Send PLUGIN envs to ENV
+      - name: Set PLUGIN envs
         run: |
           PLUGIN=${{ matrix.plugin }}
           PLUGIN_DIR=plugins/${PLUGIN}
           PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
+          echo "PLUGIN=${PLUGIN}" # debug
           echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
@@ -151,19 +177,22 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          echo "CURRENT_VERSION=$(poetry version --short --directory \"${{ env.PLUGIN_DIR }}\")" >> $GITHUB_ENV
+          CURRENT_VERSION="$(poetry version --short --directory \"${PLUGIN_DIR}\")"
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" # debug
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
       - name: Set new pre-release version
         id: new-version
         run: |
-          echo "NEW_VERSION=${{ env.CURRENT_VERSION }}-$(date +'%Y%m%d%H%M%S')" # debug
-          echo "NEW_VERSION=${{ env.CURRENT_VERSION }}-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_ENV
+          NEW_VERSION="${CURRENT_VERSION}-$(date +'%Y%m%d%H%M%S')"
+          echo "NEW_VERSION=${NEW_VERSION}" # debug
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
       - name: Update version to pre-release version
         run: |
-          VERSION_FILE='${{ env.PLUGIN_DIR }}/src/bodhiext/${{ env.PLUGIN_NAME }}/_version.py'
-          poetry version "${{ env.NEW_VERSION }}" --directory "${{ env.PLUGIN_DIR }}"
-          echo "__version__ = \"${{ env.NEW_VERSION }}\"" >> ${VERSION_FILE}
+          VERSION_FILE='${PLUGIN_DIR}/src/bodhiext/${PLUGIN_NAME}/_version.py'
+          poetry version "${NEW_VERSION}" --directory "${PLUGIN_DIR}"
+          echo "__version__ = \"${NEW_VERSION}\"" > ${VERSION_FILE}
       - name: Build package
-        run: make ci.build ${{ env.PLUGIN_NAME }}
+        run: make ci.build ${PLUGIN_NAME}
       - name: Create pre-release
         uses: ncipollo/release-action@v1
         with:
@@ -176,19 +205,21 @@ jobs:
     if: ${{ github.event.inputs.release == 'yes' && fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     permissions:
       id-token: write
       contents: write
     steps:
-      - name: Send PLUGIN envs to ENV
+      - name: Set PLUGIN envs
         run: |
           PLUGIN=${{ matrix.plugin }}
           PLUGIN_DIR=plugins/${PLUGIN}
           PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
+          echo "PLUGIN=${PLUGIN}" # debug
           echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
@@ -199,9 +230,11 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          echo "CURRENT_VERSION=$(poetry version --short --directory \"${{ env.PLUGIN_DIR }}\")" >> $GITHUB_ENV
+          CURRENT_VERSION=$(poetry version --short --directory \"${PLUGIN_DIR}\")
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" # debug
+          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
       - name: Build package
-        run: make ci.build ${{ env.PLUGIN_NAME }}
+        run: make ci.build ${PLUGIN_NAME}
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
@@ -215,24 +248,28 @@ jobs:
           verbose: true
           print-hash: true
           packages-dir: ${{ env.PLUGIN_DIR }}/dist/
-      - name: Bump patch version
+      - name: Export NEW_VERSION and VERSION_FILE
         run: |
           IFS='.' read -ra ADDR <<< "$CURRENT_VERSION"
           new_patch=$(( ${ADDR[2]} + 1 ))
           NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch"
-          poetry version "$NEW_VERSION" --directory "${{ env.PLUGIN_DIR }}"
+          echo "NEW_VERSION=$NEW_VERSION" # debug
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          VERSION_FILE='${{ env.PLUGIN_DIR }}/src/bodhiext/${{ env.PLUGIN_NAME }}/_version.py'
-
+          VERSION_FILE='${PLUGIN_DIR}/src/bodhiext/${PLUGIN_NAME}/_version.py'
+          echo "VERSION_FILE=$VERSION_FILE" # debug
+          echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
+      - name: Bump patch version
+        run: |
+          poetry version "${NEW_VERSION}" --directory "${PLUGIN_DIR}"
           # Overwrite the _version.py file with the new version
           echo "# this file is automatically generated and overwritten by CI process" > ${VERSION_FILE}
           echo "# to modify the content, modify the CI workflow file - .github/workflows/main.yml, job: \"Bump patch version\"" >> ${VERSION_FILE}
-          echo "__version__ = \"$NEW_VERSION\"" >> ${VERSION_FILE}
+          echo "__version__ = \"${NEW_VERSION}\"" >> ${VERSION_FILE}
       - name: Commit and push changes
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<github-actions@users.noreply.github.com>"
-          git add pyproject.toml
+          git add ${PLUGIN_DIR}/pyproject.toml
           git add ${VERSION_FILE}
-          git commit -m "[Github Workflows] bumping up the ${{ env.PLUGIN }} patch version to ${NEW_VERSION}"
+          git commit -m "[Github Workflows] bumping up the ${PLUGIN} patch version to ${NEW_VERSION}"
           git push

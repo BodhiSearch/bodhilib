@@ -29,8 +29,13 @@ inputs:
     required: false
     default: '.'
 
-  setup-only:
-    description: Only setup the environment if cache does not exists
+  setup:
+    description: |
+      setup=='true' = Setup the environment if cache does not exists
+      setup=='false' = If cache not found, and setup='false', build will fail as no cache, and setup false
+        this is to prevent a build from updating an existing cache by mistake
+      pip cache only caches downloaded packages, and does not install it. So, installing ci/requirements.txt every time environment is setup.
+      poetry caches the virtualenv and needs no re-install.
     required: false
     default: 'false'
 
@@ -46,47 +51,72 @@ runs:
         POETRY_LOCK_FILE=${{ inputs.working-directory }}/poetry.lock
         echo "poetry_lock_file=${POETRY_LOCK_FILE}"
         echo "poetry_lock_file=${POETRY_LOCK_FILE}" >> $GITHUB_OUTPUT
-    - name: Set the cache key
-      id: poetry-cache-key
+    - name: Set the CACHE_KEY in environment
+      id: cache-key
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
         echo "Current Working Directory is: $(pwd)"
         POETRY_LOCK_HASH=${{ hashFiles(steps.poetry_lock_file.outputs.poetry_lock_file) }}
-        POETRY_CACHE_KEY=poetry-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-${{ inputs.poetry-version }}-${POETRY_LOCK_HASH}
-        echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}"
-        echo "POETRY_CACHE_KEY=${POETRY_CACHE_KEY}" >> $GITHUB_ENV
-    - name: Check Poetry cache
-      id: check-poetry-cache
+        CI_REQS_HASH=${{ hashFiles('ci/requirements.txt') }}
+        CACHE_KEY=os-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-ci-${CI_REQS_HASH}-poetry-${{ inputs.poetry-version }}-${POETRY_LOCK_HASH}
+        echo "CACHE_KEY=${CACHE_KEY}"
+        echo "CACHE_KEY=${CACHE_KEY}" >> $GITHUB_ENV
+    - name: Check cache without downloading
+      id: check-cache
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}
       run: |
         gh extension install actions/gh-actions-cache
-        KEY=${{ env.POETRY_CACHE_KEY }}
-        CACHE_HIT=$(gh actions-cache list --key $KEY | grep -q $KEY && echo 'true' || echo 'false')
-        echo "POETRY_CACHE_HIT=$CACHE_HIT" >> $GITHUB_ENV
-        echo "POETRY_CACHE_HIT=$CACHE_HIT"
+        CACHE_HIT=$(gh actions-cache list --key $CACHE_KEY | grep -q $CACHE_KEY && echo 'true' || echo 'false')
+        echo "CACHE_HIT=$CACHE_HIT" >> $GITHUB_ENV
+        echo "CACHE_HIT=$CACHE_HIT"
+    - name: Verify if CACHE_HIT=false (no cache exists) and setup=false, then fail; environment setup is required if no cache exists
+      id: check-cache-miss-and-setup
+      shell: bash
+      run: |
+        if [[ "${CACHE_HIT}" != "true" && "${{ inputs.setup }}" == "false" ]]; then
+          echo "Cache miss and setup==false, failing."
+          exit 1
+        fi
     - uses: actions/setup-python@v4
-      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
       with:
         python-version: ${{ inputs.python-version }}
+    - name: Install poetry using pipx
+      shell: bash
+      run: |
+        pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
+    - id: cache-dirs
+      name: Get pip cache dir
+      shell: bash
+      run: |
+        PIP_CACHE_DIR=$(python -m pip cache dir)
+        echo "pip-cache-dir=${PIP_CACHE_DIR}"
+        echo "pip-cache-dir=${PIP_CACHE_DIR}" >> $GITHUB_OUTPUT
+        POETRY_CACHE_DIR=$(poetry config cache-dir)
+        echo "poetry-cache-dir=${POETRY_CACHE_DIR}"
+        echo "poetry-cache-dir=${POETRY_CACHE_DIR}" >> $GITHUB_OUTPUT
+        POETRY_VIRTUAL_ENV=$(poetry config virtualenvs.path)
+        echo "poetry-virtualenv-dir=${POETRY_VIRTUAL_ENV}"
+        echo "poetry-virtualenv-dir=${POETRY_VIRTUAL_ENV}" >> $GITHUB_OUTPUT
     - uses: actions/cache@v3
-      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
       id: cache-pip
       env:
         SEGMENT_DOWNLOAD_TIMEOUT_MIN: '15'
       with:
         path: |
-          ~/.cache/pip
-          ~/.cache/pypoetry/virtualenvs
-          ~/.cache/pypoetry/cache
-          ~/.cache/pypoetry/artifacts
-        key: ${{ env.POETRY_CACHE_KEY }}
-    - run: pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
+          ${{ steps.cache-dirs.outputs.pip-cache-dir }}
+          ${{ steps.cache-dirs.outputs.poetry-cache-dir }}
+          ${{ steps.cache-dirs.outputs.poetry-virtualenv-dir }}
+        key: ${{ env.CACHE_KEY }}
+    - name: Install poetry dependencies
+      if: env.CACHE_HIT != 'true' && inputs.setup == 'true'
       shell: bash
-      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
-    - run: ${{ inputs.install-command }}
       working-directory: ${{ inputs.working-directory }}
+      run: |
+        ${{ inputs.install-command }}
+    - name: Install the ci dependencies
       shell: bash
-      if: inputs.setup-only == 'false' || env.POETRY_CACHE_HIT == 'false'
+      run: |
+        python -m pip install -r ci/requirements.txt

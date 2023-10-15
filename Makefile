@@ -26,10 +26,10 @@ exec:
 	@:
 
 all.check:
-	@python make.py exec all check --lock
+	python make.py exec all check --lock
 
 ci.test:
-	@python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest --cov=src --cov-report=xml --cov-report=html
+	python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest --cov=src --cov-report=xml --cov-report=html
 	@:
 
 ci.build:
@@ -47,7 +47,7 @@ docs: clean_docs
 	docs/docs.py
 
 run_docs:
-	poetry run python -m http.server -d docs/_build/html 8000
+	python -m http.server -d docs/_build/html 8000
 
 %:
 	@:
