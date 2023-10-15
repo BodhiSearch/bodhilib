@@ -87,7 +87,7 @@ jobs:
   test:
     needs: [determine_plugin]
     runs-on: ubuntu-latest
-    if: ${{ needs.determine_plugin.outputs.matrix != '[]' }}
+    if: ${{ fromJson(needs.determine_plugin.outputs.matrix).plugin.length == 0 }}
     strategy:
       matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
