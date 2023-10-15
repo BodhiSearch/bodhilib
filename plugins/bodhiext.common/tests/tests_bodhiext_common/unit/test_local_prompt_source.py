@@ -5,67 +5,103 @@ from bodhiext.prompt_source import LocalPromptSource
 
 from tests_bodhiext_common.conftest import TEST_DATA_DIR
 
+simple_templates_yaml = TEST_DATA_DIR / "prompt-sources" / "simple-templates.yaml"
 
-def test_local_prompt_source_raise_error_if_dir_missing():
+
+@pytest.mark.parametrize(
+    ["dir_path", "expected_error"],
+    [
+        ("missing", "Directory does not exists: dir='{dir_path}'"),
+        (tempfile.NamedTemporaryFile(mode="w", delete=False).name, "Path is not a directory: dir='{dir_path}'"),
+    ],
+)
+def test_local_prompt_source_raises_error_if_dir_missing_or_not_dir(dir_path, expected_error):
     with pytest.raises(ValueError) as e:
-        _ = LocalPromptSource(dir="missing")
-    assert str(e.value) == "Directory does not exists: dir='missing'"
+        _ = LocalPromptSource(dir=dir_path)
+    assert str(e.value) == expected_error.format(dir_path=dir_path)
 
 
-def test_local_prompt_source_raise_error_if_not_dir(tmp_path):
+@pytest.mark.parametrize(
+    ["files", "expected_error"],
+    [
+        (
+            ["missing", simple_templates_yaml],
+            "File does not exists: missing_files={files}",
+        ),
+        (
+            [TEST_DATA_DIR / "prompt-sources", simple_templates_yaml],
+            "Path is not a file: not_files={files}",
+        ),
+        (
+            [TEST_DATA_DIR / "prompt-sources" / "not-yaml.txt", simple_templates_yaml],
+            "File is not in yaml format: not_yaml={files}",
+        ),
+    ],
+)
+def test_local_prompt_source_raises_error_if_any_of_files_missing_or_not_yaml(files, expected_error):
     with pytest.raises(ValueError) as e:
-        with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
-            _ = LocalPromptSource(dir=f.name)
-    assert str(e.value) == f"Path is not a directory: dir='{f.name}'"
+        _ = LocalPromptSource(files=files)
+    assert str(e.value) == expected_error.format(files=[str(files[0])])
 
 
-def test_local_prompt_source_loads_from_given_dir():
-    sources = LocalPromptSource(dir=str(TEST_DATA_DIR / "prompt-sources"))
+def test_local_prompt_source_raise_error_if_files_not_list():
+    files = str(simple_templates_yaml)
+    with pytest.raises(ValueError) as e:
+        _ = LocalPromptSource(files=files)
+    assert str(e.value) == f"files should be a list of file paths: files='{files}'"
+
+
+@pytest.mark.parametrize(
+    "file, expected_error",
+    [
+        ("missing", "File does not exists: missing_files=['{file}']"),
+        (TEST_DATA_DIR / "prompt-sources", "Path is not a file: not_files=['{file}']"),
+        (TEST_DATA_DIR / "prompt-sources" / "not-yaml.txt", "File is not in yaml format: not_yaml=['{file}']"),
+    ],
+)
+def test_local_prompt_source_raises_error_if_file_missing_or_not_yaml(file, expected_error):
+    with pytest.raises(ValueError) as e:
+        _ = LocalPromptSource(file=file)
+    assert str(e.value) == expected_error.format(file=file)
+
+
+@pytest.mark.parametrize("dir_path", [(str(TEST_DATA_DIR / "prompt-sources")), (TEST_DATA_DIR / "prompt-sources")])
+def test_local_prompt_source_loads_from_given_dir_str_or_path(dir_path):
+    sources = LocalPromptSource(dir=dir_path)
     assert len(sources.list_all()) == 3
 
 
-def test_local_prompt_source_loads_from_given_dir_path():
-    sources = LocalPromptSource(dir=TEST_DATA_DIR / "prompt-sources")
+@pytest.mark.parametrize(
+    "files",
+    [
+        ([str(simple_templates_yaml)]),
+        ([simple_templates_yaml]),
+    ],
+)
+def test_local_prompt_source_loads_from_given_files_path_or_str(files):
+    sources = LocalPromptSource(files=files)
     assert len(sources.list_all()) == 3
 
 
-def test_local_prompt_source_loads_from_given_file():
-    sources = LocalPromptSource(files=str(TEST_DATA_DIR / "prompt-sources" / "simple-templates.yaml"))
-    assert len(sources.list_all()) == 3
-
-
-def test_local_prompt_source_loads_from_given_file_path():
-    sources = LocalPromptSource(files=TEST_DATA_DIR / "prompt-sources" / "simple-templates.yaml")
+@pytest.mark.parametrize(
+    "file",
+    [
+        (str(simple_templates_yaml)),
+        (simple_templates_yaml),
+    ],
+)
+def test_local_prompt_source_loads_from_given_file_path_or_str(file):
+    sources = LocalPromptSource(file=file)
     assert len(sources.list_all()) == 3
 
 
 def test_local_prompt_source_loads_from_given_files():
     files = [
-        str(TEST_DATA_DIR / "prompt-sources" / "simple-templates.yaml"),
+        str(simple_templates_yaml),
         str(TEST_DATA_DIR / "prompt-templates" / "multiple-templates.yaml"),
     ]
     sources = LocalPromptSource(files=files)
     assert len(sources.list_all()) == 5
-
-
-def test_local_prompt_source_raises_error_if_file_missing():
-    with pytest.raises(ValueError) as e:
-        _ = LocalPromptSource(files=["missing"])
-    assert str(e.value) == "File does not exists: missing_files=['missing']"
-
-
-def test_local_prompt_source_raises_error_if_dir_passed():
-    with pytest.raises(ValueError) as e:
-        dir = str(TEST_DATA_DIR / "prompt-sources")
-        _ = LocalPromptSource(files=[dir])
-    assert str(e.value) == f"Path is not a file: not_files=['{dir}']"
-
-
-def test_local_prompt_source_raises_error_if_not_yaml():
-    with pytest.raises(ValueError) as e:
-        not_yaml = str(TEST_DATA_DIR / "prompt-sources" / "not-yaml.txt")
-        _ = LocalPromptSource(files=[not_yaml])
-    assert str(e.value) == f"File is not in yaml format: not_yaml=['{not_yaml}']"
 
 
 def test_local_prompt_loads_from_default_pkg_resource():

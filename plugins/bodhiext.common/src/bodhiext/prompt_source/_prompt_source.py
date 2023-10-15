@@ -13,19 +13,30 @@ DEFAULT_TEMPLATES_PKG = "bodhiext.prompt_source.templates"
 class LocalPromptSource(PromptSource):
     """BodhiPromptSource is a prompt source implementation by bodhiext."""
 
-    def __init__(self, dir: Optional[PathLike] = None, files: Optional[Union[PathLike, List[PathLike]]] = None) -> None:
+    def __init__(
+        self, dir: Optional[PathLike] = None, file: Optional[PathLike] = None, files: Optional[List[PathLike]] = None
+    ) -> None:
         """Initialize LocalPromptSource with the prompt template directory or files.
 
         If :arg:`dir` is passed, the directory is scanned for all yaml files and loaded as prompt templates.
+        If :arg:`file` is passed, the file is loaded as prompt templates.
         If :arg:`files` is passed, the files are loaded as prompt templates.
         If no arguments is passed, the default directory is scanned for all yaml files and loaded as prompt templates.
 
         Args:
             dir (Optional[:data:`~bodhilib.PathLike`]): Path to the directory containing prompt yaml templates.
                 If passed, the directory is scanned for all yaml files and loaded as prompt templates.
-            files: Optional[:data:`~bodhilib.PathLike`|List[:data:`~bodhilib.PathLike`]]: Path or list of Path to
-                yaml file containing prompt templates.
-                If passed, the files are loaded as prompt templates.
+            file (Optional[:data:`~bodhilib.PathLike`]): Path to the yaml file containing prompt templates.
+            files: Optional[List[:data:`~bodhilib.PathLike`]]: Path to list of yaml files containing prompt templates.
+                If passed, all the yaml files are loaded as prompt templates.
+
+        Raises:
+            ValueError: If :arg:`dir` is passed and does not exist or is not a directory.
+            ValueError: If :arg:`file` is passed and does not exist or is not a file or is not a yaml file.
+            ValueError: If :arg:`files` is passed and any of the files
+                does not exist,
+                or is not a file,
+                or is not a yaml file.
         """
         self.files: List[PathLike] = []
         if dir is not None:
@@ -34,16 +45,21 @@ class LocalPromptSource(PromptSource):
             if not os.path.isdir(dir):
                 raise ValueError(f"Path is not a directory: {dir=}")
             self.files.extend(self._load_files(dir))
+        if file is not None:
+            if files is None:
+                files = [file]
+            else:
+                files = [file] + files
         if files is not None:
             if not isinstance(files, list):
-                files = [files]
-            missing_files = [file for file in files if not os.path.exists(file)]
+                raise ValueError(f"files should be a list of file paths: {files=}")
+            missing_files = [str(file) for file in files if not os.path.exists(file)]
             if missing_files:
                 raise ValueError(f"File does not exists: {missing_files=}")
-            not_files = [file for file in files if not os.path.isfile(file)]
+            not_files = [str(file) for file in files if not os.path.isfile(file)]
             if not_files:
                 raise ValueError(f"Path is not a file: {not_files=}")
-            not_yaml = [file for file in files if not _is_yaml(file)]
+            not_yaml = [str(file) for file in files if not _is_yaml(file)]
             if not_yaml:
                 raise ValueError(f"File is not in yaml format: {not_yaml=}")
             self.files.extend(files)
