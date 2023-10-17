@@ -102,17 +102,17 @@ jobs:
         run: |
           # if inputs set as pre or no, then find the min supported version, and the latest pre-release
           if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
-            supported_versions=$(make ci.supports -- ${{ matrix.plugin }}) --only-min --include-prerelease
+            versions=$(make ci.supports -- ${{ matrix.plugin }}) --only-min --include-prerelease
           # else if it is a release, find all release versions since min supported version
           elif [[ "${{ github.event.inputs.release }}" == "yes" ]];
           then
-            supported_versions=$(make ci.supports -- ${{ matrix.plugin }})
+            versions=$(make ci.supports -- ${{ matrix.plugin }})
           else
             # if inputs set as no, so normal build, run against local dev version
-            supported_versions=["dev"]
+            versions="['dev']"
           fi
-          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $supported_versions}" # debug
-          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $supported_versions}" >> "$GITHUB_OUTPUT"
+          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $versions}" # debug
+          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $versions}" >> "$GITHUB_OUTPUT"
   test-plugin:
     needs: find-compat
     runs-on: ubuntu-latest
