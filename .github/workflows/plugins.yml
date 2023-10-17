@@ -201,7 +201,8 @@ jobs:
         with:
           artifacts: ${{ env.PLUGIN_DIR }}/dist/*
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ env.NEW_VERSION }}
+          tag: ${{ env.PLUGIN }}/v${{ env.NEW_VERSION }}
+          name: ${{ env.PLUGIN }}/v${{ env.NEW_VERSION }}
           prerelease: true
   release:
     needs: [test]
@@ -244,7 +245,8 @@ jobs:
         with:
           artifacts: ${{ env.PLUGIN_DIR }}/dist/*
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ env.CURRENT_VERSION }}
+          tag: ${{ env.PLUGIN }}/v${{ env.CURRENT_VERSION }}
+          name: ${{ env.PLUGIN }}/v${{ env.CURRENT_VERSION }}
           commit: main
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
