@@ -85,8 +85,25 @@ jobs:
           fi
           echo "matrix={\"plugin\": $PLUGINS}" # debug
           echo "matrix={\"plugin\": $PLUGINS}" >> "$GITHUB_OUTPUT"
+  print-output:
+    needs: determine_plugin
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+    steps:
+      - name: print-matrix-plugin
+        shell: bash
+        run: |
+          echo "matrix.plugin=${{ matrix.plugin }}" # debug
+          echo "matrix.plugin=${{ matrix.plugin }}" >> "$GITHUB_OUTPUT"
+      - name: print-matrix-json
+        shell: bash
+        run: |
+          echo "matrix=${{ fromJson(needs.determine_plugin.outputs.matrix) }}"
+          echo "matrix.plugin=${{ fromJson(needs.determine_plugin.outputs.matrix).plugin }}"
+          echo "matrix.plugin.len=${{ fromJson(needs.determine_plugin.outputs.matrix).plugin.length }}"
   prepare-plugin:
-    needs: [determine_plugin]
+    needs: [determine_plugin, print-output]
     runs-on: ubuntu-latest
     if: ${{ fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
     strategy:
