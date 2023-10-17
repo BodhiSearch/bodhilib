@@ -114,7 +114,7 @@ jobs:
           echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $supported_versions}" # debug
           echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $supported_versions}" >> "$GITHUB_OUTPUT"
   test-plugin:
-    needs: determine_plugin
+    needs: find-compat
     runs-on: ubuntu-latest
     if: ${{ toJson(fromJson(needs.find-compat.outputs.supported_versions).version) != '[]' }}
     strategy:
