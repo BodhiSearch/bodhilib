@@ -37,6 +37,11 @@ ci.build:
 	python make.py exec $(filter-out $@,$(MAKECMDGOALS)) build
 	@:
 
+ci.supports:
+	@# Invoke the Python script 'supports' to find all supported bodhilib versions
+	@python make.py supports $(filter-out $@,$(MAKECMDGOALS))
+	@:
+
 lint:
 	pre-commit run --all-files
 

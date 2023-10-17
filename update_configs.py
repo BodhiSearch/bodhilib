@@ -3,7 +3,7 @@ import configparser
 import json
 import os
 import urllib.request
-from typing import Any, List
+from typing import Any, Dict, List, Optional
 
 import yaml
 
@@ -139,12 +139,30 @@ def fetch_versions(package_name: str, min_version: str) -> List[str]:
     with urllib.request.urlopen(f"https://pypi.org/pypi/{package_name}/json") as response:
         data = response.read()
         package_info = json.loads(data)
-        releases = package_info["releases"].keys()
-
     min_version_ints = tuple(map(int, min_version.split(".")))
-    valid_versions = [v for v in releases if tuple(map(int, v.split("."))) >= min_version_ints]
+    releases_with_time = {k: val[0]["upload_time"] for k, val in package_info["releases"].items()}
+    valid_versions = {
+        k: val for k, val in releases_with_time.items() if tuple(map(int, k.split("."))) >= min_version_ints
+    }
+    sorted_versions = dict(sorted(valid_versions.items(), key=lambda item: item[1], reverse=True))
+    return list(sorted_versions.keys())
 
-    return valid_versions
+
+def fetch_gh_releases(owner: str, repo: str, token: Optional[str] = None) -> Dict[str, Any]:
+    url = f"https://api.github.com/repos/{owner}/{repo}/releases"
+    headers = {
+        "Accept": "application/vnd.github.v3+json",
+    }
+    if token:
+        headers["Authorization"] = f"token {token}"
+    req = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(req) as response:
+        if response.status == 200:
+            body = response.read()
+            data = json.loads(body)
+            return data # type: ignore
+        else:
+            raise Exception(f"HTTP error {response.status}: {response.reason}")
 
 
 def create_tox_file(filename: str, plugin_name: str) -> None:

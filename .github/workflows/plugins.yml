@@ -85,13 +85,40 @@ jobs:
           fi
           echo "matrix=$PLUGINS" # debug
           echo "matrix=$PLUGINS" >> "$GITHUB_OUTPUT"
-  prepare-plugin:
+  find-compat:
     needs: determine_plugin
     runs-on: ubuntu-latest
     if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+    outputs:
+      supported_versions: ${{ steps.find-compat.outputs.supported_versions }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Find all supported bodhilib versions for plugin ${{ matrix.plugin }}
+        shell: bash
+        run: |
+          # if inputs set as pre or no, then find the min supported version, and the latest pre-release
+          if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
+            supported_versions=$(make ci.supports -- ${{ matrix.plugin }}) --only-min --include-prerelease
+          # else if it is a release, find all release versions since min supported version
+          elif [[ "${{ github.event.inputs.release }}" == "yes" ]];
+          then
+            supported_versions=$(make ci.supports -- ${{ matrix.plugin }})
+          else
+            # if inputs set as no, so normal build, run against local dev version
+            supported_versions=["dev"]
+          fi
+          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $supported_versions}" # debug
+          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $supported_versions}" >> "$GITHUB_OUTPUT"
+  test-plugin:
+    needs: determine_plugin
+    runs-on: ubuntu-latest
+    if: ${{ toJson(fromJson(needs.find-compat.outputs.supported_versions).version) != '[]' }}
+    strategy:
+      matrix: ${{ fromJson(needs.determine_plugin.outputs.supported_versions) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -102,35 +129,10 @@ jobs:
           echo "PLUGIN_DIR=plugins/${PLUGIN}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
-        with:
-          setup: 'true'
-          working-directory: ${{ env.PLUGIN_DIR }}
-  test:
-    needs: [prepare-plugin]
-    runs-on: ubuntu-latest
-    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
-    strategy:
-      matrix:
-        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
-    steps:
-      - name: Set PLUGIN envs
-        run: |
-          PLUGIN=${{ matrix.plugin }}
-          PLUGIN_DIR=plugins/${PLUGIN}
-          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
-          echo "PLUGIN=${PLUGIN}" # debug
-          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
-          echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
-          echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/ondemand
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
+          bodhilib-version: ${{ matrix.version }}
       - name: Copy .env.ci to .env.test
         run: |
           cd ${{ env.PLUGIN_DIR }}
@@ -141,16 +143,8 @@ jobs:
       - name: Build
         run: |
           make ci.build ${{ env.PLUGIN_NAME }}
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          env_vars: OS,PYTHON
-          files: ${{ env.PLUGIN_DIR }}/coverage.xml
-          flags: unittests,${{ env.PLUGIN }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   prerelease:
-    needs: [test]
+    needs: [test-plugin]
     if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
@@ -173,10 +167,17 @@ jobs:
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Find min supported bodhilib version
+        id: min-supported-version
+        run: |
+          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN }}) --only-min
+          echo "version=${MIN_SUPPORTED_VERSION}" # debug
+          echo "version=${MIN_SUPPORTED_VERSION}" >> $GITHUB_OUTPUT
       - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/ondemand
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
+          bodhilib-version: ${{ steps.min-supported-version.outputs.version }}
       - name: Get current version
         id: current-version
         run: |
@@ -205,7 +206,7 @@ jobs:
           name: ${{ env.PLUGIN }}/v${{ env.NEW_VERSION }}
           prerelease: true
   release:
-    needs: [test]
+    needs: [test-plugin]
     if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
@@ -228,10 +229,17 @@ jobs:
           echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Find min supported bodhilib version
+        id: min-supported-version
+        run: |
+          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN }}) --only-min
+          echo "version=${MIN_SUPPORTED_VERSION}" # debug
+          echo "version=${MIN_SUPPORTED_VERSION}" >> $GITHUB_OUTPUT
       - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
+        uses: ./.github/actions/ondemand
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
+          bodhilib-version: ${{ steps.min-supported-version.outputs.version }}
       - name: Get current version
         id: current-version
         run: |

@@ -1,0 +1,59 @@
+# action.yml
+name: poetry-install-without-caching
+description: A non-cached environment to test plugins against various bohdilib versions.
+
+inputs:
+  python-version:
+    description: Python version, supporting MAJOR.MINOR only
+    required: true
+    default: '3.8'
+
+  pipx-version:
+    description: Pipx version
+    required: false
+    default: 1.2.0
+
+  poetry-version:
+    description: Poetry version
+    required: false
+    default: 1.6.1
+
+  working-directory:
+    description: Directory to run install-command in
+    required: true
+
+  bodhilib-version:
+    description: Bodhilib version to override and install
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+    - name: Install poetry using pipx
+      shell: bash
+      run: |
+        pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
+    - name: Install bodhilib
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        version="${{ inputs.bodhilib-version }}"
+        if startsWith("${version}", 'pypi/'); then
+          bodhilib_version=${version/pypi\//}
+          poetry add bodhilib==${bodhilib_version}
+        elif startsWith("${version}", 'pre/'); then
+          bodhilib_version=${version/pre\//}
+          poetry add ${bodhilib_version}
+        elif [ "${version}" == "dev" ]; then
+          echo "Using the local bodhilib version"
+        else
+          echo "Invalid bodhilib-version input" && exit 1
+        fi
+        poetry install --compile --sync
+    - name: Install the ci dependencies
+      shell: bash
+      run: |
+        python -m pip install -r ci/requirements.txt
