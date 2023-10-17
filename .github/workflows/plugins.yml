@@ -111,8 +111,8 @@ jobs:
             # if inputs set as no, so normal build, run against local dev version
             versions="['dev']"
           fi
-          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $versions}" # debug
-          echo "supported_versions={'plugin': ${{ matrix.plugin }}, 'version': $versions}" >> "$GITHUB_OUTPUT"
+          echo "supported_versions={'plugin': ['${{ matrix.plugin }}'], 'version': $versions}" # debug
+          echo "supported_versions={'plugin': ['${{ matrix.plugin }}'], 'version': $versions}" >> "$GITHUB_OUTPUT"
   test-plugin:
     needs: find-compat
     runs-on: ubuntu-latest
