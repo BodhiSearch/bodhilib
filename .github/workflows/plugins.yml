@@ -88,7 +88,7 @@ jobs:
   prepare-plugin:
     needs: determine_plugin
     runs-on: ubuntu-latest
-    if: ${{ fromJson(needs.determine_plugin.outputs.matrix) != '[]' }}
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
@@ -109,9 +109,10 @@ jobs:
   test:
     needs: [prepare-plugin]
     runs-on: ubuntu-latest
-    if: ${{ fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
-      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+      matrix:
+        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
       - name: Set PLUGIN envs
         run: |
@@ -150,10 +151,11 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   prerelease:
     needs: [test]
-    if: ${{ github.event.inputs.release == 'pre' && fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
-    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
-      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+      matrix:
+        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: write
@@ -203,10 +205,11 @@ jobs:
           prerelease: true
   release:
     needs: [test]
-    if: ${{ github.event.inputs.release == 'yes' && fromJson(needs.determine_plugin.outputs.matrix).plugin.length != 0 }}
-    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
-      matrix: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+      matrix:
+        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+    runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: write
