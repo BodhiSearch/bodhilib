@@ -118,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ toJson(fromJson(needs.find-compat.outputs.supported_versions).version) != '[]' }}
     strategy:
-      matrix: ${{ fromJson(needs.determine_plugin.outputs.supported_versions) }}
+      matrix: ${{ fromJson(needs.find-compat.outputs.supported_versions) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
