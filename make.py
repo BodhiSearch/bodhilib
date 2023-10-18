@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import json
 import os
 import subprocess
 import sys
@@ -197,16 +198,20 @@ def parse_args_target(args: Any) -> List[str]:
     return dirs
 
 
-def exec_supports(plugin_folder: str, only_min: bool) -> int:
-    plugin_dir = f"plugins/{plugin_folder}"
-    if not os.path.exists(plugin_dir):
-        print(f"Error: Plugin directory does not exist: 'plugins/{plugin_folder}'")
+def exec_supports(plugin_folders: List[str], only_min: bool) -> int:
+    missing_folders = [folder for folder in plugin_folders if not os.path.exists(f"plugins/{folder}")]
+    if missing_folders:
+        print(f"Error: Plugin directory does not exist: '{missing_folders}'")
         return 1
-    versions = find_supported_versions(plugin_dir, only_min)
-    if only_min:
-        print(versions[0])
-    else:
-        print(versions)
+    result = {}
+    for plugin_folder in plugin_folders:
+        plugin_dir = f"plugins/{plugin_folder}"
+        versions = find_supported_versions(plugin_dir, only_min)
+        if only_min:
+            result[plugin_folder] = versions[0]
+        else:
+            result[plugin_folder] = versions
+    print(json.dumps(result, separators=(",", ":")))
     return 0
 
 
@@ -249,8 +254,9 @@ def main() -> None:
     # 'supports' command
     supports_parser = subparsers.add_parser("supports", help="List supported versions")
     supports_parser.add_argument(
-        "target",
+        "targets",
         type=str,
+        nargs="+",
         choices=list(plugin_folders),
         help="List supported versions for given plugin.",
     )
@@ -282,7 +288,7 @@ def main() -> None:
         dirs = parse_args_target(args)
         sys.exit(execute_command(dirs, ["poetry", args.command] + args.other_args))
     elif args.top_command == "supports":
-        sys.exit(exec_supports(args.target, args.only_min))
+        sys.exit(exec_supports(args.targets, args.only_min))
     elif args.top_command == "tox":
         dirs = get_plugin_dirs_from_name(args.target)
         sys.exit(exec_tox(dirs, args.only_min, args.include_prerelease, args.python_versions))
