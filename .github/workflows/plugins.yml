@@ -65,8 +65,8 @@ jobs:
           # If the workflow was triggered manually with workflow_dispatch
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             if [[ "${{ github.event.inputs.plugin }}" == "all" ]]; then
-              # Get all directories with pattern bodhiext.* inside the plugins directory
-              PLUGINS=$(ls -d plugins/bodhiext.* | cut -d'/' -f2 | jq -R -s -c 'split("\n")[:-1]')
+              # Get all directories inside plugins
+              PLUGINS=$(ls -d plugins/* | cut -d'/' -f2 | jq -R -s -c 'split("\n")[:-1]')
             else
               # If a specific plugin is provided as input
               PLUGINS=$(echo "[\"${{ github.event.inputs.plugin }}\"]")
@@ -98,15 +98,12 @@ jobs:
         uses: actions/checkout@v3
       - name: Set PLUGIN_DIR
         run: |
-          PLUGIN=${{ matrix.plugin }}
-          PLUGIN_DIR=plugins/${PLUGIN}
-          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
-          echo "PLUGIN=${PLUGIN}" # debug
-          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          PLUGIN_FOLDER=${{ matrix.plugin }}
+          PLUGIN_DIR=plugins/${PLUGIN_FOLDER}
+          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" # debug
+          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" >> $GITHUB_ENV
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Set up Python with Poetry
         uses: ./.github/actions/setup
         with:
@@ -118,16 +115,16 @@ jobs:
           cp .env.ci .env.test
       - name: Run tests
         run: |
-          make ci.test ${{ env.PLUGIN_NAME }}
+          make ci.test ${{ env.PLUGIN_FOLDER }}
       - name: Build
         run: |
-          make ci.build ${{ env.PLUGIN_NAME }}
+          make ci.build ${{ env.PLUGIN_FOLDER }}
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
           env_vars: OS,PYTHON
           files: ${{ env.PLUGIN_DIR }}/coverage.xml
-          flags: unittests,${{ env.PLUGIN_NAME }}
+          flags: unittests,${{ env.PLUGIN_FOLDER }}
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   run-tox:
@@ -151,7 +148,7 @@ jobs:
           if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
             make_opts="--only-min --include-prerelease"
           fi
-          make compat ${make_opts} ${{ matrix.plugin }}
+          make ci.tox ${make_opts} ${{ matrix.plugin }}
   prerelease:
     needs: [run-tox, determine_plugin]
     if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
@@ -165,21 +162,18 @@ jobs:
     steps:
       - name: Set PLUGIN envs
         run: |
-          PLUGIN=${{ matrix.plugin }}
-          PLUGIN_DIR=plugins/${PLUGIN}
-          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
-          echo "PLUGIN=${PLUGIN}" # debug
-          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          PLUGIN_FOLDER=${{ matrix.plugin }}
+          PLUGIN_DIR=plugins/${PLUGIN_FOLDER}
+          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" # debug
+          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" >> $GITHUB_ENV
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Find min supported bodhilib version
         id: min-supported-version
         run: |
-          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN }}) --only-min
+          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN_FOLDER }}) --only-min
           echo "version=${MIN_SUPPORTED_VERSION}" # debug
           echo "version=${MIN_SUPPORTED_VERSION}" >> $GITHUB_OUTPUT
       - name: Set up Python with Poetry
@@ -201,7 +195,7 @@ jobs:
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
       - name: Update version to pre-release version
         run: |
-          VERSION_FILE='${PLUGIN_DIR}/src/bodhiext/${PLUGIN_NAME}/_version.py'
+          VERSION_FILE=$(find "${PLUGIN_DIR}/src/" -name "_version.py" -type f | head -n 1)
           poetry version "${NEW_VERSION}" --directory "${PLUGIN_DIR}"
           echo "__version__ = \"${NEW_VERSION}\"" > ${VERSION_FILE}
       - name: Build package
@@ -227,21 +221,18 @@ jobs:
     steps:
       - name: Set PLUGIN envs
         run: |
-          PLUGIN=${{ matrix.plugin }}
-          PLUGIN_DIR=plugins/${PLUGIN}
-          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
-          echo "PLUGIN=${PLUGIN}" # debug
-          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          PLUGIN_FOLDER=${{ matrix.plugin }}
+          PLUGIN_DIR=plugins/${PLUGIN_FOLDER}
+          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" # debug
+          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" >> $GITHUB_ENV
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
-          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Find min supported bodhilib version
         id: min-supported-version
         run: |
-          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN }}) --only-min
+          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN_FOLDER }}) --only-min
           echo "version=${MIN_SUPPORTED_VERSION}" # debug
           echo "version=${MIN_SUPPORTED_VERSION}" >> $GITHUB_OUTPUT
       - name: Set up Python with Poetry
@@ -278,7 +269,7 @@ jobs:
           NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch"
           echo "NEW_VERSION=$NEW_VERSION" # debug
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          VERSION_FILE='${PLUGIN_DIR}/src/bodhiext/${PLUGIN_NAME}/_version.py'
+          VERSION_FILE=$(find "${PLUGIN_DIR}/src/" -name "_version.py" -type f | head -n 1)
           echo "VERSION_FILE=$VERSION_FILE" # debug
           echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
       - name: Bump patch version
@@ -294,5 +285,5 @@ jobs:
           git config user.email "<github-actions@users.noreply.github.com>"
           git add ${PLUGIN_DIR}/pyproject.toml
           git add ${VERSION_FILE}
-          git commit -m "[Github Workflows] bumping up the ${PLUGIN} patch version to ${NEW_VERSION}"
+          git commit -m "[Github Workflows] bumping up the ${PLUGIN_FOLDER} patch version to ${NEW_VERSION}"
           git push

@@ -38,8 +38,13 @@ ci.build:
 	@:
 
 ci.supports:
-	@# Invoke the Python script 'supports' to find all supported bodhilib versions
+	@# Invoke the Python script to 'supports' and all passed arguments.
 	@python make.py supports $(filter-out $@,$(MAKECMDGOALS))
+	@:
+
+ci.tox:
+	@# Invoke the make.py script with 'tox' passing all passthrough args.
+	python make.py tox $(filter-out $@,$(MAKECMDGOALS))
 	@:
 
 lint:

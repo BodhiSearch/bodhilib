@@ -3,7 +3,7 @@ import argparse
 import os
 import subprocess
 import sys
-from typing import Any, List, cast, no_type_check
+from typing import Any, List, Optional, cast, no_type_check
 
 import tomli
 
@@ -11,19 +11,18 @@ from update_configs import (
     fetch_gh_releases,
     fetch_versions,
     plugin_dirs,
-    plugin_full_names,
-    plugin_names,
+    plugin_folders,
     python_versions,
 )
 
-dir_opts = tuple(["core", "all"] + list(plugin_names))
+dir_opts = tuple(["core", "all"] + list(plugin_folders))
 
 
 def get_plugin_dirs(arg: str) -> List[str]:
     if arg == "all":
         return list(plugin_dirs)
     else:
-        plugin_path = f"plugins/bodhiext.{arg}"
+        plugin_path = f"plugins/{arg}"
         if not os.path.exists(plugin_path):
             raise ValueError(f"Plugin {plugin_path} does not exist")
         return [plugin_path]
@@ -88,8 +87,8 @@ def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir
                     errors.extend(error)
                     continue
                 bodhilib_version_str = "pre"
-            plugin_name = plugin_dir.replace("plugins/bodhiext.", "")
-            env = f"{python_version}-plugins_{plugin_name}-bodhilib_{bodhilib_version_str}"
+            plugin_slug = plugin_dir.replace("plugins/", "").replace(".", "_")
+            env = f"{python_version}-plugins_{plugin_slug}-bodhilib_{bodhilib_version_str}"
             command = [
                 "tox",
                 "-e",
@@ -104,13 +103,14 @@ def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir
     return errors
 
 
-def run_tox(bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
+def run_tox(py_versions: List[str], bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
     errors = []
     pyproj_file = os.path.join(plugin_dir, "pyproject.toml")
     with open(pyproj_file, "r") as file:
         content = file.read()
     try:
-        errors.extend(run_tox_for(list(python_versions), bodhilib_versions, plugin_dir))
+        tox_errors = run_tox_for(py_versions, bodhilib_versions, plugin_dir)
+        errors.extend(tox_errors)
     finally:
         with open(pyproj_file, "w") as file:
             file.write(content)
@@ -137,11 +137,20 @@ def load_pyproject(dir_path: str) -> dict:
     return cast(dict, bodhilib_config)
 
 
-def exec_compat(dirs: List[str], only_min: bool = False, include_prerelease: bool = False) -> int:
+def exec_tox(
+    dirs: List[str], only_min: bool = False, include_prerelease: bool = False, arg_py_versions: Optional[str] = None
+) -> int:
     errors = []
+    if arg_py_versions is None:
+        arg_py_versions = ",".join(python_versions)
+    py_versions = arg_py_versions.split(",")
+    missing_versions = [py for py in py_versions if py not in python_versions]
+    if missing_versions:
+        print(f"Error: Python versions {missing_versions} are not supported.")
+        return 1
     for dir_path in dirs:
         bodhilib_versions = find_supported_versions(dir_path, only_min, include_prerelease)
-        result = run_tox(bodhilib_versions, dir_path)
+        result = run_tox(py_versions, bodhilib_versions, dir_path)
         errors.extend(result)
     if errors:
         print("test failed")
@@ -184,11 +193,24 @@ def find_supported_versions(plugin_dir: str, only_min: bool = False, include_pre
 
 def parse_args_target(args: Any) -> List[str]:
     # Check if target directory exists in plugins
-    if not os.path.exists(f"plugins/bodhiext.{args.target}") and args.target not in ["all", "core"]:
-        print(f"Error: Directory for target '{args.target}' does not exist: plugins/bodhiext.{args.target}")
+    if not os.path.exists(f"plugins/{args.target}") and args.target not in ["all", "core"]:
+        print(f"Error: Directory for target '{args.target}' does not exist: plugins/{args.target}")
         sys.exit(1)
     dirs = get_project_dirs(args.target)
     return dirs
+
+
+def exec_supports(plugin_folder: str, only_min: bool) -> int:
+    plugin_dir = f"plugins/{plugin_folder}"
+    if not os.path.exists(plugin_dir):
+        print(f"Error: Plugin directory does not exist: 'plugins/{plugin_folder}'")
+        return 1
+    versions = find_supported_versions(plugin_dir, only_min)
+    if only_min:
+        print(versions[0])
+    else:
+        print(versions)
+    return 0
 
 
 def main() -> None:
@@ -227,19 +249,32 @@ def main() -> None:
         "other_args", type=str, nargs=argparse.REMAINDER, default=[], help="Passthrough arguments for `poetry` command."
     )
 
-    # 'compat' command
-    compat_parser = subparsers.add_parser("compat", help="Execute compatibility checks for given plugin")
-    compat_parser.add_argument(
+    # 'supports' command
+    supports_parser = subparsers.add_parser("supports", help="List supported versions")
+    supports_parser.add_argument(
         "target",
         type=str,
-        choices=["all"] + list(plugin_full_names),
+        choices=list(plugin_folders),
+        help="List supported versions for given plugin.",
+    )
+    supports_parser.add_argument("--only-min", action="store_true", help="List only minimum supported version")
+
+    # 'compat' command
+    tox_parser = subparsers.add_parser("tox", help="Execute compatibility checks for given plugin using tox")
+    tox_parser.add_argument(
+        "target",
+        type=str,
+        choices=["all"] + list(plugin_folders),
         nargs="?",
         default="all",
         help="Project to run compatibility check against",
     )
-    compat_parser.add_argument("--only-min", action="store_true", help="Run only for minimum supported version")
-    compat_parser.add_argument(
+    tox_parser.add_argument("--only-min", action="store_true", help="Run only for minimum supported version")
+    tox_parser.add_argument(
         "--include-prerelease", action="store_true", help="Include the latest pre-release for compatibility test"
+    )
+    tox_parser.add_argument(
+        "--python-versions", type=str, default=",".join(python_versions), help="Python version to run tox against"
     )
 
     args = parser.parse_args()
@@ -249,9 +284,11 @@ def main() -> None:
     elif args.top_command == "exec":
         dirs = parse_args_target(args)
         sys.exit(execute_command(dirs, ["poetry", args.command] + args.other_args))
-    elif args.top_command == "compat":
+    elif args.top_command == "supports":
+        sys.exit(exec_supports(args.target, args.only_min))
+    elif args.top_command == "tox":
         dirs = get_plugin_dirs_from_name(args.target)
-        sys.exit(exec_compat(dirs, args.only_min, args.include_prerelease))
+        sys.exit(exec_tox(dirs, args.only_min, args.include_prerelease, args.python_versions))
 
 
 if __name__ == "__main__":

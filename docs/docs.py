@@ -31,7 +31,6 @@ def main() -> None:
     # Build the api documentation
     libs_root = glob.glob(os.path.join(docs_dir / ".." / "plugins", "*"))
     exts_src = [Path(lib_root) / "src" / "bodhiext" for lib_root in libs_root]
-    exts_src.insert(0, docs_dir / ".." / "src" / "bodhiext")
     for ext_src in exts_src:
         if os.path.isdir(ext_src):
             # Run sphinx-apidoc
