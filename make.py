@@ -92,7 +92,7 @@ def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir
                 "-e",
                 env,
             ]
-            print(f"Running command='{' '.join(command)}' for {env}...")
+            print(f"Running command='{' '.join(command)}' for {env}, inside {plugin_dir}")
             result = subprocess.run(command, stderr=subprocess.PIPE, cwd=plugin_dir)
             if result.returncode != 0:
                 error_msg = result.stderr.decode("utf-8")
