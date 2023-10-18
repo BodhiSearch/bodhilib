@@ -23,7 +23,7 @@ on:
         required: true
         default: all
 jobs:
-  prepare:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -32,21 +32,8 @@ jobs:
         uses: ./.github/actions/setup
         with:
           setup: 'true'
-          install-command: "echo 'packages installed from ci/requirements.txt'"
-  pre-commit:
-    needs: [prepare]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
-      - name: Check poetry files
-        shell: bash
-        run: |
-          make all.check
-      - name: Pre-commit
-        uses: pre-commit/action@v3.0.0
+      - name: pre-commit
+        uses: './.github/actions/pre-commit'
   determine_plugin:
     runs-on: ubuntu-latest
     needs: [pre-commit]
@@ -148,7 +135,7 @@ jobs:
           if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
             make_opts="--only-min --include-prerelease"
           fi
-          make ci.tox ${make_opts} ${{ matrix.plugin }}
+          make ci.tox -- ${{ matrix.plugin }} ${make_opts}
   prerelease:
     needs: [run-tox, determine_plugin]
     if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
@@ -173,7 +160,7 @@ jobs:
       - name: Find min supported bodhilib version
         id: min-supported-version
         run: |
-          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN_FOLDER }}) --only-min
+          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN_FOLDER }} --only-min)
           echo "version=${MIN_SUPPORTED_VERSION}" # debug
           echo "version=${MIN_SUPPORTED_VERSION}" >> $GITHUB_OUTPUT
       - name: Set up Python with Poetry
@@ -232,7 +219,7 @@ jobs:
       - name: Find min supported bodhilib version
         id: min-supported-version
         run: |
-          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN_FOLDER }}) --only-min
+          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN_FOLDER }} --only-min)
           echo "version=${MIN_SUPPORTED_VERSION}" # debug
           echo "version=${MIN_SUPPORTED_VERSION}" >> $GITHUB_OUTPUT
       - name: Set up Python with Poetry

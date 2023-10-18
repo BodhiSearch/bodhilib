@@ -1,0 +1,11 @@
+name: pre-commit
+description: run pre-commit
+runs:
+  using: composite
+  steps:
+  - uses: actions/cache@v3
+    with:
+      path: ~/.cache/pre-commit
+      key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+  - run: make ci.lint
+    shell: bash

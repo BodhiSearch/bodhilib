@@ -43,7 +43,9 @@ runs:
         version="${{ inputs.bodhilib-version }}"
         poetry add bodhilib==${version}
         poetry install --compile --sync
-    - name: Install the ci dependencies
+    - name: Install root poetry ci dependencies
+      if: env.CACHE_HIT != 'true' && inputs.setup == 'true'
       shell: bash
+      working-directory: '.'
       run: |
-        python -m pip install -r ci/requirements.txt
+        poetry install --only ci

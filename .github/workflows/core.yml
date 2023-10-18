@@ -20,7 +20,7 @@ on:
         default: 'no'
 
 jobs:
-  prepare:
+  pre-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,23 +30,8 @@ jobs:
         with:
           setup: 'true'
           working-directory: core
-
-  pre-commit:
-    needs: [prepare]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python with Poetry
-        uses: './.github/actions/setup'
-        with:
-          working-directory: core
-      - name: Check poetry files
-        shell: bash
-        run: |
-          make all.check
-      - name: Pre-commit
-        uses: pre-commit/action@v3.0.0
+      - name: pre-commit
+        uses: './.github/actions/pre-commit'
 
   test:
     needs: [pre-commit]
@@ -105,7 +90,7 @@ jobs:
           # Overwrite the _version.py file with the new version
           echo "__version__ = \"${NEW_VERSION}\"" > ${VERSION_FILE}
       - name: Build package
-        run: make build core
+        run: make ci.build core
       - name: Create pre-release
         uses: ncipollo/release-action@v1
         with:
@@ -136,7 +121,7 @@ jobs:
           echo "CURRENT_VERSION=${CURRENT_VERSION}" # debug
           echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
       - name: Build package
-        run: make build core
+        run: make ci.build core
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
