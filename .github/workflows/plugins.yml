@@ -133,13 +133,13 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Run tox
         run: |
-          python_version=${{ matrix.python-version }}
-          python_version=${python_version/./}
-          make_opts="--python-versions py${python_version}
+          python_version=$(echo ${{ matrix.python-version }} | sed 's/\.//')
+          make_opts="--python-versions py${python_version}"
           # if inputs set as pre or no, then find the min supported version, and the latest pre-release
           if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
             make_opts+=" --only-min --include-prerelease"
           fi
+          echo "make_opts=${make_opts}" # debug
           make ci.tox -- ${{ matrix.plugin }} ${make_opts}
   prerelease:
     needs: [run-tox, determine_plugin]
