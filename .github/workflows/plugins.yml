@@ -76,6 +76,7 @@ jobs:
           echo "matrix=$PLUGINS" # debug
           echo "matrix=$PLUGINS" >> "$GITHUB_OUTPUT"
       - name: Find min supported bodhilib versions for each plugin
+        if: ${{ toJson(fromJson(steps.set-matrix.outputs.matrix)) != '[]'}}
         id: min-supported-versions
         run: |
           plugins=$(echo '${{ steps.set-matrix.outputs.matrix }}' | jq -r 'join(" ")')
