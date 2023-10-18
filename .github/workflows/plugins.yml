@@ -205,8 +205,8 @@ jobs:
         with:
           artifacts: ${{ env.PLUGIN_DIR }}/dist/*
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.PLUGIN }}/v${{ env.NEW_VERSION }}
-          name: ${{ env.PLUGIN }}/v${{ env.NEW_VERSION }}
+          tag: ${{ env.PLUGIN_FOLDER }}/v${{ env.NEW_VERSION }}
+          name: ${{ env.PLUGIN_FOLDER }}/v${{ env.NEW_VERSION }}
           prerelease: true
   release:
     needs: [run-tox, determine_plugin]
@@ -229,17 +229,11 @@ jobs:
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Find min supported bodhilib version
-        id: min-supported-version
-        run: |
-          MIN_SUPPORTED_VERSION=$(make ci.supports -- ${{ env.PLUGIN_FOLDER }} --only-min)
-          echo "version=${MIN_SUPPORTED_VERSION}" # debug
-          echo "version=${MIN_SUPPORTED_VERSION}" >> $GITHUB_OUTPUT
       - name: Set up Python with Poetry
         uses: ./.github/actions/ondemand
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
-          bodhilib-version: ${{ steps.min-supported-version.outputs.version }}
+          bodhilib-version: ${{ fromJson(needs.determine_plugin.outputs.min-versions)[env.PLUGIN_FOLDER] }}
       - name: Get current version
         id: current-version
         run: |
@@ -253,8 +247,8 @@ jobs:
         with:
           artifacts: ${{ env.PLUGIN_DIR }}/dist/*
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.PLUGIN }}/v${{ env.CURRENT_VERSION }}
-          name: ${{ env.PLUGIN }}/v${{ env.CURRENT_VERSION }}
+          tag: ${{ env.PLUGIN_FOLDER }}/v${{ env.CURRENT_VERSION }}
+          name: ${{ env.PLUGIN_FOLDER }}/v${{ env.CURRENT_VERSION }}
           commit: main
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
