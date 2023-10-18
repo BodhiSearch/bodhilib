@@ -87,7 +87,7 @@ jobs:
           echo "matrix=$PLUGINS" >> "$GITHUB_OUTPUT"
   run-test:
     needs: determine_plugin
-    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && (github.event.inputs.release == '' || github.event.inputs.release == 'no') }}
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]'}}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -153,7 +153,7 @@ jobs:
           fi
           make compat ${make_opts} ${{ matrix.plugin }}
   prerelease:
-    needs: run-tox
+    needs: [run-tox, determine_plugin]
     if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
@@ -215,7 +215,7 @@ jobs:
           name: ${{ env.PLUGIN }}/v${{ env.NEW_VERSION }}
           prerelease: true
   release:
-    needs: run-tox
+    needs: [run-tox, determine_plugin]
     if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
