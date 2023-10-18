@@ -56,9 +56,8 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         echo "Current Working Directory is: $(pwd)"
-        POETRY_LOCK_HASH=${{ hashFiles(steps.poetry_lock_file.outputs.poetry_lock_file) }}
-        ROOT_POETRY_HASH=${{ hashFiles('poetry.lock') }}
-        CACHE_KEY=os-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-poetry-${{ inputs.poetry-version }}-${POETRY_LOCK_HASH}-${ROOT_POETRY_HASH}
+        LOCK_HASHES=${{ hashFiles(steps.poetry_lock_file.outputs.poetry_lock_file, 'poetry.lock', 'ci/requirements.txt') }}
+        CACHE_KEY=os-${{ runner.os }}-${{ runner.arch }}-py-${{ inputs.python-version }}-poetry-${{ inputs.poetry-version }}-lock-${LOCK_HASHES}
         echo "CACHE_KEY=${CACHE_KEY}"
         echo "CACHE_KEY=${CACHE_KEY}" >> $GITHUB_ENV
     - name: Check cache without downloading
