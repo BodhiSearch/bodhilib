@@ -18,7 +18,7 @@ bodhiext_data_loaders = {
         "service_type": "data_loader",
         "service_class": FileLoader,
         "publisher": "bodhiext",
-        "version": bodhiext.data_loader.__version__,
+        "version": bodhiext.common.__version__,
         "service_args": {},
         "service_builder": file_loader_service_builder,
         "happypath": {
@@ -36,7 +36,7 @@ bodhiext_splitters = {
         "service_type": "splitter",
         "service_class": TextSplitter,
         "publisher": "bodhiext",
-        "version": bodhiext.splitter.__version__,
+        "version": bodhiext.common.__version__,
         "service_args": {"overlap": 0, "min_len": 100, "max_len": 500},
         "service_builder": text_splitter_service_builder,
     }
@@ -50,7 +50,7 @@ bodhiext_prompt_sources = {
         "service_type": "prompt_source",
         "service_class": LocalPromptSource,
         "publisher": "bodhiext",
-        "version": bodhiext.prompt_source.__version__,
+        "version": bodhiext.common.__version__,
         "service_args": {},
         "service_builder": bodhi_prompt_source_builder,
     }

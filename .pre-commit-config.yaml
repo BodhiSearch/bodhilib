@@ -1,4 +1,21 @@
 repos:
+  - repo: local
+    hooks:
+      - id: check-poetry-lock
+        name: check-poetry-lock
+        description: 'Check poetry.lock file is in sync with pyproject.toml'
+        entry: make
+        args: [ci.check]
+        language: system
+        pass_filenames: false
+  - repo: local
+    hooks:
+      - id: update_configs
+        name: update_configs
+        description: 'Update mypy.ini, pytest.ini, .github/workflows/plugins.yml, tox.ini'
+        entry: ./update_configs.py
+        language: script
+        pass_filenames: false
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:
@@ -44,21 +61,4 @@ repos:
         entry: poetry
         args: [export, --format, requirements.txt, --only, ci, --without-hashes, --output, ci/requirements.txt]
         language: system
-        pass_filenames: false
-  - repo: local
-    hooks:
-      - id: check-poetry-lock
-        name: check-poetry-lock
-        description: 'Check poetry.lock file is in sync with pyproject.toml'
-        entry: make
-        args: [ci.check]
-        language: system
-        pass_filenames: false
-  - repo: local
-    hooks:
-      - id: update_configs
-        name: update_configs
-        description: 'Update mypy.ini, pytest.ini, .github/workflows/plugins.yml, tox.ini'
-        entry: ./update_configs.py
-        language: script
         pass_filenames: false
