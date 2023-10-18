@@ -45,6 +45,8 @@ jobs:
         run: sudo apt-get install -y jq
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
       - name: Determine plugin(s) based on workflow input or git diff
         id: set-matrix
         env:
