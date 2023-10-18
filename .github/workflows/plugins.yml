@@ -126,7 +126,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   run-tox:
-    needs: determine_plugin
+    needs: [run-test, determine_plugin]
     if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release != '' && (github.event.inputs.release == 'yes' || github.event.inputs.release == 'pre') }}
     strategy:
       fail-fast: false
@@ -148,7 +148,7 @@ jobs:
           fi
           make compat ${make_opts} ${{ matrix.plugin }}
   prerelease:
-    needs: [test-plugin]
+    needs: run-tox
     if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
@@ -210,7 +210,7 @@ jobs:
           name: ${{ env.PLUGIN }}/v${{ env.NEW_VERSION }}
           prerelease: true
   release:
-    needs: [test-plugin]
+    needs: run-tox
     if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
