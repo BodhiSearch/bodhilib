@@ -36,22 +36,12 @@ runs:
       shell: bash
       run: |
         pipx install poetry==${{ inputs.poetry-version }} --python python${{ inputs.python-version }}
-    - name: Install bodhilib
+    - name: Install bodhilib with given release version
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
         version="${{ inputs.bodhilib-version }}"
-        if startsWith("${version}", 'pypi/'); then
-          bodhilib_version=${version/pypi\//}
-          poetry add bodhilib==${bodhilib_version}
-        elif startsWith("${version}", 'pre/'); then
-          bodhilib_version=${version/pre\//}
-          poetry add ${bodhilib_version}
-        elif [ "${version}" == "dev" ]; then
-          echo "Using the local bodhilib version"
-        else
-          echo "Invalid bodhilib-version input" && exit 1
-        fi
+        poetry add bodhilib==${version}
         poetry install --compile --sync
     - name: Install the ci dependencies
       shell: bash

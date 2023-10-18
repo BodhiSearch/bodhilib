@@ -68,27 +68,25 @@ def run_poetry_cmd(plugin_dir: str, args: List[str]) -> List[str]:
 
 def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
     errors = []
-    for python_version in py_versions:
+    for py_version in py_versions:
         for bodhilib_version in bodhilib_versions:
             if error := run_poetry_cmd(plugin_dir, ["check", "--lock"]):
                 errors.extend(error)
                 continue
             # update bodhilib version
-            if bodhilib_version.startswith("pypi/"):
-                version = bodhilib_version.replace("pypi/", "")
-                if error := run_poetry_cmd(plugin_dir, ["add", f"bodhilib=={version}"]):
-                    errors.extend(error)
-                    continue
-                bodhilib_version_str = version.replace(".", "_")
-
-            elif bodhilib_version.startswith("pre/"):
+            if bodhilib_version.startswith("pre/"):
                 whl_url = bodhilib_version.replace("pre/", "")
                 if error := run_poetry_cmd(plugin_dir, ["add", whl_url]):
                     errors.extend(error)
                     continue
                 bodhilib_version_str = "pre"
+            else:
+                if error := run_poetry_cmd(plugin_dir, ["add", f"bodhilib=={bodhilib_version}"]):
+                    errors.extend(error)
+                    continue
+                bodhilib_version_str = bodhilib_version.replace(".", "_")
             plugin_slug = plugin_dir.replace("plugins/", "").replace(".", "_")
-            env = f"{python_version}-plugins_{plugin_slug}-bodhilib_{bodhilib_version_str}"
+            env = f"{py_version}-plugins_{plugin_slug}-bodhilib_{bodhilib_version_str}"
             command = [
                 "tox",
                 "-e",
@@ -98,7 +96,7 @@ def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir
             result = subprocess.run(command, stderr=subprocess.PIPE, cwd=plugin_dir)
             if result.returncode != 0:
                 error_msg = result.stderr.decode("utf-8")
-                errors.append(f"Error running tox for {python_version=}, {bodhilib_version=}\n")
+                errors.append(f"Error running tox for {py_version=}, {bodhilib_version=}\n")
                 errors.append(error_msg)
     return errors
 
@@ -167,7 +165,6 @@ def find_supported_versions(plugin_dir: str, only_min: bool = False, include_pre
     pyproj = load_pyproject(plugin_dir)
     min_version = pyproj["tool"]["bodhilib"]["version"]
     pypi_releases = fetch_versions("bodhilib", min_version)
-    pypi_releases = [f"pypi/{r}" for r in pypi_releases]
     if only_min and not include_prerelease:
         # return only the min supported release
         return [pypi_releases[-1]]
