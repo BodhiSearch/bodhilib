@@ -110,7 +110,7 @@ runs:
           ${{ steps.cache-dirs.outputs.poetry-virtualenv-dir }}
         key: ${{ env.CACHE_KEY }}
     - name: Install poetry dependencies
-      if: env.CACHE_HIT != 'true' && inputs.setup == 'true'
+      if: env.CACHE_HIT != 'true' && inputs.setup == 'true' && inputs.working-directory != '.'
       shell: bash
       working-directory: ${{ inputs.working-directory }}
       run: |
