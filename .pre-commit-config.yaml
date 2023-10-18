@@ -38,6 +38,15 @@ repos:
         pass_filenames: false
   - repo: local
     hooks:
+      - id: update-ci-requirements-txt
+        name: update-ci-requirements-txt
+        description: 'Generate ci/requirements.txt based on poetry.lock group ci'
+        entry: poetry
+        args: [export, --format, requirements.txt, --only, ci, --without-hashes, --output, ci/requirements.txt]
+        language: system
+        pass_filenames: false
+  - repo: local
+    hooks:
       - id: check-poetry-lock
         name: check-poetry-lock
         description: 'Check poetry.lock file is in sync with pyproject.toml'

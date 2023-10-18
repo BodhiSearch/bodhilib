@@ -47,20 +47,10 @@ def get_project_dirs(arg: str) -> List[str]:
         return get_plugin_dirs(arg)
 
 
-def get_poetry_path() -> str:
-    result = subprocess.run(["which", "poetry"], capture_output=True, text=True)
-    if result.returncode == 0:
-        return result.stdout.strip()
-    else:
-        raise RuntimeError("Failed to get poetry path.")
-
-
-def exec_poetry(dirs: List[str], command: List[str]) -> int:
-    poetry_path = get_poetry_path()
+def execute_command(dirs: List[str], command: List[str]) -> int:
     for dir_path in dirs:
-        poetry_cmd = [poetry_path] + command
-        print(f"Executing: {' '.join(poetry_cmd)} in directory {dir_path}...")
-        result = subprocess.run(poetry_cmd, cwd=dir_path)
+        print(f"Executing: {' '.join(command)} in directory {dir_path}...")
+        result = subprocess.run(command, cwd=dir_path)
         if result.returncode != 0:
             return result.returncode
     return 0
@@ -287,10 +277,10 @@ def main() -> None:
     args = parser.parse_args()
     if args.top_command == "run":
         dirs = parse_args_target(args)
-        sys.exit(exec_poetry(dirs, ["run", args.command] + args.other_args))
+        sys.exit(execute_command(dirs, ["poetry", "run", args.command] + args.other_args))
     elif args.top_command == "exec":
         dirs = parse_args_target(args)
-        sys.exit(exec_poetry(dirs, [args.command] + args.other_args))
+        sys.exit(execute_command(dirs, ["poetry", args.command] + args.other_args))
     elif args.top_command == "supports":
         sys.exit(exec_supports(args.target, args.only_min))
     elif args.top_command == "tox":

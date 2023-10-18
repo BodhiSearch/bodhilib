@@ -26,29 +26,29 @@ exec:
 	@:
 
 ci.check:
-	@poetry run python make.py exec all check --lock
+	@python make.py exec all check --lock
 
 ci.test:
-	@poetry run python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest --cov=src --cov-report=xml --cov-report=html
+	@python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest --cov=src --cov-report=xml --cov-report=html
 	@:
 
 ci.build:
 	@# Invoke the Python script to 'build' and all passed arguments.
-	@poetry run python make.py exec $(filter-out $@,$(MAKECMDGOALS)) build
+	@python make.py exec $(filter-out $@,$(MAKECMDGOALS)) build
 	@:
 
 ci.supports:
 	@# Invoke the Python script to 'supports' and all passed arguments.
-	@poetry run python make.py supports $(filter-out $@,$(MAKECMDGOALS))
+	@python make.py supports $(filter-out $@,$(MAKECMDGOALS))
 	@:
 
 ci.tox:
 	@# Invoke the make.py script with 'tox' passing all passthrough args.
-	@poetry run python make.py tox $(filter-out $@,$(MAKECMDGOALS))
+	@python make.py tox $(filter-out $@,$(MAKECMDGOALS))
 	@:
 
 ci.lint:
-	@poetry run pre-commit run --show-diff-on-failure --color=always --all-files
+	@python -m pre-commit run --show-diff-on-failure --color=always --all-files
 
 clean_docs:
 	rm -rf docs/_build

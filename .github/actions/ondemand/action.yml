@@ -49,3 +49,7 @@ runs:
       working-directory: '.'
       run: |
         poetry install --only ci
+    - name: Install root poetry ci dependencies
+      shell: bash
+      run: |
+        pip install -r ci/requirements.txt
