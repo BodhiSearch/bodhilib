@@ -100,8 +100,13 @@ jobs:
         run: |
           PLUGIN=${{ matrix.plugin }}
           PLUGIN_DIR=plugins/${PLUGIN}
-          echo "PLUGIN_DIR=plugins/${PLUGIN}" # debug
+          PLUGIN_NAME=$(echo ${PLUGIN} | sed 's/bodhiext.//')
+          echo "PLUGIN=${PLUGIN}" # debug
+          echo "PLUGIN=${PLUGIN}" >> $GITHUB_ENV
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" # debug
+          echo "PLUGIN_NAME=${PLUGIN_NAME}" >> $GITHUB_ENV
       - name: Set up Python with Poetry
         uses: ./.github/actions/setup
         with:
