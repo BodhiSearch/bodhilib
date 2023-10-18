@@ -131,6 +131,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
+          setup: 'true'
       - name: Run tox
         run: |
           python_version=$(echo ${{ matrix.python-version }} | sed 's/\.//')
