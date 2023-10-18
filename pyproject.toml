@@ -1,7 +1,7 @@
 # contains common libraries for the project
 [tool.poetry]
 name = "bodhilib-mono"
-version = "0.1.0"
+version = "0.1.0-dev"
 description = "Monorepo for bodhilib"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
 license = "MIT"

@@ -190,7 +190,7 @@ def find_supported_versions(plugin_dir: str, only_min: bool = False, include_pre
 
 def parse_args_target(args: Any) -> List[str]:
     # Check if target directory exists in plugins
-    if not os.path.exists(f"plugins/{args.target}") and args.target not in ["all", "core"]:
+    if args.target not in ["all", "core"] and not os.path.exists(f"plugins/{args.target}"):
         print(f"Error: Directory for target '{args.target}' does not exist: plugins/{args.target}")
         sys.exit(1)
     dirs = get_project_dirs(args.target)

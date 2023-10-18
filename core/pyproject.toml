@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "bodhilib"
-version = "0.1.13"
+version = "0.1.13-dev"
 description = "An Open Source, Plugin Architecture based, Pythonic and Composable LLM Library"
 authors = ["Amir Nagri <amir.nagri@proton.me>"]
 readme = "README.md"

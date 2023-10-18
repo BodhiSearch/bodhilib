@@ -76,7 +76,7 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          CURRENT_VERSION="$(poetry version --short --directory core)"
+          CURRENT_VERSION="$(poetry version --short --directory core | sed 's/-dev$//')"
           echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
       - name: Set new pre-release version
         id: new-version
@@ -117,7 +117,7 @@ jobs:
       - name: Get current version
         id: current-version
         run: |
-          CURRENT_VERSION="$(poetry version --short --directory core)"
+          CURRENT_VERSION="$(poetry version --short --directory core | sed 's/-dev$//')"
           echo "CURRENT_VERSION=${CURRENT_VERSION}" # debug
           echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
       - name: Build package
@@ -140,7 +140,7 @@ jobs:
         run: |
           IFS='.' read -ra ADDR <<< "$CURRENT_VERSION"
           new_patch=$(( ${ADDR[2]} + 1 ))
-          NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch"
+          NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch-dev"
           echo "NEW_VERSION=$NEW_VERSION"
           echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
           echo "VERSION_FILE=core/src/bodhilib/_version.py"
@@ -152,15 +152,14 @@ jobs:
           echo "# to modify the content, modify the CI workflow file - .github/workflows/core.yml, job: \"Bump patch version\"" >> ${VERSION_FILE}
           echo "__version__ = \"${NEW_VERSION}\"" >> ${VERSION_FILE}
           poetry version "$NEW_VERSION" --directory core
-      - name: Run update_config.py to update the configs
+      - name: Run ci.update-lock-files and ci.lint
         run: |
-          python update_config.py
+          make ci.update-lock-files
+          make ci.lint
       - name: Commit and push changes
         run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<github-actions@users.noreply.github.com>"
-          git add core/pyproject.toml
-          git add ${VERSION_FILE}
-          git add tox.ini
+          git add core/pyproject.toml ${VERSION_FILE} tox.ini **/poetry.lock
           git commit -m "[Github Workflows] bumping up the patch version to ${NEW_VERSION}"
           git push

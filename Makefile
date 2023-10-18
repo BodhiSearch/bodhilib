@@ -50,6 +50,9 @@ ci.tox:
 ci.lint:
 	@poetry run pre-commit run --show-diff-on-failure --color=always --all-files
 
+ci.update-lock-files:
+	@python make.py exec all lock --no-update
+
 clean_docs:
 	rm -rf docs/_build
 
