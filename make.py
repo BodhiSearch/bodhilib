@@ -3,11 +3,18 @@ import argparse
 import os
 import subprocess
 import sys
-from typing import Any, List, Union, cast, no_type_check
+from typing import Any, List, cast, no_type_check
 
 import tomli
 
-from update_configs import fetch_gh_releases, fetch_versions, plugin_dirs, plugin_names, python_versions
+from update_configs import (
+    fetch_gh_releases,
+    fetch_versions,
+    plugin_dirs,
+    plugin_full_names,
+    plugin_names,
+    python_versions,
+)
 
 dir_opts = tuple(["core", "all"] + list(plugin_names))
 
@@ -17,6 +24,16 @@ def get_plugin_dirs(arg: str) -> List[str]:
         return list(plugin_dirs)
     else:
         plugin_path = f"plugins/bodhiext.{arg}"
+        if not os.path.exists(plugin_path):
+            raise ValueError(f"Plugin {plugin_path} does not exist")
+        return [plugin_path]
+
+
+def get_plugin_dirs_from_name(arg: str) -> List[str]:
+    if arg == "all":
+        return list(plugin_dirs)
+    else:
+        plugin_path = f"plugins/{arg}"
         if not os.path.exists(plugin_path):
             raise ValueError(f"Plugin {plugin_path} does not exist")
         return [plugin_path]
@@ -50,21 +67,27 @@ def run_poetry_cmd(plugin_dir: str, args: List[str]) -> List[str]:
     return errors
 
 
-def run_tox(bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
+def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
     errors = []
-    pyproj_file = os.path.join(plugin_dir, "pyproject.toml")
-    with open(pyproj_file, "r") as file:
-        content = file.read()
-    for python_version in python_versions:
+    for python_version in py_versions:
         for bodhilib_version in bodhilib_versions:
             if error := run_poetry_cmd(plugin_dir, ["check", "--lock"]):
                 errors.extend(error)
                 continue
             # update bodhilib version
-            if error := run_poetry_cmd(plugin_dir, ["add", f"bodhilib=={bodhilib_version}"]):
-                errors.extend(error)
-                continue
-            bodhilib_version_str = bodhilib_version.replace(".", "_")
+            if bodhilib_version.startswith("pypi/"):
+                version = bodhilib_version.replace("pypi/", "")
+                if error := run_poetry_cmd(plugin_dir, ["add", f"bodhilib=={version}"]):
+                    errors.extend(error)
+                    continue
+                bodhilib_version_str = version.replace(".", "_")
+
+            elif bodhilib_version.startswith("pre/"):
+                whl_url = bodhilib_version.replace("pre/", "")
+                if error := run_poetry_cmd(plugin_dir, ["add", whl_url]):
+                    errors.extend(error)
+                    continue
+                bodhilib_version_str = "pre"
             plugin_name = plugin_dir.replace("plugins/bodhiext.", "")
             env = f"{python_version}-plugins_{plugin_name}-bodhilib_{bodhilib_version_str}"
             command = [
@@ -78,8 +101,19 @@ def run_tox(bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
                 error_msg = result.stderr.decode("utf-8")
                 errors.append(f"Error running tox for {python_version=}, {bodhilib_version=}\n")
                 errors.append(error_msg)
-    with open(pyproj_file, "w") as file:
-        file.write(content)
+    return errors
+
+
+def run_tox(bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
+    errors = []
+    pyproj_file = os.path.join(plugin_dir, "pyproject.toml")
+    with open(pyproj_file, "r") as file:
+        content = file.read()
+    try:
+        errors.extend(run_tox_for(list(python_versions), bodhilib_versions, plugin_dir))
+    finally:
+        with open(pyproj_file, "w") as file:
+            file.write(content)
     if error := run_poetry_cmd(plugin_dir, ["lock", "--no-update"]):
         errors.extend(error)
     return errors
@@ -103,10 +137,10 @@ def load_pyproject(dir_path: str) -> dict:
     return cast(dict, bodhilib_config)
 
 
-def exec_compat(dirs: List[str]) -> int:
+def exec_compat(dirs: List[str], only_min: bool = False, include_prerelease: bool = False) -> int:
     errors = []
     for dir_path in dirs:
-        bodhilib_versions = cast(List[str], find_supported_versions(dir_path))
+        bodhilib_versions = find_supported_versions(dir_path, only_min, include_prerelease)
         result = run_tox(bodhilib_versions, dir_path)
         errors.extend(result)
     if errors:
@@ -119,20 +153,24 @@ def exec_compat(dirs: List[str]) -> int:
 
 
 @no_type_check
-def find_supported_versions(
-    plugin_dir: str, only_min: bool = False, include_prerelease: bool = False
-) -> Union[str, List[str]]:
+def find_supported_versions(plugin_dir: str, only_min: bool = False, include_prerelease: bool = False) -> List[str]:
     result = []
     pyproj = load_pyproject(plugin_dir)
     min_version = pyproj["tool"]["bodhilib"]["version"]
     pypi_releases = fetch_versions("bodhilib", min_version)
     pypi_releases = [f"pypi/{r}" for r in pypi_releases]
-    gh_releases = fetch_gh_releases("BodhiSearch", "bodhilib", None)
+    if only_min and not include_prerelease:
+        # return only the min supported release
+        return [pypi_releases[-1]]
     if only_min:
+        # add only the min supported release
         result.append(pypi_releases[-1])
     else:
+        # add all supported releases
         result.extend(pypi_releases)
     if include_prerelease:
+        # add the latest prerelease
+        gh_releases = fetch_gh_releases("BodhiSearch", "bodhilib", None)
         prereleases = [
             release for release in gh_releases if release["name"].startswith("bodhilib/") and release["prerelease"]
         ]
@@ -141,8 +179,6 @@ def find_supported_versions(
         asset_whl = [asset for asset in prerelease["assets"] if asset["name"].endswith(".whl")]
         whl_url = asset_whl[0]["browser_download_url"]
         result.insert(0, f"pre/{whl_url}")
-    if only_min and not include_prerelease:
-        return result[0]
     return result
 
 
@@ -196,17 +232,15 @@ def main() -> None:
     compat_parser.add_argument(
         "target",
         type=str,
-        choices=["all"] + list(plugin_names),
+        choices=["all"] + list(plugin_full_names),
         nargs="?",
         default="all",
         help="Project to run compatibility check against",
     )
-
-    # 'supports' command
-    supports = subparsers.add_parser("supports", help="List supported bodhilib versions for given plugin directory")
-    supports.add_argument("target", type=str, help="Plugin directory to check supported bodhilib versions")
-    supports.add_argument("--only-min", action="store_true", help="Only print minimum supported version")
-    supports.add_argument("--include-prerelease", action="store_true", help="Include the latest pre-release version")
+    compat_parser.add_argument("--only-min", action="store_true", help="Run only for minimum supported version")
+    compat_parser.add_argument(
+        "--include-prerelease", action="store_true", help="Include the latest pre-release for compatibility test"
+    )
 
     args = parser.parse_args()
     if args.top_command == "run":
@@ -216,15 +250,8 @@ def main() -> None:
         dirs = parse_args_target(args)
         sys.exit(execute_command(dirs, ["poetry", args.command] + args.other_args))
     elif args.top_command == "compat":
-        dirs = get_plugin_dirs(args.target)
-        sys.exit(exec_compat(dirs))
-    elif args.top_command == "supports":
-        plugin_dir = f"plugins/{args.target}"
-        if not os.path.exists(plugin_dir):
-            print(f"Error: Plugin directory '{plugin_dir}' does not exist")
-            sys.exit(1)
-        supported_versions = find_supported_versions(plugin_dir, args.only_min, args.include_prerelease)
-        print(supported_versions)
+        dirs = get_plugin_dirs_from_name(args.target)
+        sys.exit(exec_compat(dirs, args.only_min, args.include_prerelease))
 
 
 if __name__ == "__main__":

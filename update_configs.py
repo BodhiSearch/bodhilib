@@ -10,6 +10,7 @@ import yaml
 min_compat_version = "0.1.11"
 python_versions = tuple(["py38", "py39", "py310", "py311"])
 plugin_dirs = tuple([os.path.join("plugins", d) for d in os.listdir("plugins") if d.startswith("bodhiext.")])
+plugin_full_names = tuple([d.replace("plugins/", "") for d in plugin_dirs])
 plugin_names = tuple([d.replace("plugins/bodhiext.", "") for d in plugin_dirs])
 
 
@@ -160,7 +161,7 @@ def fetch_gh_releases(owner: str, repo: str, token: Optional[str] = None) -> Dic
         if response.status == 200:
             body = response.read()
             data = json.loads(body)
-            return data # type: ignore
+            return data  # type: ignore
         else:
             raise Exception(f"HTTP error {response.status}: {response.reason}")
 
@@ -190,6 +191,7 @@ def update_tox_ini(plugin_dir: str) -> None:
     config.read(filename)
     bodhilib_versions = fetch_versions("bodhilib", min_compat_version)
     bodhilib_versions = [version.replace(".", "_") for version in bodhilib_versions]
+    bodhilib_versions.append("pre")
     py_versions = ",".join(python_versions)
     core_versions = ",".join(bodhilib_versions)
     expected_envlist = "{" + py_versions + "}-plugins_{" + plugin_name + "}-bodhilib_{" + core_versions + "}"

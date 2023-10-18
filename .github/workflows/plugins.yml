@@ -85,40 +85,14 @@ jobs:
           fi
           echo "matrix=$PLUGINS" # debug
           echo "matrix=$PLUGINS" >> "$GITHUB_OUTPUT"
-  find-compat:
+  run-test:
     needs: determine_plugin
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && (github.event.inputs.release == '' || github.event.inputs.release == 'no') }}
     runs-on: ubuntu-latest
-    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
+      fail-fast: false
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
-    outputs:
-      supported_versions: ${{ steps.find-compat.outputs.supported_versions }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Find all supported bodhilib versions for plugin ${{ matrix.plugin }}
-        shell: bash
-        run: |
-          # if inputs set as pre or no, then find the min supported version, and the latest pre-release
-          if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
-            versions=$(make ci.supports -- ${{ matrix.plugin }}) --only-min --include-prerelease
-          # else if it is a release, find all release versions since min supported version
-          elif [[ "${{ github.event.inputs.release }}" == "yes" ]];
-          then
-            versions=$(make ci.supports -- ${{ matrix.plugin }})
-          else
-            # if inputs set as no, so normal build, run against local dev version
-            versions="['dev']"
-          fi
-          echo "supported_versions={'plugin': ['${{ matrix.plugin }}'], 'version': $versions}" # debug
-          echo "supported_versions={'plugin': ['${{ matrix.plugin }}'], 'version': $versions}" >> "$GITHUB_OUTPUT"
-  test-plugin:
-    needs: find-compat
-    runs-on: ubuntu-latest
-    if: ${{ toJson(fromJson(needs.find-compat.outputs.supported_versions).version) != '[]' }}
-    strategy:
-      matrix: ${{ fromJson(needs.find-compat.outputs.supported_versions) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -129,10 +103,10 @@ jobs:
           echo "PLUGIN_DIR=plugins/${PLUGIN}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Set up Python with Poetry
-        uses: ./.github/actions/ondemand
+        uses: ./.github/actions/setup
         with:
+          setup: 'true'
           working-directory: ${{ env.PLUGIN_DIR }}
-          bodhilib-version: ${{ matrix.version }}
       - name: Copy .env.ci to .env.test
         run: |
           cd ${{ env.PLUGIN_DIR }}
@@ -143,6 +117,36 @@ jobs:
       - name: Build
         run: |
           make ci.build ${{ env.PLUGIN_NAME }}
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          env_vars: OS,PYTHON
+          files: ${{ env.PLUGIN_DIR }}/coverage.xml
+          flags: unittests,${{ env.PLUGIN_NAME }}
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+  run-tox:
+    needs: determine_plugin
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release != '' && (github.event.inputs.release == 'yes' || github.event.inputs.release == 'pre') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Python with Poetry
+        uses: ./.github/actions/setup
+      - name: Run tox
+        run: |
+          make_opts=""
+          # if inputs set as pre or no, then find the min supported version, and the latest pre-release
+          if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
+            make_opts="--only-min --include-prerelease"
+          fi
+          make compat ${make_opts} ${{ matrix.plugin }}
   prerelease:
     needs: [test-plugin]
     if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
