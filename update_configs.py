@@ -29,7 +29,7 @@ def update_mypy_ini() -> None:
 
     with open(filename, "r") as f:
         content = f.readlines()
-    dirs_with_src = [root for root, dirs, _ in os.walk("plugins") if "src" in dirs]
+    dirs_with_src = [f"{plugin_dir}/src" for plugin_dir in plugin_dirs]
     dirs_with_src.insert(0, "core/src")
     new_mypy_path = f"mypy_path = {','.join(dirs_with_src)}\n"
     for idx, line in enumerate(content):
