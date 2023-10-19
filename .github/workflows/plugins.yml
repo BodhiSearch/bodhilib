@@ -100,6 +100,7 @@ jobs:
         uses: ./.github/actions/run-test
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
   run-tox:
     needs: [run-test, determine_plugin]
     if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release

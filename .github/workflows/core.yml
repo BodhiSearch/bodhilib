@@ -39,6 +39,7 @@ jobs:
         uses: ./.github/actions/run-test
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
+          codecov-token: ${{ secrets.CODECOV_TOKEN }}
   prerelease:
     needs: [pre-commit, test]
     if: github.event.inputs.release == 'pre'
