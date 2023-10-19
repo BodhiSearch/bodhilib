@@ -42,7 +42,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
   prerelease:
     needs: [pre-commit, test]
-    if: github.event.inputs.release == 'pre'
+    if: ${{ github.event.inputs.release == 'pre' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write
@@ -58,7 +58,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
     needs: [pre-commit, test]
-    if: github.event.inputs.release == 'yes'
+    if: ${{ github.event.inputs.release == 'yes' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write

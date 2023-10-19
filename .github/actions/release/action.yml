@@ -60,14 +60,14 @@ runs:
         echo "current_version=${current_version}" # debug
         echo "current_version=${current_version}" >> $GITHUB_OUTPUT
     - name: Set new pre-release version
-      if: ${{ inputs.release }} == 'pre'
+      if: ${{ inputs.release == 'pre' }}
       shell: bash
       run: |
         NEW_VERSION=${{ steps.current-version.outputs.current_version }}-$(date +'%Y%m%d%H%M%S')
         echo "NEW_VERSION=${NEW_VERSION}" # debug
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
     - name: Set new release version
-      if: ${{ inputs.release }} == 'yes'
+      if: ${{ inputs.release == 'yes' }}
       shell: bash
       run: |
         NEW_VERSION=${{ steps.current-version.outputs.current_version }}
@@ -88,7 +88,7 @@ runs:
         echo "# to modify the content, modify the CI workflow file - .github/actions/release/action.yml" >> ${VERSION_FILE}
         echo "__version__ = \"${NEW_VERSION}\"" >> ${VERSION_FILE}
     - name: Set bodhilib min supported version
-      if: ${{ env.IS_PLUGIN }} == 'true'
+      if: ${{ env.IS_PLUGIN == 'true' }}
       shell: bash
       run: |
         # Get the min supported version
@@ -109,14 +109,14 @@ runs:
         token: ${{ inputs.GITHUB_TOKEN }}
         commit: main
     - name: Publish package to PyPI
-      if: ${{ inputs.release }} == 'yes'
+      if: ${{ inputs.release == 'yes' }}
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         verbose: true
         print-hash: true
         packages-dir: ${{ inputs.working-directory }}/dist/
     - name: Bump patch version
-      if: ${{ inputs.release }} == 'yes'
+      if: ${{ inputs.release == 'yes' }}
       shell: bash
       run: |
         IFS='.' read -ra ADDR <<< "$NEW_VERSION"
@@ -125,7 +125,7 @@ runs:
         echo "BUMPED_VERSION=$BUMPED_VERSION" # debug
         echo "BUMPED_VERSION=$BUMPED_VERSION" >> $GITHUB_ENV
     - name: Update to next dev version
-      if: ${{ inputs.release }} == 'yes'
+      if: ${{ inputs.release == 'yes' }}
       shell: bash
       run: |
         # Using poetry's version command to set a new version
@@ -136,13 +136,13 @@ runs:
         echo "# to modify the content, modify the CI workflow file - .github/actions/release/action.yml" >> ${VERSION_FILE}
         echo "__version__ = \"${BUMPED_VERSION}\"" >> ${VERSION_FILE}
     - name: Run ci.update-lock-files and ci.lint
-      if: ${{ inputs.release }} == 'yes'
+      if: ${{ inputs.release == 'yes' }}
       shell: bash
       run: |
         make ci.update-lock-files
         make ci.lint
     - name: Commit and push changes
-      if: ${{ inputs.release }} == 'yes'
+      if: ${{ inputs.release == 'yes' }}
       shell: bash
       run: |
         git config user.name "GitHub Actions Bot"
