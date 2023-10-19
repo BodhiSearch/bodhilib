@@ -10,11 +10,12 @@ repos:
         pass_filenames: false
   - repo: local
     hooks:
-      - id: update_configs
-        name: update_configs
-        description: 'Update mypy.ini, pytest.ini, .github/workflows/plugins.yml, tox.ini'
-        entry: ./update_configs.py
-        language: script
+      - id: update-configs
+        name: update-configs
+        description: 'Update plugin configs dependent on core'
+        entry: make
+        args: [ci.update-configs]
+        language: system
         pass_filenames: false
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6

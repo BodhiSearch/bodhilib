@@ -14,6 +14,10 @@ from update_configs import (
     plugin_dirs,
     plugin_folders,
     python_versions,
+    update_github_workflows,
+    update_mypy_ini,
+    update_pytest_ini,
+    update_tox_inis,
 )
 
 dir_opts = tuple(["core", "all"] + list(plugin_folders))
@@ -219,6 +223,14 @@ def exec_supports(plugin_folders: List[str], only_min: bool, plaintext: bool) ->
     return 0
 
 
+def exec_update_configs() -> int:
+    update_mypy_ini()
+    update_pytest_ini()
+    update_github_workflows()
+    update_tox_inis()
+    return 0
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Python library to automate and orchestrate bodhilib build process.")
     subparsers = parser.add_subparsers(dest="top_command", required=True)
@@ -285,6 +297,9 @@ def main() -> None:
         "--python-versions", type=str, default=",".join(python_versions), help="Python version to run tox against"
     )
 
+    # 'update-configs' command
+    _ = subparsers.add_parser("update-configs", help="Update configs")
+
     args = parser.parse_args()
     if args.top_command == "run":
         dirs = parse_args_target(args)
@@ -297,6 +312,11 @@ def main() -> None:
     elif args.top_command == "tox":
         dirs = get_plugin_dirs_from_name(args.target)
         sys.exit(exec_tox(dirs, args.only_min, args.include_prerelease, args.python_versions))
+    elif args.top_command == "update-configs":
+        sys.exit(exec_update_configs())
+    else:
+        print(f"Unknown command {args.top_command}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

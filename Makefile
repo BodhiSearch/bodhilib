@@ -53,6 +53,9 @@ ci.lint:
 ci.update-lock-files:
 	@python make.py exec all lock --no-update
 
+ci.update-configs:
+	@python make.py update-configs
+
 clean_docs:
 	rm -rf docs/_build
 
