@@ -5,7 +5,7 @@ inputs:
   working-directory:
     description: Directory to run commands in
     required: true
-  CODECOV_TOKEN:
+  codecov-token:
     description: Codecov token
     required: true
 
@@ -42,4 +42,4 @@ runs:
         files: ${{ inputs.working-directory }}/coverage.xml
         flags: unittests,${PROJECT_ID}
       env:
-        CODECOV_TOKEN: ${{ inputs.CODECOV_TOKEN }}
+        CODECOV_TOKEN: ${{ inputs.codecov-token }}
