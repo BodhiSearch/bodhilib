@@ -199,7 +199,7 @@ jobs:
           poetry version "${NEW_VERSION}" --directory "${PLUGIN_DIR}"
           echo "__version__ = \"${NEW_VERSION}\"" > ${VERSION_FILE}
       - name: Build package
-        run: make ci.build ${PLUGIN_NAME}
+        run: make ci.build ${PLUGIN_FOLDER}
       - name: Create pre-release
         uses: ncipollo/release-action@v1
         with:
@@ -241,7 +241,7 @@ jobs:
           echo "CURRENT_VERSION=${CURRENT_VERSION}" # debug
           echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
       - name: Build package
-        run: make ci.build ${PLUGIN_NAME}
+        run: make ci.build ${PLUGIN_FOLDER}
       - name: Create Release
         uses: ncipollo/release-action@v1
         with:
