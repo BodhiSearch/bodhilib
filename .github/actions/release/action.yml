@@ -45,8 +45,6 @@ runs:
         echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
         echo "IS_PLUGIN=$IS_PLUGIN" # debug
         echo "IS_PLUGIN=$IS_PLUGIN" >> $GITHUB_ENV
-    - name: Checkout code
-      uses: actions/checkout@v3
     - name: Set up Python with Poetry
       uses: ./.github/actions/setup
       with:

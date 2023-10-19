@@ -48,6 +48,8 @@ jobs:
       id-token: write
       contents: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Pre-release
         uses: ./.github/actions/release
         with:
@@ -61,6 +63,8 @@ jobs:
       id-token: write
       contents: write
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Release
         uses: ./.github/actions/release
         with:
