@@ -12,10 +12,23 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Validate input args
+      shell: bash
+      run: |
+        # fail if working dir does not exists
+        if [[ ! -d "${{ inputs.working-directory }}" ]]; then
+          echo "Working directory does not exist: ${{ inputs.working-directory }}"
+          exit 1
+        fi
+        # fail if working dir does not have pyproject.toml
+        if [[ ! -f "${{ inputs.working-directory }}/pyproject.toml" ]]; then
+          echo "Working directory does not have pyproject.toml: ${{ inputs.working-directory }}"
+          exit 1
+        fi
     - name: set $PROJECT_ID
       shell: bash
       run: |
-        if [[ -z "${{ inputs.working-directory }}" == "core" ]]; then
+        if [[ "${{ inputs.working-directory }}" == "core" ]]; then
           PROJECT_ID=core
         else
           PROJECT_ID=$(echo ${{ inputs.working-directory }} | sed 's/plugins\///')
