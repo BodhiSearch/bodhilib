@@ -132,7 +132,7 @@ def update_github_workflows() -> None:
     workflows["on"]["workflow_dispatch"]["inputs"]["plugin"]["options"] = dirs_with_pyproject
     with open(filename, "w") as f:
         f.writelines([header])
-        yaml.dump(workflows, f, Dumper=CustomDumper)
+        yaml.dump(workflows, f, Dumper=CustomDumper, default_flow_style=False, width=250)
     print("Updated github workflows for new plugins.")
 
 

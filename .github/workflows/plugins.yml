@@ -10,8 +10,7 @@ on:
     branches: [main]
     inputs:
       release:
-        description: Publish a plugin library release (yes) or pre-release (pre) or
-          none (no)? (yes/pre/no)
+        description: Publish a plugin library release (yes) or pre-release (pre) or none (no)? (yes/pre/no)
         required: false
         default: 'no'
       plugin:
@@ -103,11 +102,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
   run-tox:
     needs: [run-test, determine_plugin]
-    if: |
-      ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]'
-        && github.event.inputs.release != ''
-        && (github.event.inputs.release == 'yes'
-        || github.event.inputs.release == 'pre') }}
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release != '' && (github.event.inputs.release == 'yes' || github.event.inputs.release == 'pre') }}
     strategy:
       fail-fast: false
       matrix:
@@ -158,9 +153,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
     needs: [run-tox, determine_plugin]
-    if: |
-      ${{ github.event.inputs.release == 'yes'
-        && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
+    if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
