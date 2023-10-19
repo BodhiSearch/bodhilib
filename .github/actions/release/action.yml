@@ -37,11 +37,11 @@ runs:
     - name: set $PROJECT_ID
       shell: bash
       run: |
-        if [[ -z "${{ inputs.working-directory }}" == "core" ]]; then
+        if [[ "${{ inputs.working-directory }}" == "core" ]]; then
           PROJECT_ID=core
           IS_PLUGIN=false
         else
-          PROJECT_ID=sed 's/${{ inputs.working-directory }}"/plugins\///'
+          PROJECT_ID=$(echo ${{ inputs.working-directory }} | sed 's/plugins\///')
           IS_PLUGIN=true
         fi
         echo "PROJECT_ID=$PROJECT_ID" # debug
