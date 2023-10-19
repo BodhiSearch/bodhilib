@@ -108,6 +108,7 @@ runs:
         name: ${{ env.PROJECT_ID }}/v${{ env.NEW_VERSION }}
         token: ${{ inputs.GITHUB_TOKEN }}
         commit: main
+        prerelease: ${{ inputs.release == 'pre' }}
     - name: Publish package to PyPI
       if: ${{ inputs.release == 'yes' }}
       uses: pypa/gh-action-pypi-publish@release/v1
