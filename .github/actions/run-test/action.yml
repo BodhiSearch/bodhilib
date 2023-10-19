@@ -18,7 +18,7 @@ runs:
         if [[ -z "${{ inputs.working-directory }}" == "core" ]]; then
           PROJECT_ID=core
         else
-          PROJECT_ID=sed 's/${{ inputs.working-directory }}"/plugins\///'
+          PROJECT_ID=$(echo ${{ inputs.working-directory }} | sed 's/plugins\///')
         fi
         echo "PROJECT_ID=$PROJECT_ID" # debug
         echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
