@@ -26,8 +26,10 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: pre-commit
-        uses: './.github/actions/pre-commit'
+        uses: ./.github/actions/pre-commit
   determine_plugin:
     runs-on: ubuntu-latest
     needs: [pre-commit]
@@ -78,7 +80,6 @@ jobs:
           min_versions=$(make ci.supports -- ${plugins} --only-min)
           echo "min-versions=${min_versions}" # debug
           echo "min-versions=${min_versions}" >> $GITHUB_OUTPUT
-
   run-test:
     needs: determine_plugin
     if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]'}}
@@ -94,12 +95,14 @@ jobs:
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Run Test
-        uses: './.github/actions/run-test'
+        uses: ./.github/actions/run-test
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
   run-tox:
     needs: [run-test, determine_plugin]
-    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release != '' && (github.event.inputs.release == 'yes' || github.event.inputs.release == 'pre') }}
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release
+      != '' && (github.event.inputs.release == 'yes' || github.event.inputs.release
+      == 'pre') }}
     strategy:
       fail-fast: false
       matrix:
@@ -126,7 +129,8 @@ jobs:
           make ci.tox -- ${{ matrix.plugin }} ${make_opts}
   prerelease:
     needs: [run-tox, determine_plugin]
-    if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
+    if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix))
+      != '[]' }}
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
@@ -147,7 +151,8 @@ jobs:
           release: ${{ github.event.inputs.release }}
   release:
     needs: [run-tox, determine_plugin]
-    if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
+    if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix))
+      != '[]' }}
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
