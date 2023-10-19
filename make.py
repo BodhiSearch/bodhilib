@@ -198,7 +198,7 @@ def parse_args_target(args: Any) -> List[str]:
     return dirs
 
 
-def exec_supports(plugin_folders: List[str], only_min: bool) -> int:
+def exec_supports(plugin_folders: List[str], only_min: bool, plaintext: bool) -> int:
     missing_folders = [folder for folder in plugin_folders if not os.path.exists(f"plugins/{folder}")]
     if missing_folders:
         print(f"Error: Plugin directory does not exist: '{missing_folders}'")
@@ -211,6 +211,10 @@ def exec_supports(plugin_folders: List[str], only_min: bool) -> int:
             result[plugin_folder] = versions[0]
         else:
             result[plugin_folder] = versions
+    if plaintext and len(result.items()) == 1:
+        version = next(iter(result.items()))[1]
+        print(f"{version}")
+        return 0
     print(json.dumps(result, separators=(",", ":")))
     return 0
 
@@ -261,6 +265,7 @@ def main() -> None:
         help="List supported versions for given plugin.",
     )
     supports_parser.add_argument("--only-min", action="store_true", help="List only minimum supported version")
+    supports_parser.add_argument("--plaintext", action="store_true", help="Print output in plaintext")
 
     # 'compat' command
     tox_parser = subparsers.add_parser("tox", help="Execute compatibility checks for given plugin using tox")
@@ -288,7 +293,7 @@ def main() -> None:
         dirs = parse_args_target(args)
         sys.exit(execute_command(dirs, ["poetry", args.command] + args.other_args))
     elif args.top_command == "supports":
-        sys.exit(exec_supports(args.targets, args.only_min))
+        sys.exit(exec_supports(args.targets, args.only_min, args.plaintext))
     elif args.top_command == "tox":
         dirs = get_plugin_dirs_from_name(args.target)
         sys.exit(exec_tox(dirs, args.only_min, args.include_prerelease, args.python_versions))

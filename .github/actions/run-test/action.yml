@@ -1,0 +1,45 @@
+name: run-test
+description: run test
+
+inputs:
+  working-directory:
+    description: Directory to run commands in
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: set $PROJECT_ID
+      shell: bash
+      run: |
+        if [[ -z "${{ inputs.working-directory }}" == "core" ]]; then
+          PROJECT_ID=core
+        else
+          PROJECT_ID=sed 's/${{ inputs.working-directory }}"/plugins\///'
+        fi
+        echo "PROJECT_ID=$PROJECT_ID" # debug
+        echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Python with Poetry
+      uses: './.github/actions/setup'
+      with:
+        working-directory: ${{ inputs.working-directory }}
+    - name: Copy .env.ci to .env.test
+      shell: bash
+      with:
+        working-directory: ${{ inputs.working-directory }}
+      run: |
+        cp .env.ci .env.test
+    - name: Run tests
+      shell: bash
+      run: |
+        make ci.test ${PROJECT_ID}
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        env_vars: OS,PYTHON
+        files: ${{ inputs.working-directory }}/coverage.xml
+        flags: unittests,${PROJECT_ID}
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

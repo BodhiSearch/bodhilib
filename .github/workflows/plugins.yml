@@ -26,12 +26,6 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
-        with:
-          setup: 'true'
       - name: pre-commit
         uses: './.github/actions/pre-commit'
   determine_plugin:
@@ -94,39 +88,15 @@ jobs:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
       - name: Set PLUGIN_DIR
         run: |
-          PLUGIN_FOLDER=${{ matrix.plugin }}
-          PLUGIN_DIR=plugins/${PLUGIN_FOLDER}
-          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" # debug
-          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" >> $GITHUB_ENV
+          PLUGIN_DIR=plugins/${{ matrix.plugin }}
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-      - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
+      - name: Run Test
+        uses: './.github/actions/run-test'
         with:
-          setup: 'true'
           working-directory: ${{ env.PLUGIN_DIR }}
-      - name: Copy .env.ci to .env.test
-        run: |
-          cd ${{ env.PLUGIN_DIR }}
-          cp .env.ci .env.test
-      - name: Run tests
-        run: |
-          make ci.test ${{ env.PLUGIN_FOLDER }}
-      - name: Build
-        run: |
-          make ci.build ${{ env.PLUGIN_FOLDER }}
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          env_vars: OS,PYTHON
-          files: ${{ env.PLUGIN_DIR }}/coverage.xml
-          flags: unittests,${{ env.PLUGIN_FOLDER }}
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   run-tox:
     needs: [run-test, determine_plugin]
     if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release != '' && (github.event.inputs.release == 'yes' || github.event.inputs.release == 'pre') }}
@@ -144,7 +114,6 @@ jobs:
         uses: ./.github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
-          setup: 'true'
       - name: Run tox
         run: |
           python_version=$(echo ${{ matrix.python-version }} | sed 's/\.//')
@@ -168,46 +137,14 @@ jobs:
     steps:
       - name: Set PLUGIN envs
         run: |
-          PLUGIN_FOLDER=${{ matrix.plugin }}
-          PLUGIN_DIR=plugins/${PLUGIN_FOLDER}
-          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" # debug
-          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" >> $GITHUB_ENV
+          PLUGIN_DIR=plugins/${{ matrix.plugin }}
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python with Poetry
-        uses: ./.github/actions/ondemand
+      - name: Pre-release
+        uses: ./.github/actions/release
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
-          bodhilib-version: ${{ fromJson(needs.determine_plugin.outputs.min-versions)[env.PLUGIN_FOLDER] }}
-      - name: Get current version
-        id: current-version
-        run: |
-          CURRENT_VERSION="$(poetry version --short --directory \"${PLUGIN_DIR}\" | sed 's/-dev$//')"
-          echo "CURRENT_VERSION=${CURRENT_VERSION}" # debug
-          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
-      - name: Set new pre-release version
-        id: new-version
-        run: |
-          NEW_VERSION="${CURRENT_VERSION}-$(date +'%Y%m%d%H%M%S')"
-          echo "NEW_VERSION=${NEW_VERSION}" # debug
-          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
-      - name: Update version to pre-release version
-        run: |
-          VERSION_FILE=$(find "${PLUGIN_DIR}/src/" -name "_version.py" -type f | head -n 1)
-          poetry version "${NEW_VERSION}" --directory "${PLUGIN_DIR}"
-          echo "__version__ = \"${NEW_VERSION}\"" > ${VERSION_FILE}
-      - name: Build package
-        run: make ci.build ${PLUGIN_FOLDER}
-      - name: Create pre-release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: ${{ env.PLUGIN_DIR }}/dist/*
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.PLUGIN_FOLDER }}/v${{ env.NEW_VERSION }}
-          name: ${{ env.PLUGIN_FOLDER }}/v${{ env.NEW_VERSION }}
-          prerelease: true
+          release: ${{ github.event.inputs.release }}
   release:
     needs: [run-tox, determine_plugin]
     if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
@@ -221,66 +158,11 @@ jobs:
     steps:
       - name: Set PLUGIN envs
         run: |
-          PLUGIN_FOLDER=${{ matrix.plugin }}
-          PLUGIN_DIR=plugins/${PLUGIN_FOLDER}
-          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" # debug
-          echo "PLUGIN_FOLDER=${PLUGIN_FOLDER}" >> $GITHUB_ENV
+          PLUGIN_DIR=plugins/${{ matrix.plugin }}
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Set up Python with Poetry
-        uses: ./.github/actions/ondemand
+      - name: Pre-release
+        uses: ./.github/actions/release
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
-          bodhilib-version: ${{ fromJson(needs.determine_plugin.outputs.min-versions)[env.PLUGIN_FOLDER] }}
-      - name: Get current version
-        id: current-version
-        run: |
-          CURRENT_VERSION=$(poetry version --short --directory ${PLUGIN_DIR} | sed 's/-dev$//')
-          echo "CURRENT_VERSION=${CURRENT_VERSION}" # debug
-          echo "CURRENT_VERSION=${CURRENT_VERSION}" >> $GITHUB_ENV
-      - name: Build package
-        run: make ci.build ${PLUGIN_FOLDER}
-      - name: Create Release
-        uses: ncipollo/release-action@v1
-        with:
-          artifacts: ${{ env.PLUGIN_DIR }}/dist/*
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.PLUGIN_FOLDER }}/v${{ env.CURRENT_VERSION }}
-          name: ${{ env.PLUGIN_FOLDER }}/v${{ env.CURRENT_VERSION }}
-          commit: main
-      - name: Publish package to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          verbose: true
-          print-hash: true
-          packages-dir: ${{ env.PLUGIN_DIR }}/dist/
-      - name: Export NEW_VERSION and VERSION_FILE
-        run: |
-          IFS='.' read -ra ADDR <<< "$CURRENT_VERSION"
-          new_patch=$(( ${ADDR[2]} + 1 ))
-          NEW_VERSION="${ADDR[0]}.${ADDR[1]}.$new_patch-dev"
-          echo "NEW_VERSION=$NEW_VERSION" # debug
-          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_ENV
-          VERSION_FILE=$(find "${PLUGIN_DIR}/src/" -name "_version.py" -type f | head -n 1)
-          echo "VERSION_FILE=$VERSION_FILE" # debug
-          echo "VERSION_FILE=$VERSION_FILE" >> $GITHUB_ENV
-      - name: Bump patch version
-        run: |
-          poetry version "${NEW_VERSION}" --directory "${PLUGIN_DIR}"
-          # Overwrite the _version.py file with the new version
-          echo "# this file is automatically generated and overwritten by CI process" > ${VERSION_FILE}
-          echo "# to modify the content, modify the CI workflow file - .github/workflows/main.yml, job: \"Bump patch version\"" >> ${VERSION_FILE}
-          echo "__version__ = \"${NEW_VERSION}\"" >> ${VERSION_FILE}
-      - name: Run ci.update-lock-files and ci.lint
-        run: |
-          make ci.update-lock-files
-          make ci.lint
-      - name: Commit and push changes
-        run: |
-          git config user.name "GitHub Actions Bot"
-          git config user.email "<github-actions@users.noreply.github.com>"
-          git add ${PLUGIN_DIR}/pyproject.toml ${VERSION_FILE} **/poetry.lock
-          git commit -m "[Github Workflows] bumping up the ${PLUGIN_FOLDER} patch version to ${NEW_VERSION}"
-          git push
+          release: ${{ github.event.inputs.release }}

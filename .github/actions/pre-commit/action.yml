@@ -1,11 +1,24 @@
 name: pre-commit
 description: run pre-commit
+
+inputs:
+  working-directory:
+    description: Directory to run commands in
+    required: false
+    default: '.'
+
 runs:
   using: composite
   steps:
-  - uses: actions/cache@v3
-    with:
-      path: ~/.cache/pre-commit
-      key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
-  - run: make ci.lint
-    shell: bash
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Set up Python with Poetry
+      uses: './.github/actions/setup'
+      with:
+        working-directory: ${{ inputs.working-directory }}
+    - uses: actions/cache@v3
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-3|${{ env.pythonLocation }}|${{ hashFiles('.pre-commit-config.yaml') }}
+    - run: make ci.lint
+      shell: bash
