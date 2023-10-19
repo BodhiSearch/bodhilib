@@ -11,7 +11,7 @@ runs:
   using: composite
   steps:
     - name: Set up Python with Poetry
-      uses: .github/actions/setup
+      uses: ./.github/actions/setup
       with:
         working-directory: ${{ inputs.working-directory }}
     - uses: actions/cache@v3
