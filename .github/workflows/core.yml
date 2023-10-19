@@ -38,7 +38,7 @@ jobs:
       - name: Run Test
         uses: ./.github/actions/run-test
         with:
-          working-directory: ${{ env.PLUGIN_DIR }}
+          working-directory: core
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
   prerelease:
     needs: [pre-commit, test]
