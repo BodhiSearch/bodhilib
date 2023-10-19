@@ -89,6 +89,8 @@ jobs:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
       - name: Set PLUGIN_DIR
         run: |
           PLUGIN_DIR=plugins/${{ matrix.plugin }}
