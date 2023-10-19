@@ -55,6 +55,7 @@ jobs:
         with:
           working-directory: core
           release: ${{ github.event.inputs.release }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
     needs: [pre-commit, test]
     if: github.event.inputs.release == 'yes'
@@ -70,3 +71,4 @@ jobs:
         with:
           working-directory: core
           release: ${{ github.event.inputs.release }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

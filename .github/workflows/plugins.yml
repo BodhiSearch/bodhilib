@@ -154,6 +154,7 @@ jobs:
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
           release: ${{ github.event.inputs.release }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
     needs: [run-tox, determine_plugin]
     if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix))
@@ -178,3 +179,4 @@ jobs:
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
           release: ${{ github.event.inputs.release }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

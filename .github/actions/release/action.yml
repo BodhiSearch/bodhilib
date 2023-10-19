@@ -10,6 +10,9 @@ inputs:
     description: Release type - yes (release), pre (pre-release)
     required: true
     default: 'pre'
+  GITHUB_TOKEN:
+    description: GitHub token
+    required: true
 
 runs:
   using: composite
@@ -103,7 +106,7 @@ runs:
         artifacts: ${{ inputs.working-directory }}/dist/*
         tag: ${{ env.PROJECT_ID }}/v${{ env.NEW_VERSION }}
         name: ${{ env.PROJECT_ID }}/v${{ env.NEW_VERSION }}
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ inputs.GITHUB_TOKEN }}
         commit: main
     - name: Publish package to PyPI
       if: ${{ inputs.release }} == 'yes'
