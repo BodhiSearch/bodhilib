@@ -29,7 +29,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: pre-commit
-        uses: ./.github/actions/pre-commit
+        uses: .github/actions/pre-commit
   determine_plugin:
     runs-on: ubuntu-latest
     needs: [pre-commit]
@@ -42,7 +42,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
+        uses: .github/actions/setup
       - name: Determine plugin(s) based on workflow input or git diff
         id: set-matrix
         env:
@@ -97,7 +97,7 @@ jobs:
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Run Test
-        uses: ./.github/actions/run-test
+        uses: .github/actions/run-test
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
   run-tox:
@@ -116,7 +116,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
+        uses: .github/actions/setup
         with:
           python-version: ${{ matrix.python-version }}
       - name: Run tox
@@ -147,7 +147,7 @@ jobs:
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Pre-release
-        uses: ./.github/actions/release
+        uses: .github/actions/release
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
           release: ${{ github.event.inputs.release }}
@@ -169,7 +169,7 @@ jobs:
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Pre-release
-        uses: ./.github/actions/release
+        uses: .github/actions/release
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
           release: ${{ github.event.inputs.release }}

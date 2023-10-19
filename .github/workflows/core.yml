@@ -26,7 +26,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: pre-commit
-        uses: './.github/actions/pre-commit'
+        uses: .github/actions/pre-commit
         with:
           working-directory: core
   test:
@@ -36,7 +36,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Run Test
-        uses: './.github/actions/run-test'
+        uses: .github/actions/run-test
         with:
           working-directory: ${{ env.PLUGIN_DIR }}
   prerelease:
@@ -48,7 +48,7 @@ jobs:
       contents: write
     steps:
       - name: Pre-release
-        uses: './.github/actions/release'
+        uses: .github/actions/release
         with:
           working-directory: core
           release: ${{ github.event.inputs.release }}
@@ -61,7 +61,7 @@ jobs:
       contents: write
     steps:
       - name: Release
-        uses: './.github/actions/release'
+        uses: .github/actions/release
         with:
           working-directory: core
           release: ${{ github.event.inputs.release }}

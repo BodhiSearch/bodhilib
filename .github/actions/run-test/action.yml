@@ -20,13 +20,12 @@ runs:
         echo "PROJECT_ID=$PROJECT_ID" # debug
         echo "PROJECT_ID=$PROJECT_ID" >> $GITHUB_ENV
     - name: Set up Python with Poetry
-      uses: './.github/actions/setup'
+      uses: .github/actions/setup
       with:
         working-directory: ${{ inputs.working-directory }}
     - name: Copy .env.ci to .env.test
       shell: bash
-      with:
-        working-directory: ${{ inputs.working-directory }}
+      working-directory: ${{ inputs.working-directory }}
       run: |
         cp .env.ci .env.test
     - name: Run tests
