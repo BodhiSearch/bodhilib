@@ -1,10 +1,5 @@
 .PHONY: install build test run exec all.check ci.test ci.build lint clean_docs docs run_docs
 
-install:
-	@# Invoke the Python script to 'install' and all passed arguments.
-	python make.py exec $(filter-out $@,$(MAKECMDGOALS)) install
-	@:
-
 build:
 	@# Invoke the Python script to 'build' and all passed arguments.
 	python make.py exec $(filter-out $@,$(MAKECMDGOALS)) build
@@ -24,6 +19,9 @@ exec:
 	@# Invoke the Python script with 'exec' and all passed arguments.
 	python make.py exec $(filter-out $@,$(MAKECMDGOALS))
 	@:
+
+ci.check-pyproj:
+	@python make.py check-pyproj all
 
 ci.check:
 	@python make.py exec all check --lock

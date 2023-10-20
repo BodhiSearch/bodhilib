@@ -19,6 +19,7 @@ on:
         options:
           - all
           - bodhiext.common
+          - bodhiext.openai
         required: true
         default: all
 jobs:
@@ -169,7 +170,7 @@ jobs:
           PLUGIN_DIR=plugins/${{ matrix.plugin }}
           echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
           echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
-      - name: Pre-release
+      - name: Release
         uses: ./.github/actions/release
         with:
           working-directory: ${{ env.PLUGIN_DIR }}

@@ -116,6 +116,11 @@ runs:
         verbose: true
         print-hash: true
         packages-dir: ${{ inputs.working-directory }}/dist/
+    - name: Reset changed files pyproject.toml, poetry.lock, _version.py using git checkout
+      if: ${{ inputs.release == 'yes' }}
+      shell: bash
+      run: |
+        git checkout ${{ inputs.working-directory }}/pyproject.toml ${{ inputs.working-directory }}/poetry.lock ${VERSION_FILE}
     - name: Bump patch version
       if: ${{ inputs.release == 'yes' }}
       shell: bash
@@ -148,6 +153,8 @@ runs:
       run: |
         git config user.name "GitHub Actions Bot"
         git config user.email "<github-actions@users.noreply.github.com>"
+        git --no-pager diff # debug
         git add ${{ inputs.working-directory }}/pyproject.toml ${VERSION_FILE} **/tox.ini **/poetry.lock
+        git --no-pager status
         git commit -m "[Github Workflows] For ${PROJECT_ID}, bumping up the patch version to ${BUMPED_VERSION}"
         git push

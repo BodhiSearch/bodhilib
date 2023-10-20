@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 import argparse
+import itertools
 import json
 import os
 import subprocess
 import sys
-from typing import Any, List, Optional, cast, no_type_check
+from typing import List, Optional, cast, no_type_check
 
 import tomli
 
@@ -20,7 +21,7 @@ from update_configs import (
     update_tox_inis,
 )
 
-dir_opts = tuple(["core", "all"] + list(plugin_folders))
+dir_opts = tuple(["all", "core"] + list(plugin_folders))
 
 
 def get_plugin_dirs(arg: str) -> List[str]:
@@ -168,6 +169,8 @@ def exec_tox(
 def find_supported_versions(plugin_dir: str, only_min: bool = False, include_prerelease: bool = False) -> List[str]:
     result = []
     pyproj = load_pyproject(plugin_dir)
+    if "tool" not in pyproj or "bodhilib" not in pyproj["tool"]:
+        raise ValueError(f"[tool.bodhilib] section missing in {plugin_dir}/pyproject.toml")
     min_version = pyproj["tool"]["bodhilib"]["version"]
     pypi_releases = fetch_versions("bodhilib", min_version)
     if only_min and not include_prerelease:
@@ -193,12 +196,12 @@ def find_supported_versions(plugin_dir: str, only_min: bool = False, include_pre
     return result
 
 
-def parse_args_target(args: Any) -> List[str]:
+def parse_args_target(target: str) -> List[str]:
     # Check if target directory exists in plugins
-    if args.target not in ["all", "core"] and not os.path.exists(f"plugins/{args.target}"):
-        print(f"Error: Directory for target '{args.target}' does not exist: plugins/{args.target}")
+    if target not in ["all", "core"] and not os.path.exists(f"plugins/{target}"):
+        print(f"Error: Directory for target '{target}' does not exist: plugins/{target}")
         sys.exit(1)
-    dirs = get_project_dirs(args.target)
+    dirs = get_project_dirs(target)
     return dirs
 
 
@@ -228,6 +231,28 @@ def exec_update_configs() -> int:
     update_pytest_ini()
     update_github_workflows()
     update_tox_inis()
+    return 0
+
+
+def exec_check_pyproj(targets: List[str]) -> int:
+    folders = list(set(itertools.chain(*[parse_args_target(target) for target in targets])))
+    # sort folders, keep core on top if exists
+    folders = sorted(folders, key=lambda x: (x != "core", x))
+    errors = []
+    for folder in folders:
+        pyproj = load_pyproject(folder)
+        if folder != "core" and ("tool" not in pyproj or "bodhilib" not in pyproj["tool"]):
+            errors.append(f"[tool.bodhilib] section missing in {folder}/pyproject.toml")
+        result = subprocess.run(["poetry", "version", "--short"], cwd=folder, stdout=subprocess.PIPE)
+        if result.returncode != 0:
+            errors.append(f"Error running poetry version in {folder}")
+            continue
+        version = result.stdout.decode("utf-8").strip()
+        if not version.endswith("-dev"):
+            errors.append(f"{folder} has a non-dev version `{version}`")
+    if errors:
+        print("\n".join(errors))
+        return 1
     return 0
 
 
@@ -300,12 +325,25 @@ def main() -> None:
     # 'update-configs' command
     _ = subparsers.add_parser("update-configs", help="Update configs")
 
+    # 'check-pyproj' command
+    check_pyproj = subparsers.add_parser(
+        "check-pyproj", help="Check pyproject.toml for tool.bodhilib section, and version as `-dev`"
+    )
+    check_pyproj.add_argument(
+        "targets",
+        type=str,
+        nargs="+",
+        choices=dir_opts,
+        help="List supported versions for given plugin.",
+        default="all",
+    )
+
     args = parser.parse_args()
     if args.top_command == "run":
-        dirs = parse_args_target(args)
+        dirs = parse_args_target(args.target)
         sys.exit(execute_command(dirs, ["poetry", "run", args.command] + args.other_args))
     elif args.top_command == "exec":
-        dirs = parse_args_target(args)
+        dirs = parse_args_target(args.target)
         sys.exit(execute_command(dirs, ["poetry", args.command] + args.other_args))
     elif args.top_command == "supports":
         sys.exit(exec_supports(args.targets, args.only_min, args.plaintext))
@@ -314,6 +352,8 @@ def main() -> None:
         sys.exit(exec_tox(dirs, args.only_min, args.include_prerelease, args.python_versions))
     elif args.top_command == "update-configs":
         sys.exit(exec_update_configs())
+    elif args.top_command == "check-pyproj":
+        sys.exit(exec_check_pyproj(args.targets))
     else:
         print(f"Unknown command {args.top_command}")
         sys.exit(1)

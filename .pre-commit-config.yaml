@@ -1,6 +1,15 @@
 repos:
   - repo: local
     hooks:
+      - id: check-pyproj
+        name: check-pyproj
+        description: 'Check pyproject.toml contains tool.bodhilib section, version is `*-dev`'
+        entry: make
+        args: [ci.check-pyproj]
+        language: system
+        pass_filenames: false
+  - repo: local
+    hooks:
       - id: check-poetry-lock
         name: check-poetry-lock
         description: 'Check poetry.lock file is in sync with pyproject.toml'
