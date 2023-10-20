@@ -3,6 +3,7 @@ import argparse
 import itertools
 import json
 import os
+import re
 import subprocess
 import sys
 from typing import List, Optional, Union, cast, no_type_check
@@ -271,6 +272,12 @@ def exec_check_pyproj(targets: List[str]) -> int:
     # sort folders, keep core on top if exists
     folders = sorted(folders, key=lambda x: (x != "core", x))
     errors = []
+    result = subprocess.run(["poetry", "version", "--short"], cwd="core", stdout=subprocess.PIPE)
+    if result.returncode != 0:
+        print("Failed to get the version for core")
+        print(result.stdout.decode("utf-8"))
+        return 1
+    core_version = result.stdout.decode("utf-8").strip()
     for folder in folders:
         pyproj = load_pyproject(folder)
         if folder != "core" and ("tool" not in pyproj or "bodhilib" not in pyproj["tool"]):
@@ -282,6 +289,21 @@ def exec_check_pyproj(targets: List[str]) -> int:
         version = result.stdout.decode("utf-8").strip()
         if not version.endswith("-dev"):
             errors.append(f"{folder} has a non-dev version `{version}`")
+        if folder != "core":
+            result = subprocess.run(["poetry", "show", "bodhilib"], cwd=folder, stdout=subprocess.PIPE)
+            if result.returncode != 0:
+                errors.append(f"Error running poetry show bodhilib in {folder}")
+                continue
+            output = result.stdout.decode("utf-8")
+            match = re.search(r"version\s+:\s+(\S+)", output)
+            pyproj_version = match.group(1) if match else None
+            if not pyproj_version:
+                errors.append(f"Error parsing output for bodhilib version in {folder}: {output}")
+                continue
+            if pyproj_version != core_version:
+                errors.append(
+                    f"bodhilib version `{pyproj_version}` in {folder} does not match core version `{core_version}`"
+                )
     if errors:
         print("\n".join(errors))
         return 1
