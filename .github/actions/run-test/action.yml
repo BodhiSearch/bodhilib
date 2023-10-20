@@ -61,7 +61,7 @@ runs:
 
         py_version=$(echo ${{ inputs.python-version }} | sed 's/\.//')
         proj_id=$(echo ${{ inputs.working-directory }} | sed 's/\./_/' | sed 's/\//_/')
-        hash_files=${{ hashFiles(join([inputs.working-directory, 'poetry.lock'], '/'), join([inputs.working-directory, 'tox.ini'], '/')) }}
+        hash_files=${{ hashFiles(format('{0}/poetry.lock', inputs.working-directory), format('{0}/tox.ini', inputs.working-directory)) }}
         restore_tox_cache_key=os-${{ runner.os }}-${{ runner.arch }}-py-${py_version}-loc-${proj_id}-reltype-${{ inputs.release }}-
         tox_cache_key=${restore_tox_cache_key}hash-${hash_files}
         echo "restore_tox_cache_key=${restore_tox_cache_key}"
