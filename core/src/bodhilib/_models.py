@@ -14,14 +14,13 @@ from typing import (
     List,
     Optional,
     Protocol,
-    Type,
     TypeVar,
     Union,
     cast,
     no_type_check,
 )
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from typing_extensions import TypeAlias
 
 # region type aliases
@@ -87,38 +86,6 @@ class _StrEnumMixin:
     def __str__(self) -> str:
         """Returns the string value of the string enum."""
         return self.value
-
-    @no_type_check
-    def __eq__(self, other: Any) -> bool:
-        """Compares this string enum to other string enum or string values."""
-        if isinstance(other, str):
-            return self.value == other
-        elif isinstance(other, type(self)):
-            return self.value == other.value
-        return False
-
-    @no_type_check
-    @classmethod
-    def membersstr(cls) -> List[str]:
-        return [e.value for e in cls.__members__.values()]
-
-
-_EnumT = TypeVar("_EnumT", bound=Enum)
-"""TypeVar for Enum type."""
-
-
-def _strenum_validator(enum_cls: Type[_EnumT], value: Any) -> _EnumT:
-    """Converts a string value to an enum value."""
-    if isinstance(value, str):
-        try:
-            return enum_cls[value.upper()]
-        except KeyError as e:
-            allowed_values = [e.value for e in enum_cls]
-            raise ValueError(f"Invalid value for {enum_cls.__name__}. Allowed values are {allowed_values}.") from e
-    elif isinstance(value, enum_cls):
-        return value
-    else:
-        raise ValueError(f"Invalid type for value, {type(value)=}")
 
 
 # endregion
@@ -209,14 +176,6 @@ class Prompt(BaseModel):
         role = role or Role.USER
         source = source or Source.INPUT
         super().__init__(text=text, role=role, source=source)
-
-    @validator("role", pre=True, always=True)
-    def validate_role(cls, value: Any) -> Role:
-        return _strenum_validator(Role, value)
-
-    @validator("source", pre=True, always=True)
-    def validate_source(cls, value: Any) -> Source:
-        return _strenum_validator(Source, value)
 
     def isstream(self) -> bool:
         """To check if this is a prompt stream.

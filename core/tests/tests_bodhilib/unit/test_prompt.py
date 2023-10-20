@@ -37,8 +37,9 @@ def test_prompt_init_with_invalid_strenum(role, source, invalid_field, allowed_v
     assert len(e.value.errors()) == 1
     error = e.value.errors()[0]
     assert error["loc"] == (invalid_field,)
-    assert error["type"] == "value_error"
-    expected_message = f"Invalid value for {invalid_field.capitalize()}. Allowed values are {allowed_values}."
+    assert error["type"] == "type_error.enum"
+    allowed_values_str = "', '".join(allowed_values)
+    expected_message = f"value is not a valid enumeration member; permitted: '{allowed_values_str}'"
     assert error["msg"] == expected_message
 
 
