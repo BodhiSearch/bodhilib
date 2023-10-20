@@ -97,6 +97,6 @@ runs:
       with:
         env_vars: OS,PYTHON
         files: ${{ inputs.working-directory }}/coverage.xml
-        flags: unittests,${PROJECT_ID},${{ inputs.release }}
+        flags: unittests,${{ env.PROJECT_ID }},${{ inputs.release }}
       env:
         CODECOV_TOKEN: ${{ inputs.codecov-token }}
