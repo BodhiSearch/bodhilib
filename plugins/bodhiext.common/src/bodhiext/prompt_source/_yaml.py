@@ -24,7 +24,7 @@ def load_prompt_template_yaml(path: PathLike) -> List[PromptTemplate]:
 def dump_prompt_template_to_yaml(templates: List[StringPromptTemplate], file_path: str) -> None:
     result = []
     for template in templates:
-        serialized = {**template.metadata, "prompts": [prompt.dict() for prompt in template.prompts]}
+        serialized = {**template.metadata, "prompts": [prompt.model_dump() for prompt in template.prompts]}
         serialized = ordered_dict(serialized, ["format", "tags", "prompts"])
         result.append(serialized)
     with open(file_path, "w") as f:

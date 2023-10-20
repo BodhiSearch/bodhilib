@@ -25,22 +25,20 @@ def test_prompt_init_with_role_enum():
 
 
 @pytest.mark.parametrize(
-    ["role", "source", "invalid_field", "allowed_values"],
+    ["role", "source", "invalid_field", "error_msg"],
     [
-        ("invalid", "input", "role", ["system", "ai", "user"]),
-        ("user", "invalid", "source", ["input", "output"]),
+        ("invalid", "input", "role", "Input should be 'system', 'ai' or 'user'"),
+        ("user", "invalid", "source", "Input should be 'input' or 'output'"),
     ],
 )
-def test_prompt_init_with_invalid_strenum(role, source, invalid_field, allowed_values):
+def test_prompt_init_with_invalid_strenum(role, source, invalid_field, error_msg):
     with pytest.raises(ValueError) as e:
         Prompt(default_user_prompt, role, source)
     assert len(e.value.errors()) == 1
     error = e.value.errors()[0]
     assert error["loc"] == (invalid_field,)
-    assert error["type"] == "type_error.enum"
-    allowed_values_str = "', '".join(allowed_values)
-    expected_message = f"value is not a valid enumeration member; permitted: '{allowed_values_str}'"
-    assert error["msg"] == expected_message
+    assert error["type"] == "enum"
+    assert error["msg"] == error_msg
 
 
 def test_prompt_user():

@@ -20,7 +20,7 @@ from typing import (
     no_type_check,
 )
 
-from pydantic import BaseModel, Field
+from pydantic import ConfigDict, BaseModel, Field
 from typing_extensions import TypeAlias
 
 # region type aliases
@@ -140,9 +140,7 @@ class Prompt(BaseModel):
 
     text: str
     """The text or content or input component of the prompt."""
-
-    class Config:
-        use_enum_values = True
+    model_config = ConfigDict(use_enum_values=True)
 
     # overriding __init__ to provide positional argument construction for prompt. E.g. `Prompt("text")`
     def __init__(
