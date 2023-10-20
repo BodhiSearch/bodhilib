@@ -142,13 +142,16 @@ class Filter:
             return Or([self._parse(sub_condition) for sub_condition in condition["$or"]])
         elif "$nor" in condition:
             return Nor([self._parse(sub_condition) for sub_condition in condition["$nor"]])
+        conditions: List[Condition] = []
         for field, value in condition.items():
             if isinstance(value, dict):
-                for op, op_value in value.items():
-                    return OperatorCondition(field, op, op_value)
+                conditions.extend([OperatorCondition(field, op, op_value) for op, op_value in value.items()])
             else:
-                return OperatorCondition(field, "$eq", value)
-        raise ValueError(f"Invalid condition: {condition}")
+                conditions.append(OperatorCondition(field, "$eq", value))
+
+        if not conditions:
+            raise ValueError(f"Invalid condition: {condition}")
+        return And(conditions) if len(conditions) > 1 else conditions[0]
 
     def evaluate(self, record: Dict[str, Any]) -> bool:
         """Return the predicate for applying the filter condition."""

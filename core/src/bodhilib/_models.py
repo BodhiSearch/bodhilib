@@ -87,6 +87,11 @@ class _StrEnumMixin:
         """Returns the string value of the string enum."""
         return self.value
 
+    @no_type_check
+    @classmethod
+    def membersstr(cls) -> List[str]:
+        return [e.value for e in cls.__members__.values()]
+
 
 # endregion
 # region value objects

@@ -1,6 +1,6 @@
 from bodhilib import Prompt, to_prompt_list
 
-from tests_bodhilib.prompt_utils import default_system_prompt, default_user_prompt
+from tests_bodhilib.utils import default_system_prompt, default_user_prompt
 
 
 def test_parse_prompt_from_str():

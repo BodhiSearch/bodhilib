@@ -40,6 +40,7 @@ expected_results = {
     '{"hobbies": {"$nin": ["travel", "movies"]}}': ["Alice", "David"],
     '{"hobbies": {"$all": ["sports"]}}': ["Bob", "David"],
     '{"hobbies": {"$all": ["sports", "reading"]}}': ["David"],
+    '{"$and": [{"age": {"$eq": 25}}, {"score": {"$eq": 90}}]}': ["Alice"],
 }
 
 # Test Functions
@@ -65,3 +66,8 @@ def test_filter(query, expected_result):
 def test_converts_implicit_eq_to_explicit_eq():
     filter_obj = Filter.from_dict({"name": "Alice"})
     assert filter_obj.to_dict() == {"name": {"$eq": "Alice"}}
+
+
+def test_converts_multiple_field_condition_to_and():
+    filter_obj = Filter.from_dict({"name": "Alice", "age": 25})
+    assert filter_obj.to_dict() == {"$and": [{"name": {"$eq": "Alice"}}, {"age": {"$eq": 25}}]}

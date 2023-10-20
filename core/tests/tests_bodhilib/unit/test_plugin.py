@@ -1,7 +1,7 @@
 import pytest
 from bodhilib import PluginManager, get_llm
 
-from tests_bodhilib.prompt_utils import gpt35turbo
+from tests_bodhilib.utils import gpt35turbo
 
 
 class _TestLLM:

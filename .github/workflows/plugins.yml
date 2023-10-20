@@ -23,6 +23,7 @@ on:
           - bodhiext.cohere
           - bodhiext.common
           - bodhiext.openai
+          - bodhiext.qdrant
           - bodhiext.sentence_transformers
         required: true
         default: all

@@ -1,7 +1,7 @@
 import pytest
 from bodhilib import Node, Prompt, Role, Source, prompt_output, prompt_system, prompt_user, to_prompt, to_prompt_list
 
-from tests_bodhilib.prompt_utils import default_system_prompt, default_user_prompt
+from tests_bodhilib.utils import default_system_prompt, default_user_prompt
 
 
 def test_prompt_init_with_positional_args():
