@@ -12,10 +12,7 @@ on:
       release:
         description: 'Release type: dev (only build, no release), pre (pre-release), release (full-release)?'
         type: choice
-        options:
-          - dev
-          - pre
-          - release
+        options: [dev, pre, release]
         required: true
         default: dev
       plugin:
@@ -23,6 +20,7 @@ on:
         type: choice
         options:
           - all
+          - bodhiext.cohere
           - bodhiext.common
           - bodhiext.openai
         required: true

@@ -9,7 +9,9 @@ import yaml
 
 min_compat_version = "0.1.11"
 python_versions = tuple(["py38", "py39", "py310", "py311"])
-plugin_dirs = tuple(sorted([os.path.join("plugins", d) for d in os.listdir("plugins")]))
+plugin_dirs = tuple(
+    sorted([os.path.join("plugins", d) for d in os.listdir("plugins") if os.path.isdir(os.path.join("plugins", d))])
+)
 plugin_folders = tuple([d.replace("plugins/", "") for d in plugin_dirs])
 
 
