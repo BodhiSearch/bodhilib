@@ -172,7 +172,7 @@ def create_tox_file(filename: str, plugin_slug: str) -> None:
     py_versions = ",".join(python_versions)
     bodhilib_versions = fetch_versions("bodhilib", min_compat_version)
     bodhilib_versions = [version.replace(".", "_") for version in bodhilib_versions]
-    core_versions = ",".join(bodhilib_versions)
+    core_versions = ",".join(["dev", "pre"] + bodhilib_versions)
     formatted_content = content.format(py_versions=py_versions, plugin_slug=plugin_slug, core_versions=core_versions)
     with open(filename, "w") as f:
         f.write(formatted_content)
@@ -191,9 +191,8 @@ def update_tox_ini(plugin_dir: str) -> None:
     config.read(filename)
     bodhilib_versions = fetch_versions("bodhilib", min_compat_version)
     bodhilib_versions = [version.replace(".", "_") for version in bodhilib_versions]
-    bodhilib_versions.append("pre")
     py_versions = ",".join(python_versions)
-    core_versions = ",".join(bodhilib_versions)
+    core_versions = ",".join(["dev", "pre"] + bodhilib_versions)
     expected_envlist = "{" + py_versions + "}-plugins_{" + plugin_slug + "}-bodhilib_{" + core_versions + "}"
     if config["tox"]["envlist"] != expected_envlist:
         config["tox"]["envlist"] = expected_envlist

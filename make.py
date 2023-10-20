@@ -5,7 +5,7 @@ import json
 import os
 import subprocess
 import sys
-from typing import List, Optional, cast, no_type_check
+from typing import List, Optional, Union, cast, no_type_check
 
 import tomli
 
@@ -86,6 +86,11 @@ def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir
                     errors.extend(error)
                     continue
                 bodhilib_version_str = "pre"
+            elif bodhilib_version == "dev":
+                if error := run_poetry_cmd(plugin_dir, ["add", "bodhilib", "-e", "../../core"]):
+                    errors.extend(error)
+                    continue
+                bodhilib_version_str = "dev"
             else:
                 if error := run_poetry_cmd(plugin_dir, ["add", f"bodhilib=={bodhilib_version}"]):
                     errors.extend(error)
@@ -93,33 +98,7 @@ def run_tox_for(py_versions: List[str], bodhilib_versions: List[str], plugin_dir
                 bodhilib_version_str = bodhilib_version.replace(".", "_")
             plugin_slug = plugin_dir.replace("plugins/", "").replace(".", "_")
             env = f"{py_version}-plugins_{plugin_slug}-bodhilib_{bodhilib_version_str}"
-            command = [
-                "tox",
-                "-e",
-                env,
-            ]
-            print(f"Running command='{' '.join(command)}' for {env}, inside {plugin_dir}")
-            result = subprocess.run(command, stderr=subprocess.PIPE, cwd=plugin_dir)
-            if result.returncode != 0:
-                error_msg = result.stderr.decode("utf-8")
-                errors.append(f"Error running tox for {py_version=}, {bodhilib_version=}\n")
-                errors.append(error_msg)
-    return errors
-
-
-def run_tox(py_versions: List[str], bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
-    errors = []
-    pyproj_file = os.path.join(plugin_dir, "pyproject.toml")
-    with open(pyproj_file, "r") as file:
-        content = file.read()
-    try:
-        tox_errors = run_tox_for(py_versions, bodhilib_versions, plugin_dir)
-        errors.extend(tox_errors)
-    finally:
-        with open(pyproj_file, "w") as file:
-            file.write(content)
-    if error := run_poetry_cmd(plugin_dir, ["lock", "--no-update"]):
-        errors.extend(error)
+            errors.extend(run_tox(env, plugin_dir))
     return errors
 
 
@@ -142,8 +121,15 @@ def load_pyproject(dir_path: str) -> dict:
 
 
 def exec_tox(
-    dirs: List[str], only_min: bool = False, include_prerelease: bool = False, arg_py_versions: Optional[str] = None
+    targets: Union[str, List[str]],
+    only_dev: bool = False,
+    only_min: bool = False,
+    include_prerelease: bool = False,
+    arg_py_versions: Optional[str] = None,
 ) -> int:
+    if isinstance(targets, str):
+        targets = ["all"]
+    folders = list(set(itertools.chain(*[parse_args_target(target) for target in targets])))
     errors = []
     if arg_py_versions is None:
         arg_py_versions = ",".join(python_versions)
@@ -152,9 +138,15 @@ def exec_tox(
     if missing_versions:
         print(f"Error: Python versions {missing_versions} are not supported.")
         return 1
-    for dir_path in dirs:
-        bodhilib_versions = find_supported_versions(dir_path, only_min, include_prerelease)
-        result = run_tox(py_versions, bodhilib_versions, dir_path)
+    for folder in folders:
+        if folder == "core":
+            result = run_tox_for_core(py_versions, folder)
+        else:
+            if only_dev:
+                bodhilib_versions = ["dev"]
+            else:
+                bodhilib_versions = find_supported_versions(folder, only_min, include_prerelease)
+            result = run_tox_for_plugin(py_versions, bodhilib_versions, folder)
         errors.extend(result)
     if errors:
         print("test failed")
@@ -163,6 +155,46 @@ def exec_tox(
             print("")
         return 1
     return 0
+
+
+def run_tox_for_core(py_versions: List[str], plugin_dir: str) -> List[str]:
+    errors = []
+    for py_version in py_versions:
+        env = f"{py_version}-core"
+        errors.extend(run_tox(env, plugin_dir))
+    return errors
+
+
+def run_tox_for_plugin(py_versions: List[str], bodhilib_versions: List[str], plugin_dir: str) -> List[str]:
+    errors = []
+    pyproj_file = os.path.join(plugin_dir, "pyproject.toml")
+    with open(pyproj_file, "r") as file:
+        content = file.read()
+    try:
+        tox_errors = run_tox_for(py_versions, bodhilib_versions, plugin_dir)
+        errors.extend(tox_errors)
+    finally:
+        with open(pyproj_file, "w") as file:
+            file.write(content)
+    if error := run_poetry_cmd(plugin_dir, ["lock", "--no-update"]):
+        errors.extend(error)
+    return errors
+
+
+def run_tox(env: str, plugin_dir: str) -> List[str]:
+    command = [
+        "tox",
+        "-e",
+        env,
+    ]
+    print(f"Running command='{' '.join(command)}' for {env}, inside {plugin_dir}")
+    result = subprocess.run(command, stderr=subprocess.PIPE, cwd=plugin_dir)
+    errors = []
+    if result.returncode != 0:
+        error_msg = result.stderr.decode("utf-8")
+        errors.append(f"Error running tox, {env=}, {plugin_dir=}\n")
+        errors.append(error_msg)
+    return errors
 
 
 @no_type_check
@@ -307,13 +339,14 @@ def main() -> None:
     # 'compat' command
     tox_parser = subparsers.add_parser("tox", help="Execute compatibility checks for given plugin using tox")
     tox_parser.add_argument(
-        "target",
+        "targets",
         type=str,
-        choices=["all"] + list(plugin_folders),
-        nargs="?",
+        choices=dir_opts,
+        nargs="*",
         default="all",
-        help="Project to run compatibility check against",
+        help="Run tox for given projects",
     )
+    tox_parser.add_argument("--only-dev", action="store_true", help="Run only for dev versions")
     tox_parser.add_argument("--only-min", action="store_true", help="Run only for minimum supported version")
     tox_parser.add_argument(
         "--include-prerelease", action="store_true", help="Include the latest pre-release for compatibility test"
@@ -348,8 +381,7 @@ def main() -> None:
     elif args.top_command == "supports":
         sys.exit(exec_supports(args.targets, args.only_min, args.plaintext))
     elif args.top_command == "tox":
-        dirs = get_plugin_dirs_from_name(args.target)
-        sys.exit(exec_tox(dirs, args.only_min, args.include_prerelease, args.python_versions))
+        sys.exit(exec_tox(args.targets, args.only_dev, args.only_min, args.include_prerelease, args.python_versions))
     elif args.top_command == "update-configs":
         sys.exit(exec_update_configs())
     elif args.top_command == "check-pyproj":

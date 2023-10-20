@@ -7,7 +7,7 @@ build:
 
 test:
 	@# Invoke the Python script to 'test' and all passed arguments.
-	python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest
+	python make.py tox $(filter-out $@,$(MAKECMDGOALS)) --only-dev --python-version py38
 	@:
 
 run:
@@ -27,7 +27,7 @@ ci.check:
 	@python make.py exec all check --lock
 
 ci.test:
-	@python make.py run $(filter-out $@,$(MAKECMDGOALS)) pytest --cov=src --cov-report=xml --cov-report=html
+	@python make.py tox $(filter-out $@,$(MAKECMDGOALS)) --only-dev --python-version py38
 	@:
 
 ci.build:
