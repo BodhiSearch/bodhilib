@@ -20,7 +20,7 @@ runs:
     - name: Validate input args
       shell: bash
       run: |
-        if [[ "${{ inputs.release }}" != "yes" && "${{ inputs.release }}" != "pre" ]]; then
+        if [[ "${{ inputs.release }}" != "release" && "${{ inputs.release }}" != "pre" ]]; then
           echo "Invalid release type: ${{ inputs.release }}"
           exit 1
         fi
@@ -67,7 +67,7 @@ runs:
         echo "NEW_VERSION=${NEW_VERSION}" # debug
         echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
     - name: Set new release version
-      if: ${{ inputs.release == 'yes' }}
+      if: ${{ inputs.release == 'release' }}
       shell: bash
       run: |
         NEW_VERSION=${{ steps.current-version.outputs.current_version }}
@@ -110,19 +110,19 @@ runs:
         commit: main
         prerelease: ${{ inputs.release == 'pre' }}
     - name: Publish package to PyPI
-      if: ${{ inputs.release == 'yes' }}
+      if: ${{ inputs.release == 'release' }}
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         verbose: true
         print-hash: true
         packages-dir: ${{ inputs.working-directory }}/dist/
     - name: Reset changed files pyproject.toml, poetry.lock, _version.py using git checkout
-      if: ${{ inputs.release == 'yes' }}
+      if: ${{ inputs.release == 'release' }}
       shell: bash
       run: |
         git checkout ${{ inputs.working-directory }}/pyproject.toml ${{ inputs.working-directory }}/poetry.lock ${VERSION_FILE}
     - name: Bump patch version
-      if: ${{ inputs.release == 'yes' }}
+      if: ${{ inputs.release == 'release' }}
       shell: bash
       run: |
         IFS='.' read -ra ADDR <<< "$NEW_VERSION"
@@ -131,7 +131,7 @@ runs:
         echo "BUMPED_VERSION=$BUMPED_VERSION" # debug
         echo "BUMPED_VERSION=$BUMPED_VERSION" >> $GITHUB_ENV
     - name: Update to next dev version
-      if: ${{ inputs.release == 'yes' }}
+      if: ${{ inputs.release == 'release' }}
       shell: bash
       run: |
         # Using poetry's version command to set a new version
@@ -142,13 +142,13 @@ runs:
         echo "# to modify the content, modify the CI workflow file - .github/actions/release/action.yml" >> ${VERSION_FILE}
         echo "__version__ = \"${BUMPED_VERSION}\"" >> ${VERSION_FILE}
     - name: Run ci.update-lock-files and ci.lint
-      if: ${{ inputs.release == 'yes' }}
+      if: ${{ inputs.release == 'release' }}
       shell: bash
       run: |
         make ci.update-lock-files
         make ci.update-configs
     - name: Commit and push changes
-      if: ${{ inputs.release == 'yes' }}
+      if: ${{ inputs.release == 'release' }}
       shell: bash
       run: |
         git config user.name "GitHub Actions Bot"

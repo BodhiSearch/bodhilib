@@ -27,7 +27,7 @@ ci.check:
 	@python make.py exec all check --lock
 
 ci.test:
-	@python make.py tox $(filter-out $@,$(MAKECMDGOALS)) --only-dev --python-version py38
+	@python make.py tox $(filter-out $@,$(MAKECMDGOALS))
 	@:
 
 ci.build:

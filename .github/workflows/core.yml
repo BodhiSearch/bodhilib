@@ -15,9 +15,14 @@ on:
       - main
     inputs:
       release:
-        description: 'Publish a core library release (yes) or pre-release (pre) or none (no)? (yes/pre/no)'
-        required: false
-        default: 'no'
+        description: 'Release type: dev (only build, no release), pre (pre-release), release (full-release)?'
+        type: choice
+        options:
+          - dev
+          - pre
+          - release
+        required: true
+        default: dev
 
 jobs:
   pre-commit:
@@ -58,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
     needs: [pre-commit, test]
-    if: ${{ github.event.inputs.release == 'yes' }}
+    if: ${{ github.event.inputs.release == 'release' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write

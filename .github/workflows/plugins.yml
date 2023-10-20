@@ -10,9 +10,14 @@ on:
     branches: [main]
     inputs:
       release:
-        description: Publish a plugin library release (yes) or pre-release (pre) or none (no)? (yes/pre/no)
-        required: false
-        default: 'no'
+        description: 'Release type: dev (only build, no release), pre (pre-release), release (full-release)?'
+        type: choice
+        options:
+          - dev
+          - pre
+          - release
+        required: true
+        default: dev
       plugin:
         description: Plugin to release?
         type: choice
@@ -103,7 +108,7 @@ jobs:
           codecov-token: ${{ secrets.CODECOV_TOKEN }}
   run-tox:
     needs: [run-test, determine_plugin]
-    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release != '' && (github.event.inputs.release == 'yes' || github.event.inputs.release == 'pre') }}
+    if: ${{ toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' && github.event.inputs.release != '' && (github.event.inputs.release == 'release' || github.event.inputs.release == 'pre') }}
     strategy:
       fail-fast: false
       matrix:
@@ -114,20 +119,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Set up Python with Poetry
-        uses: ./.github/actions/setup
+      - name: Run test with tox
+        uses: ./.github/actions/run-test
         with:
+          working-directory: ${{ env.PLUGIN_DIR }}
           python-version: ${{ matrix.python-version }}
-      - name: Run tox
-        run: |
-          python_version=$(echo ${{ matrix.python-version }} | sed 's/\.//')
-          make_opts="--python-versions py${python_version}"
-          # if inputs set as pre or no, then find the min supported version, and the latest pre-release
-          if [[ "${{ github.event.inputs.release }}" == "pre" ]]; then
-            make_opts+=" --only-min --include-prerelease"
-          fi
-          echo "make_opts=${make_opts}" # debug
-          make ci.tox -- ${{ matrix.plugin }} ${make_opts}
+          release: ${{ github.event.inputs.release }}
   prerelease:
     needs: [run-tox, determine_plugin]
     if: ${{ github.event.inputs.release == 'pre' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
@@ -154,7 +151,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   release:
     needs: [run-tox, determine_plugin]
-    if: ${{ github.event.inputs.release == 'yes' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
+    if: ${{ github.event.inputs.release == 'release' && toJson(fromJson(needs.determine_plugin.outputs.matrix)) != '[]' }}
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}

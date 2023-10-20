@@ -5,9 +5,18 @@ inputs:
   working-directory:
     description: Directory to run commands in
     required: true
+  python-version:
+    description: Python version, supporting MAJOR.MINOR only
+    required: false
+    default: '3.8'
   codecov-token:
     description: Codecov token
-    required: true
+    required: false
+    default: ''
+  release:
+    description: Release type
+    required: false
+    default: 'dev'
 
 runs:
   using: composite
@@ -44,15 +53,50 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: |
         cp .env.ci .env.test
+    - name: tox-cache-key
+      id: tox-cache-key
+      shell: bash
+      run: |
+        # py38-plugins_bodhiext_common-bodhilib_dev
+
+        py_version=$(echo ${{ inputs.python-version }} | sed 's/\.//')
+        proj_id=$(echo ${{ inputs.working-directory }} | sed 's/\./_/' | sed 's/\//_/')
+        hash_files=${{ hashFiles(join([inputs.working-directory, 'poetry.lock'], '/'), join([inputs.working-directory, 'tox.ini'], '/')) }}
+        restore_tox_cache_key=os-${{ runner.os }}-${{ runner.arch }}-py-${py_version}-loc-${proj_id}-reltype-${{ inputs.release }}-
+        tox_cache_key=${restore_tox_cache_key}hash-${hash_files}
+        echo "restore_tox_cache_key=${restore_tox_cache_key}"
+        echo "restore_tox_cache_key=${restore_tox_cache_key}" >> $GITHUB_OUTPUT
+        echo "tox_cache_key=${tox_cache_key}"
+        echo "tox_cache_key=${tox_cache_key}" >> $GITHUB_OUTPUT
+    - uses: actions/cache@v3
+      id: cache-tox
+      env:
+        SEGMENT_DOWNLOAD_TIMEOUT_MIN: '15'
+      with:
+        path: |
+          ${{ inputs.working-directory }}/.tox
+          !${{ inputs.working-directory }}/.tox/*/log
+        key: ${{ steps.tox-cache-key.outputs.tox_cache_key }}
+        restore-keys: |
+          ${{ steps.tox-cache-key.outputs.restore_tox_cache_key }}
     - name: Run tests
       shell: bash
       run: |
-        make ci.test ${PROJECT_ID}
+        python_version=$(echo ${{ inputs.python-version }} | sed 's/\.//')
+        make_opts="--python-versions py${python_version}"
+        if [[ "${{ inputs.release }}" == "pre" ]]; then
+          make_opts+=" --only-min --include-prerelease"
+        elif [[ "${{ inputs.release }}" == "dev" ]]; then
+          make_opts+=" --only-dev"
+        fi
+        echo "make_opts=${make_opts}" # debug
+        make ci.tox -- ${PROJECT_ID} ${make_opts}
     - name: Upload coverage reports to Codecov
+      if: ${{ inputs.codecov-token != '' }}
       uses: codecov/codecov-action@v3
       with:
         env_vars: OS,PYTHON
         files: ${{ inputs.working-directory }}/coverage.xml
-        flags: unittests,${PROJECT_ID}
+        flags: unittests,${PROJECT_ID},${{ inputs.release }}
       env:
         CODECOV_TOKEN: ${{ inputs.codecov-token }}
