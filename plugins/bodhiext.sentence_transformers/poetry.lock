@@ -24,7 +24,6 @@ files = []
 develop = true
 
 [package.dependencies]
-jinja2 = "^3.1.2"
 pluggy = "^1.2.0"
 pydantic = "^2.4.2"
 pyyaml = "^6.0.1"
