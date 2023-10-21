@@ -2,9 +2,9 @@ import os
 from typing import Any, Dict, List
 
 from bodhiext.prompt_template import StringPromptTemplate
-from bodhilib import PathLike, PromptTemplate, yaml_dump, yaml_load
+from bodhilib import PathLike, PromptTemplate
 from bodhilib.logging import logger
-
+from bodhiext.common import yaml_dump, yaml_load
 
 def load_prompt_template_yaml(path: PathLike) -> List[PromptTemplate]:
     templates: List[PromptTemplate] = []

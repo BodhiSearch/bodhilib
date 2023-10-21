@@ -47,7 +47,6 @@ develop = true
 [package.dependencies]
 pluggy = "^1.2.0"
 pydantic = "^2.4.2"
-pyyaml = "^6.0.1"
 
 [package.source]
 type = "directory"

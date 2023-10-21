@@ -9,7 +9,8 @@ from typing import (
     cast,
 )
 
-from bodhilib import Prompt, PromptTemplate, TextLike, yaml_dump
+from bodhiext.common import yaml_dump
+from bodhilib import Prompt, PromptTemplate, TextLike
 from jinja2 import Template
 from pydantic import BaseModel, Field
 
