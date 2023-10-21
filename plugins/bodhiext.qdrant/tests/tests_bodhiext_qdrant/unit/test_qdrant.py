@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch
+import pydantic
 
 import pytest
 from bodhiext.qdrant import Qdrant
@@ -207,6 +208,7 @@ def test_qdrant_query_calls_client(
 
 
 def _mock_collection(name):
-    collection = Mock(spec=CollectionDescription)
-    collection.configure_mock(name=name)
-    return collection
+    with pytest.warns(pydantic.warnings.PydanticDeprecatedSince20):
+        collection = Mock(spec=CollectionDescription)
+        collection.configure_mock(name=name)
+        return collection
