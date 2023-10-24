@@ -219,7 +219,7 @@ def find_supported_versions(plugin_dir: str, only_min: bool = False, include_pre
         # add the latest prerelease
         gh_releases = fetch_gh_releases("BodhiSearch", "bodhilib", None)
         prereleases = [
-            release for release in gh_releases if release["name"].startswith("bodhilib/") and release["prerelease"]
+            release for release in gh_releases if release["name"].startswith("core/") and release["prerelease"]
         ]
         prereleases = sorted(prereleases, key=lambda k: k["created_at"], reverse=True)
         prerelease = prereleases[0]

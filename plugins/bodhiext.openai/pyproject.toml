@@ -30,4 +30,4 @@ build-backend = "poetry.core.masonry.api"
 "bodhiext.openai" = "bodhiext.openai"
 
 [tool.bodhilib]
-version = "0.1.15"
+version = "0.1.16"

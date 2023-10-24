@@ -31,4 +31,4 @@ build-backend = "poetry.core.masonry.api"
 "bodhiext.qdrant" = "bodhiext.qdrant"
 
 [tool.bodhilib]
-version = "0.1.15"
+version = "0.1.16"
