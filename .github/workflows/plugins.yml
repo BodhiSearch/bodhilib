@@ -117,6 +117,11 @@ jobs:
         python-version: ['3.8', '3.9', '3.10', '3.11']
     runs-on: ${{ matrix.os }}
     steps:
+      - name: Set PLUGIN_DIR
+        run: |
+          PLUGIN_DIR=plugins/${{ matrix.plugin }}
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" # debug
+          echo "PLUGIN_DIR=${PLUGIN_DIR}" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Run test with tox
