@@ -48,6 +48,7 @@ runs:
       uses: ./.github/actions/setup
       with:
         working-directory: '.'
+        python-version: ${{ inputs.python-version }}
     - name: Copy .env.ci to .env.test
       shell: bash
       working-directory: ${{ inputs.working-directory }}
