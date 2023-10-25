@@ -115,7 +115,7 @@ jobs:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
         os: [ubuntu-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11']
-      max-parallel: 3
+      max-parallel: 4
     runs-on: ${{ matrix.os }}
     steps:
       - name: Set PLUGIN_DIR
