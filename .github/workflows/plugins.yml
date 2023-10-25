@@ -161,6 +161,7 @@ jobs:
     strategy:
       matrix:
         plugin: ${{ fromJson(needs.determine_plugin.outputs.matrix) }}
+      max-parallel: 1
     runs-on: ubuntu-latest
     permissions:
       id-token: write
