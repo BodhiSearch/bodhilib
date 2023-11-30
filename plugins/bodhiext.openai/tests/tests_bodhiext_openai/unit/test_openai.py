@@ -9,7 +9,7 @@ from bodhiext.openai import (
     openai_chat_service_builder,
     openai_text_service_builder,
 )
-from bodhilib import Service, get_llm
+from bodhilib import Service, get_llm, LLMConfig, LLMApiConfig
 
 chat_model = "gpt-3.5-turbo"
 text_model = "text-ada-001"
@@ -26,14 +26,18 @@ def openai_text() -> OpenAIChat:
 
 
 def test_openai_service_builder_text():
-    llm = openai_text_service_builder(service_name="openai_text", model=text_model)
-    assert llm.kwargs["model"] == text_model
+    llm = openai_text_service_builder(
+        service_name="openai_text", api_config=LLMApiConfig(), llm_config=LLMConfig(model=text_model)
+    )
+    assert llm.llm_config.model == text_model
     assert type(llm) is OpenAIText
 
 
 def test_openai_service_builder_chat():
-    llm = openai_chat_service_builder(service_name="openai_chat", model=chat_model)
-    assert llm.kwargs["model"] == chat_model
+    llm = openai_chat_service_builder(
+        service_name="openai_chat", api_config=LLMApiConfig(), llm_config=LLMConfig(model=chat_model)
+    )
+    assert llm.llm_config.model == chat_model
     assert type(llm) is OpenAIChat
 
 
@@ -162,5 +166,10 @@ def test_get_llm_openai_raise_error_when_api_key_is_not_set(monkeypatch, service
 )
 def test_openai_service_builder_raises_error(builder, service_name, service_type, model, error_message):
     with pytest.raises(ValueError) as e:
-        _ = builder(service_name=service_name, service_type=service_type, model=model)
+        _ = builder(
+            service_name=service_name,
+            service_type=service_type,
+            api_config=LLMApiConfig(),
+            llm_config=LLMConfig(model=model),
+        )
     assert str(e.value) == error_message

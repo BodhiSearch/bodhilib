@@ -27,6 +27,8 @@ from ._filter import Or as Or
 from ._models import Distance as Distance
 from ._models import Document as Document
 from ._models import Embedding as Embedding
+from ._models import LLMApiConfig as LLMApiConfig
+from ._models import LLMConfig as LLMConfig
 from ._models import Node as Node
 from ._models import PathLike as PathLike
 from ._models import Prompt as Prompt

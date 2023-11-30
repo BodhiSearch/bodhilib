@@ -1,6 +1,6 @@
 import pytest
 from bodhiext.openai import OpenAIChat, OpenAIText
-from bodhilib import LLM, Prompt, Role, Source, get_llm
+from bodhilib import LLM, LLMApiConfig, LLMConfig, Prompt, Role, Source, get_llm
 
 default_system_prompt = (
     "Answer my question below based on best of your ability. " + "Say no if you don't know the answer."
@@ -62,7 +62,7 @@ def test_openai_chat_generate_with_assistant_prompt(llm_gpt35_turbo):
 @pytest.mark.live
 @pytest.mark.parametrize(["clz", "model"], [(OpenAIChat, chat_model), (OpenAIText, text_model)])
 def test_openai_stream(clz, model):
-    llm = clz(model=model)
+    llm = clz(api_config=LLMApiConfig(), llm_config=LLMConfig(model=model))
     stream = llm.generate("generate a 50 words article on geography of India?", stream=True)
     for chunk in stream:
         assert chunk.role == Role.AI

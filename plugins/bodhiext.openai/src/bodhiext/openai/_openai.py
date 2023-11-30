@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Optional, Union
 
 from bodhilib import (
     LLM,
+    LLMApiConfig,
+    LLMConfig,
     Prompt,
     PromptStream,
     Role,
@@ -27,13 +29,21 @@ from ._version import __version__
 class OpenAIChat(LLM):
     """OpenAI Chat API implementation for :class:`~bodhilib.LLM`."""
 
-    def __init__(self, **kwargs: Dict[str, Any]) -> None:
+    def __init__(
+        self,
+        api_config: LLMApiConfig,
+        llm_config: LLMConfig,
+        **kwargs: Dict[str, Any],
+    ) -> None:
+        self.api_config = api_config
+        self.llm_config = llm_config
         self.kwargs = kwargs
 
     def generate(
         self,
         prompt_input: SerializedInput,
         *,
+        llm_config: Optional[LLMConfig] = None,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
@@ -53,7 +63,11 @@ class OpenAIChat(LLM):
                 as :class:`~bodhilib.Prompt` or :class:`~bodhilib.PromptStream`
         """
         prompts = to_prompt_list(prompt_input)
+        default_config = self.llm_config.model_dump(exclude_none=True)
+        override_config = llm_config.model_dump(exclude_none=True) if llm_config is not None else {}
         all_args = {
+            **default_config,
+            **override_config,
             **self.kwargs,
             "stream": stream,
             "temperature": temperature,
@@ -85,13 +99,16 @@ class OpenAIChat(LLM):
 class OpenAIText(LLM):
     """Bodhilib LLM service implementation for OpenAI Text API."""
 
-    def __init__(self, **kwargs: Dict[str, Any]) -> None:
+    def __init__(self, api_config: LLMApiConfig, llm_config: LLMConfig, **kwargs: Dict[str, Any]) -> None:
+        self.api_config = api_config
+        self.llm_config = llm_config
         self.kwargs = kwargs
 
     def generate(
         self,
         prompt_input: SerializedInput,
         *,
+        llm_config: Optional[LLMConfig] = None,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
@@ -112,7 +129,11 @@ class OpenAIText(LLM):
         """
         prompts = to_prompt_list(prompt_input)
         prompt = self._to_prompt(prompts)
+        default_config = self.llm_config.model_dump(exclude_none=True)
+        override_config = llm_config.model_dump(exclude_none=True) if llm_config is not None else {}
         all_args = {
+            **default_config,
+            **override_config,
             **self.kwargs,
             "stream": stream,
             "suffix": kwargs.pop("suffix", None),
@@ -178,8 +199,8 @@ def openai_text_service_builder(
     *,
     service_name: Optional[str] = None,
     service_type: Optional[str] = "llm",
-    model: Optional[str] = None,
-    api_key: Optional[str] = None,
+    api_config: Optional[LLMApiConfig] = None,
+    llm_config: Optional[LLMConfig] = None,
     **kwargs: Dict[str, Any],
 ) -> OpenAIText:
     """Returns an instance of OpenAIText LLM for the given arguments.
@@ -203,18 +224,20 @@ def openai_text_service_builder(
             f"Unknown params: {service_name=}, {service_type=}, supported params: service_name='openai_text',"
             " service_type='llm'"
         )
-    _set_openai_api_key(api_key)
-    all_args: Dict[str, Any] = {"model": model, "api_key": api_key, **kwargs}
-    all_args = {k: v for k, v in all_args.items() if v is not None}
-    return OpenAIText(**all_args)
+    if llm_config is None:
+        raise ValueError("parameter llm_config is required")
+    if api_config is None:
+        raise ValueError("parameter api_config is required")
+    _set_openai_api_key(api_config.api_key)
+    return OpenAIText(llm_config=llm_config, api_config=api_config, **kwargs)
 
 
 def openai_chat_service_builder(
     *,
     service_name: Optional[str] = None,
     service_type: Optional[str] = "llm",
-    model: Optional[str] = None,
-    api_key: Optional[str] = None,
+    api_config: Optional[LLMApiConfig] = None,
+    llm_config: Optional[LLMConfig] = None,
     **kwargs: Dict[str, Any],
 ) -> OpenAIChat:
     """Returns an instance of OpenAIChat LLM for the given arguments.
@@ -222,8 +245,8 @@ def openai_chat_service_builder(
     Args:
         service_name: service name to wrap, should be "openai_chat"
         service_type: service type of the component, should be "llm"
-        model: OpenAI chat model identifier, e.g. gpt-3.5-turbo
-        api_key: OpenAI api key, if not set, it will be read from environment variable OPENAI_API_KEY
+        api_config: Api configuration for LLM API calls
+        llm_config: LLM configuration for generate requests
         **kwargs: additional arguments passed to the OpenAI API client
 
     Returns:
@@ -238,10 +261,12 @@ def openai_chat_service_builder(
             f"Unknown params: {service_name=}, {service_type=}, supported params: service_name='openai_chat',"
             " service_type='llm'"
         )
-    _set_openai_api_key(api_key)
-    all_args: Dict[str, Any] = {"model": model, "api_key": api_key, **kwargs}
-    all_args = {k: v for k, v in all_args.items() if v is not None}
-    return OpenAIChat(**all_args)
+    if llm_config is None:
+        raise ValueError("parameter llm_config is required")
+    if api_config is None:
+        raise ValueError("parameter api_config is required")
+    _set_openai_api_key(api_config.api_key)
+    return OpenAIChat(llm_config=llm_config, api_config=api_config, **kwargs)
 
 
 def _set_openai_api_key(api_key: Optional[str]) -> None:

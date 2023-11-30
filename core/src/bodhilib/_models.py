@@ -20,7 +20,7 @@ from typing import (
     no_type_check,
 )
 
-from pydantic import ConfigDict, BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import TypeAlias
 
 # region type aliases
@@ -273,6 +273,70 @@ def prompt_output(text: str) -> Prompt:
     Generates a prompt with source="output". Mainly by LLMs to generate output prompts.
     """
     return Prompt(text=text, role=Role.AI, source=Source.OUTPUT)
+
+
+class LLMApiConfig(BaseModel):
+    """Configuration for LLM API calls."""
+
+    api_base: Optional[str] = None
+    """Base URL for the LLM API."""
+
+    api_key: Optional[str] = None
+    """API Key for the LLM API."""
+
+    model_config = ConfigDict(extra="allow")
+
+
+class LLMConfig(BaseModel):
+    """Configuration for LLM generate call.
+
+    Contains all the arguments that can be passed to LLM generate call.
+    """
+
+    model: Optional[str] = None
+    """LLM model to use for generation."""
+
+    stream: Optional[bool] = None
+    """If the response is to be streamed, or returned as a single response.
+
+    If True, returns a :class:`~bodhilib.PromptStream` object, else returns a :class:`~bodhilib.Prompt` object."""
+
+    temperature: Optional[float] = None
+    """Controls randomness in the generated response.
+
+    Lower temperature results in less random completions. Ranges between 0-2."""
+
+    top_p: Optional[float] = None
+    """Token consideration probability."""
+
+    top_k: Optional[int] = None
+    """Number of tokens to consider for generation."""
+
+    n: Optional[int] = None
+    """Number of responses to generate."""
+
+    stop: Optional[List[str]] = None
+    """List of tokens to stop generation at."""
+
+    max_tokens: Optional[int] = None
+    """Maximum number of tokens to generate."""
+
+    presence_penalty: Optional[float] = None
+    """Controls the presence of words from the prompt in the generated response."""
+
+    frequency_penalty: Optional[float] = None
+    """Controls the frequency of words in the generated response."""
+
+    logit_bias: Optional[Dict[int, float]] = None
+    """Dictionary of token ids and their bias values."""
+
+    seed: Optional[int] = None
+    """Seed value for reproducible results."""
+
+    user: Optional[str] = None
+    """User identifier for the LLM service."""
+
+    model_config = ConfigDict(extra="allow")
 
 
 # endregion

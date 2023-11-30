@@ -15,7 +15,18 @@ from typing import (
 )
 
 from ._filter import Filter
-from ._models import Distance, Document, Embedding, Node, Prompt, PromptStream, SerializedInput, SupportsEmbedding
+from ._models import (
+    Distance,
+    Document,
+    Embedding,
+    LLMApiConfig,
+    LLMConfig,
+    Node,
+    Prompt,
+    PromptStream,
+    SerializedInput,
+    SupportsEmbedding,
+)
 from ._plugin import PluginManager, Service
 
 
@@ -201,6 +212,7 @@ class LLM(abc.ABC):
         self,
         prompt_input: SerializedInput,
         *,
+        llm_config: Optional[LLMConfig] = None,
         stream: Optional[bool] = None,
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
@@ -221,6 +233,8 @@ class LLM(abc.ABC):
 
         Args:
             prompts (:data:`bodhilib.SerializedInput`): input to the LLM service
+            llm_config (Optional[LLMConfig]): llm config to pass to the generate api,
+                either can be passed as a single config object, or specific config using keyword arguments
             stream (bool): whether to stream the response from the LLM service
             temperature (Optional[float]): temperature or randomness of the generation
             top_p (Optional[float]): token consideration probability top_p for the generation
@@ -539,12 +553,14 @@ L = TypeVar("L", bound=LLM)
 
 def get_llm(
     service_name: str,
-    model: str,
+    model: Optional[str] = None,
     api_key: Optional[str] = None,
     *,
     oftype: Optional[Type[L]] = None,
     publisher: Optional[str] = None,
     version: Optional[str] = None,
+    api_config: Optional[LLMApiConfig] = None,
+    llm_config: Optional[LLMConfig] = None,
     **kwargs: Dict[str, Any],
 ) -> L:
     """Get an instance of LLM for the given service name and model.
@@ -558,6 +574,8 @@ def get_llm(
             the LLM is cast to `oftype` and returned for better IDE support.
         publisher (Optional[str]): publisher or developer of the service plugin, e.g. "bodhilib", "<github-username>"
         version (Optional[str]): version of the service
+        api_config (Optional[LLMApiConfig]): api config for the LLM call
+        llm_config (Optional[LLMConfig]): default llm config for the generate call
         **kwargs (Dict[str, Any]): pass through arguments for the LLM service, e.g. "temperature", "max_tokens", etc.
 
     Returns:
@@ -572,7 +590,12 @@ def get_llm(
         return_type: Type[Any] = LLM
     else:
         return_type = oftype
-
+    passed_llm_config = llm_config or LLMConfig()
+    passed_api_config = api_config or LLMApiConfig()
+    if model is not None:
+        passed_llm_config.model = model
+    if api_key is not None:
+        passed_api_config.api_key = api_key
     manager = PluginManager.instance()
     llm: L = manager.get(
         service_name=service_name,
@@ -580,8 +603,8 @@ def get_llm(
         oftype=return_type,
         publisher=publisher,
         version=version,
-        model=model,
-        api_key=api_key,
+        api_config=passed_api_config,
+        llm_config=passed_llm_config,
         **kwargs,
     )
     return cast(L, llm)

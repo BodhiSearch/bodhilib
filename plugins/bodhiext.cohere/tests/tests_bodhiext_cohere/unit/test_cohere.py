@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import cohere
 from bodhiext.cohere import Cohere
-from bodhilib import Prompt
+from bodhilib import LLMApiConfig, LLMConfig, Prompt
 
 
 @patch("cohere.Client", autospec=True)
@@ -12,7 +12,9 @@ def test_override_constructor_vars(mock_client_init):
         cohere.responses.Generation(text="Sunday", likelihood=0.5, token_likelihoods=[])
     ]
     mock_client_init.return_value = mock_client_instance
-    llm = Cohere(model="command", api_key="test-api-key", temperature=0.1)
+    llm = Cohere(
+        api_config=LLMApiConfig(api_key="test-api-key"), llm_config=LLMConfig(model="command", temperature=0.1)
+    )
     llm.generate("hello world", temperature=0.9)
     mock_client_instance.generate.assert_called_once_with("hello world", model="command", temperature=0.9)
 
@@ -24,7 +26,7 @@ def test_passthrough_vars(mock_client_init):
         cohere.responses.Generation(text="Sunday", likelihood=0.5, token_likelihoods=[])
     ]
     mock_client_init.return_value = mock_client_instance
-    llm = Cohere(model="command", api_key="test-api-key")
+    llm = Cohere(api_config=LLMApiConfig(api_key="test-api-key"), llm_config=LLMConfig(model="command"))
     mock_client_init.assert_called_once_with(api_key="test-api-key")
 
     result = llm.generate(
