@@ -1,14 +1,23 @@
+mod common;
+mod openai_py;
 use pyo3::prelude::*;
-
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
 
 /// A Python module implemented in Rust.
 #[pymodule]
 fn bodhilibrs(_py: Python, m: &PyModule) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
-    Ok(())
+  common::add_to_module(m)?;
+  openai_py::add_to_module(m)?;
+  Ok(())
+}
+
+#[macro_export]
+macro_rules! assert_ok {
+  ($e:expr) => {
+    match &$e {
+      Ok(_) => (),
+      Err(e) => {
+        assert!(false, "Expected Ok, got Err: {:?}", e);
+      }
+    }
+  };
 }
