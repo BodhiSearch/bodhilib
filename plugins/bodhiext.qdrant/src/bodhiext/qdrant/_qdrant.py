@@ -149,6 +149,9 @@ class Qdrant(VectorDB):
         except (ValueError, RuntimeError) as e:
             raise VectorDBError(e) from e
 
+    async def aupsert(self, collection_name: str, nodes: List[Node]) -> List[Node]:
+        raise NotImplementedError("async upsert not implemented")
+
     def query(
         self,
         collection_name: str,

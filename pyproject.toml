@@ -26,6 +26,7 @@ codespell = "^2.2.6"
 pydocstyle = "^6.3.0"
 tox = "^4.11.3"
 tomli = "^2.0.1"
+pytest-asyncio = "^0.23.3"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.1.2"
@@ -73,7 +74,7 @@ exclude = '''
 
 # for VS Code mypy plugin, ignoring the mypy.ini file in root
 [tool.mypy]
-python_version = 3.8
+python_version = "3.8"
 plugins = ['pydantic.mypy']
 exclude = '(?x)(test\_.*|conftest\.py|docs/.*/conf\.py)'
 mypy_path = ["src"]

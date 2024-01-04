@@ -40,6 +40,7 @@ repos:
           - 'pydantic'
           - 'types-PyYAML'
           - 'types-requests'
+          - 'types-aiofiles'
         exclude: '(?x)(test\_.*|conftest\.py|docs/conf\.py|staging/)'
         args: [--config, mypy.ini]
   - repo: https://github.com/astral-sh/ruff-pre-commit
