@@ -11,7 +11,8 @@ use pyo3::types::{PyModule, PyString};
 use pyo3::{pyclass, PyResult, Python};
 use tokio::runtime::Runtime;
 
-#[pyclass]
+/// Python wrapper for OpenAI Client
+#[pyclass(module="bodhilibrs")]
 struct OpenAI {
   client: Client<OpenAIConfig>,
 }
