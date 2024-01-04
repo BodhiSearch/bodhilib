@@ -381,6 +381,12 @@ PS = TypeVar("PS", bound=PromptSource)
 """TypeVar for PromptSource."""
 
 
+def list_prompt_sources() -> List[Service]:
+    """List all prompt sources installed and available."""
+    manager = PluginManager.instance()
+    return manager.list_services("prompt_sources")
+
+
 def get_prompt_source(
     service_name: str,
     *,
@@ -467,6 +473,10 @@ def list_data_loaders() -> List[Service]:
 S = TypeVar("S", bound=Splitter)
 """TypeVar for Splitter."""
 
+def list_splitters() -> List[Service]:
+    """List all splitters installed and available."""
+    manager = PluginManager.instance()
+    return manager.list_services("splitter")
 
 def get_splitter(
     service_name: str,

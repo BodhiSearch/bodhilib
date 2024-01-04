@@ -15,8 +15,11 @@ from ._components import get_llm as get_llm
 from ._components import get_prompt_source as get_prompt_source
 from ._components import get_splitter as get_splitter
 from ._components import get_vector_db as get_vector_db
+from ._components import list_data_loaders as list_data_loaders
 from ._components import list_embedders as list_embedders
 from ._components import list_llms as list_llms
+from ._components import list_prompt_sources as list_prompt_sources
+from ._components import list_splitters as list_splitters
 from ._components import list_vector_dbs as list_vector_dbs
 from ._filter import And as And
 from ._filter import Condition as Condition

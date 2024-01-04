@@ -157,6 +157,7 @@ class Qdrant(VectorDB):
         **kwargs: Dict[str, Any],
     ) -> List[Node]:
         # TODO: support MongoDBFilter object
+        # TODO: if SupportsEmbedding, pass embedding.embedding to client.search
         try:
             if filter:
                 qdrant_filter = _mongodb_to_qdrant_filter(filter)
