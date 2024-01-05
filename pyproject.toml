@@ -27,6 +27,7 @@ pydocstyle = "^6.3.0"
 tox = "^4.11.3"
 tomli = "^2.0.1"
 pytest-asyncio = "^0.23.3"
+python-dotenv = "^1.0.0"
 
 [tool.poetry.group.docs.dependencies]
 sphinx = "^7.1.2"

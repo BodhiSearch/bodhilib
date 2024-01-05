@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "bodhiapp"
+version = "0.1.0"
+description = "App to use SemanticSearchEngine in a webapp environment"
+authors = ["Amir Nagri <amir.nagri@proton.me>"]
+readme = "README.md"
+packages = [{ include = "bodhiapp", from = "src" }]
+
+[tool.poetry.dependencies]
+python = "^3.8.1,<3.12"
+fastapi = "^0.108.0"
+uvicorn = "^0.25.0"
+bodhilib = { path = "../../core", develop = true }
+bodhiext-common = { path = "../../plugins/bodhiext.common", develop = true }
+bodhiext-openai = { path = "../../plugins/bodhiext.openai", develop = true }
+bodhiext-qdrant = { path = "../../plugins/bodhiext.qdrant", develop = true }
+bodhiext-sentence-transformers = { path = "../bodhiext.sentence_transformers" }
+python-dotenv = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
