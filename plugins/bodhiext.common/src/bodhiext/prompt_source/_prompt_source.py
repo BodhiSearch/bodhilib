@@ -90,7 +90,7 @@ class LocalPromptSource(PromptSource):
     return self.templates
 
   def find_by_id(self, id: str) -> Optional[PromptTemplate]:
-    templates: List[PromptTemplate] = self.find({"id": str(id)}) # type: ignore #TODO
+    templates: List[PromptTemplate] = self.find({"id": str(id)})  # type: ignore #TODO
     return templates[0] if templates else None
 
   def _load_files(self, dir: PathLike) -> List[str]:
