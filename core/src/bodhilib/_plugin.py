@@ -54,7 +54,7 @@ Used for type hinting in :meth:`~bodhilib.plugin.PluginManager.get` method."""
 class PluginManager:
   """Searches for and loads bodhilib plugins."""
 
-  _instance = None
+  _instance: Optional["PluginManager"] = None
 
   def __new__(cls) -> "PluginManager":
     """Override `__new__` in case constructor is directly called."""
