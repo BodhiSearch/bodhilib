@@ -11,6 +11,7 @@ from bodhilib import (
     VectorDB,
     VectorDBError,
     service_provider,
+    to_embedding,
 )
 from bodhilib import (
     Filter as BodhiFilter,
@@ -160,7 +161,7 @@ class Qdrant(VectorDB):
         **kwargs: Dict[str, Any],
     ) -> List[Node]:
         # TODO: support MongoDBFilter object
-        # TODO: if SupportsEmbedding, pass embedding.embedding to client.search
+        embedding = to_embedding(embedding)
         try:
             if filter:
                 qdrant_filter = _mongodb_to_qdrant_filter(filter)

@@ -2,25 +2,37 @@
 from __future__ import annotations
 
 import os
+import threading
+from collections import deque
 from pathlib import Path
-from typing import Any, AsyncIterator, Awaitable, Callable, Dict, Iterator, List, Optional
+from typing import (
+  Any,
+  AsyncGenerator,
+  Awaitable,
+  Callable,
+  Deque,
+  Dict,
+  Generator,
+  List,
+  Optional,
+)
 
 import aiofiles
 from bodhilib import DataLoader, Document, PathLike
 from bodhilib.logging import logger
 
-LoaderCallable = Callable[[Path], List[Document]]
-AwaitLoaderCallable = Callable[[Path], Awaitable[List[Document]]]
+LoaderCallable = Callable[[Path], Document]
+AwaitLoaderCallable = Callable[[Path], Awaitable[Document]]
 
 
-async def _async_txt_loader(path: Path) -> List[Document]:
+async def _async_txt_loader(path: Path) -> Document:
   async with aiofiles.open(path, mode="r") as file:
     text = await file.read()
-    return [Document(text=text, metadata={"filename": path.name, "dirname": str(path.parent)})]
+    return Document(text=text, metadata={"filename": path.name, "dirname": str(path.parent)})
 
 
-def _txt_loader(path: Path) -> List[Document]:
-  return [Document(text=path.read_text(), metadata={"filename": path.name, "dirname": str(path.parent)})]
+def _txt_loader(path: Path) -> Document:
+  return Document(text=path.read_text(), metadata={"filename": path.name, "dirname": str(path.parent)})
 
 
 FILE_LOADERS: Dict[str, LoaderCallable] = {
@@ -40,7 +52,8 @@ class FileLoader(DataLoader):
   """
 
   def __init__(self) -> None:
-    self.paths: List[Path] = []
+    self.paths: Deque[Path] = deque()
+    self.lock = threading.Lock()
 
   def add_resource(  # type: ignore
     self,
@@ -71,20 +84,35 @@ class FileLoader(DataLoader):
     else:
       logger.info("paths or path must be provided")
 
-  def __iter__(self) -> Iterator[Document]:
-    """Return an iterator over the documents in the data loader."""
-    return _FileIterator(self.paths)
+  def pop(self) -> Generator[Document, None, None]:
+    """Pop a document from the data loader."""
+    while True:
+      with self.lock:
+        if not self.paths:
+          break
+        path = self.paths.popleft()
+        document = self._get_document(path)
+        if document is not None:
+          yield document
 
-  def __aiter__(self) -> AsyncIterator[Document]:
-    """Return an iterator over the documents in the data loader."""
-    return _FileAsyncIterator(self.paths)
+  async def apop(self) -> AsyncGenerator[Document, None]:  # type: ignore
+    """Pop a document from the data loader asynchronously."""
+    while True:
+      with self.lock:
+        if not self.paths:
+          break
+        path = self.paths.popleft()
+        document = await self._async_get_document(path)
+        if document is not None:
+          yield document
 
   def _add_path(self, path: PathLike) -> None:
     if isinstance(path, str):
       path = Path(path)
     if not path.exists():
       raise ValueError(f"Path {path.absolute()} does not exist")
-    self.paths.append(path)
+    with self.lock:
+      self.paths.append(path)
 
   def _add_dir(self, dir: PathLike, recursive: bool) -> None:
     if isinstance(dir, str):
@@ -99,46 +127,19 @@ class FileLoader(DataLoader):
       for file in os.listdir(dir):
         self._add_path(os.path.join(dir, file))
 
+  def _get_document(self, path: Path) -> Optional[Document]:
+    if path.suffix in FILE_LOADERS:
+      return FILE_LOADERS[path.suffix](path)
+    logger.warning(f"For filename={path}, file type {path.suffix} not supported, skipping")
+    return None
 
-class _FileAsyncIterator(AsyncIterator[Document]):
-  def __init__(self, paths: List[Path]) -> None:
-    self.paths = paths
-    self._async_generator = self._async_doc_generator()
-
-  def __aiter__(self) -> AsyncIterator[Document]:
-    return self
-
-  async def __anext__(self) -> Document:
-    return await self._async_generator.__anext__()
-
-  async def _async_doc_generator(self) -> AsyncIterator[Document]:
-    for path in self.paths:
-      if path.suffix in FILE_LOADERS:
-        loader = ASYNC_FILE_LOADERS[path.suffix]
-        documents = await loader(path)
-        for document in documents:
-          yield document
-      else:
-        logger.warning(f"For filename={path}, file type {path.suffix} not supported, skipping")
-
-
-class _FileIterator(Iterator[Document]):
-  def __init__(self, paths: List[Path]) -> None:
-    self.paths = paths
-    self._generator = self._doc_generator()
-
-  def __iter__(self) -> Iterator[Document]:
-    return self
-
-  def __next__(self) -> Document:
-    return next(self._generator)
-
-  def _doc_generator(self) -> Iterator[Document]:
-    for path in self.paths:
-      if path.suffix in FILE_LOADERS:
-        yield from FILE_LOADERS[path.suffix](path)
-      else:
-        logger.warning(f"For filename={path}, file type {path.suffix} not supported, skipping")
+  async def _async_get_document(self, path: Path) -> Optional[Document]:
+    if path.suffix in ASYNC_FILE_LOADERS:
+      loader = ASYNC_FILE_LOADERS[path.suffix]
+      document = await loader(path)
+      return document
+    logger.warning(f"For filename={path}, file type {path.suffix} not supported, skipping")
+    return None
 
 
 def file_loader_service_builder(

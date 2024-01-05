@@ -106,43 +106,50 @@ def test_local_prompt_source_loads_from_given_files():
 
 def test_local_prompt_loads_from_default_pkg_resource():
   sources = LocalPromptSource()
-  assert len(sources.list_all()) == 1
+  assert len(sources.list_all()) == 2
 
 
 def test_local_prompt_source_returns_tagged_template():
   sources = LocalPromptSource(dir=str(TEST_DATA_DIR / "prompt-sources"))
   result = sources.find({"tags": {"$in": ["funny"]}})
   assert len(result) == 2
-  assert result[0].metadata == {"tags": ["funny", "simple"], "format": "jinja2", "id": 2}
-  assert result[1].metadata == {"tags": ["funny"], "format": "fstring", "id": 3}
+  assert result[0].metadata == {"tags": ["funny", "simple"], "format": "jinja2", "id": "2"}
+  assert result[1].metadata == {"tags": ["funny"], "format": "fstring", "id": "3"}
 
 
 def test_local_prompt_source_returns_template_with_any_tags():
   sources = LocalPromptSource(dir=str(TEST_DATA_DIR / "prompt-sources"))
   result = sources.find({"tags": {"$in": ["education", "simple"]}})
   assert len(result) == 2
-  assert result[0].metadata == {"tags": ["education", "simple"], "format": "fstring", "id": 1}
-  assert result[1].metadata == {"tags": ["funny", "simple"], "format": "jinja2", "id": 2}
+  assert result[0].metadata == {"tags": ["education", "simple"], "format": "fstring", "id": "1"}
+  assert result[1].metadata == {"tags": ["funny", "simple"], "format": "jinja2", "id": "2"}
 
 
 def test_local_prompt_source_returns_template_with_all_tags():
   sources = LocalPromptSource(dir=str(TEST_DATA_DIR / "prompt-sources"))
   result = sources.find({"tags": {"$all": ["simple", "funny"]}})
   assert len(result) == 1
-  assert result[0].metadata == {"tags": ["funny", "simple"], "format": "jinja2", "id": 2}
+  assert result[0].metadata == {"tags": ["funny", "simple"], "format": "jinja2", "id": "2"}
 
 
 def test_local_prompt_source_returns_template_with_tag_not_matching():
   sources = LocalPromptSource(dir=str(TEST_DATA_DIR / "prompt-sources"))
   result = sources.find({"tags": {"$nin": ["simple", "education"]}})
   assert len(result) == 1
-  assert result[0].metadata == {"tags": ["funny"], "format": "fstring", "id": 3}
+  assert result[0].metadata == {"tags": ["funny"], "format": "fstring", "id": "3"}
+
+
+def test_local_prompt_source_returns_template_with_given_id():
+  sources = LocalPromptSource(dir=str(TEST_DATA_DIR / "prompt-sources"))
+  result = sources.find_by_id("2")
+  assert result is not None
+  assert result.metadata == {"tags": ["funny", "simple"], "format": "jinja2", "id": "2"}
 
 
 def test_local_prompt_soruce_list_all():
   sources = LocalPromptSource(dir=str(TEST_DATA_DIR / "prompt-sources"))
   result = sources.list_all()
   assert len(result) == 3
-  assert result[0].metadata["id"] == 1
-  assert result[1].metadata["id"] == 2
-  assert result[2].metadata["id"] == 3
+  assert result[0].metadata["id"] == "1"
+  assert result[1].metadata["id"] == "2"
+  assert result[2].metadata["id"] == "3"

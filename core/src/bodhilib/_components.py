@@ -3,9 +3,11 @@ from __future__ import annotations
 import abc
 from typing import (
   Any,
+  AsyncGenerator,
   AsyncIterator,
   Dict,
-  Iterable,
+  Generator,
+  Generic,
   Iterator,
   List,
   Optional,
@@ -24,9 +26,9 @@ from ._models import (
   LLMConfig,
   Node,
   Prompt,
-  PromptStream,
   SerializedInput,
   SupportsEmbedding,
+  TextLike,
 )
 from ._plugin import PluginManager, Service
 
@@ -81,7 +83,9 @@ class PromptSource(abc.ABC):
   """
 
   @abc.abstractmethod
-  def find(self, filter: Filter, stream: bool = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
+  def find(
+    self, filter: Filter, stream: Optional[bool] = False
+  ) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
     """Find a prompt template for given tags.
 
     Args:
@@ -96,7 +100,7 @@ class PromptSource(abc.ABC):
     """
 
   @abc.abstractmethod
-  def list_all(self, stream: bool = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
+  def list_all(self, stream: Optional[bool] = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
     """List all prompt templates in the source.
 
     Args:
@@ -108,14 +112,20 @@ class PromptSource(abc.ABC):
         Iterator[PromptTemplate]: list iterator of all prompt templates in the source
     """
 
+  @abc.abstractmethod
+  def find_by_id(self, id: str) -> Optional[PromptTemplate]:
+    """Find a prompt template by id."""
+
 
 # endregion
 # region data loader
 #######################################################################################################################
-class DataLoader(Iterable[Document], abc.ABC):
-  """Abstract base class for data loaders.
+class DataLoader(abc.ABC):
+  """Abstract base class for data loader queue.
 
   A data loader should inherit from this class and implement the abstract methods.
+
+  Data loader queue should be thread safe.
   """
 
   @abc.abstractmethod
@@ -123,19 +133,16 @@ class DataLoader(Iterable[Document], abc.ABC):
     """Add a resource to the data loader."""
 
   @abc.abstractmethod
-  def __iter__(self) -> Iterator[Document]:
-    """Returns the document iterator.
-
-    It is for the sub-class to ensure the `__iter__` method returns a new instance of iterator
-    """
+  def pop(self) -> Generator[Document, None, None]:
+    """Returns the top fetched resource as Document."""
 
   @abc.abstractmethod
-  def __aiter__(self) -> AsyncIterator[Document]:
-    """Returns the async document iterator."""
+  async def apop(self) -> AsyncGenerator[Document, None]:
+    """Returns the top fetched resource as Document asynchronously."""
 
   def load(self) -> List[Document]:
     """Returns the document as list."""
-    return list(self)
+    return [doc for doc in self.pop()]
 
 
 # endregion
@@ -151,7 +158,7 @@ class Splitter(abc.ABC):
 
   @abc.abstractmethod
   def split(
-    self, inputs: SerializedInput, stream: Optional[bool] = False, astream: Optional[bool] = False
+    self, inputs: SerializedInput, stream: Optional[bool] = None, astream: Optional[bool] = None
   ) -> Union[List[Node], Iterator[Node], AsyncIterator[Node]]:
     """Split a :data:`~bodhilib.SerializedInput` into a list of :class:`~bodhilib.Node`.
 
@@ -159,10 +166,10 @@ class Splitter(abc.ABC):
         inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
             a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
             or a serialized dict of the object.
-        stream (Optional[bool]=False): option to stream the splits as they are ready.
+        stream (Optional[bool]=None): option to stream the splits as they are ready.
             If True, returns an Iterator that splits the document lazily on demand.
             If False, fallback to default behaviour.
-        astream (Optional[bool]=False): option to asynchronously stream the splits as they are ready.
+        astream (Optional[bool]=None): option to asynchronously stream the splits as they are ready.
             If True, returns an AsyncIterator that splits the document lazily on demand.
             If False, fallback to default behaviour.
             if stream=True, astream is ignored.
@@ -185,7 +192,7 @@ class Embedder(abc.ABC):
 
   @abc.abstractmethod
   def embed(
-    self, inputs: SerializedInput, stream: Optional[bool] = False, astream: Optional[bool] = False
+    self, inputs: SerializedInput, stream: Optional[bool] = None, astream: Optional[bool] = None
   ) -> Union[List[Node], Iterator[Node], AsyncIterator[Node]]:
     """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
 
@@ -193,10 +200,10 @@ class Embedder(abc.ABC):
         inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
             a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
             or a serialized dict of the object.
-        stream (Optional[bool] = False): option to embed document lazily on demand.
+        stream (Optional[bool] = None): option to embed document lazily on demand.
             If True, returns an iterator that embeds the document lazily on demand.
             If False, fallback to default behaviour.
-        astream (Optional[bool] = False): option to asynchronously embed document lazily on demand.
+        astream (Optional[bool] = None): option to asynchronously embed document lazily on demand.
             If True, returns an async iterator that embeds the document lazily on demand.
             If False, fallback to default behaviour.
             if stream=True, astream is ignored.
@@ -229,10 +236,11 @@ class LLM(abc.ABC):
   @abc.abstractmethod
   def generate(
     self,
-    prompt_input: SerializedInput,
+    prompts: SerializedInput,
     *,
     llm_config: Optional[LLMConfig] = None,
     stream: Optional[bool] = None,
+    astream: Optional[bool] = None,
     temperature: Optional[float] = None,
     top_p: Optional[float] = None,
     top_k: Optional[int] = None,
@@ -243,7 +251,7 @@ class LLM(abc.ABC):
     frequency_penalty: Optional[float] = None,
     user: Optional[str] = None,
     **kwargs: Dict[str, Any],
-  ) -> Union[Prompt, PromptStream]:
+  ) -> Union[Prompt, Iterator[Prompt], AsyncIterator[Prompt]]:
     """Base class :func:`~bodhilib.LLM.generate` method interface common to all LLM service implementation.
 
     Takes in :data:`bodhilib.SerializedInput`, a flexible input supporting from plain string,
@@ -254,7 +262,11 @@ class LLM(abc.ABC):
         prompts (:data:`bodhilib.SerializedInput`): input to the LLM service
         llm_config (Optional[LLMConfig]): llm config to pass to the generate api,
             either can be passed as a single config object, or specific config using keyword arguments
-        stream (bool): whether to stream the response from the LLM service
+        stream (Optional[bool]):
+          whether to stream the response from the LLM service
+        astream (Optional[bool]):
+          whether to asynchronously stream the response from the LLM service
+          ignored if stream=True
         temperature (Optional[float]): temperature or randomness of the generation
         top_p (Optional[float]): token consideration probability top_p for the generation
         top_k (Optional[int]): token consideration number top_k for the generation
@@ -269,6 +281,7 @@ class LLM(abc.ABC):
     Returns:
         :class:`~bodhilib.Prompt`: a Prompt object, if stream is False
         Iterator[:class:`~bodhilib.Prompt`]: an iterator of Prompt objects, if stream is True
+        AsyncIterator[:class:`~bodhilib.Prompt`]: an async iterator of Prompt objects, if astream is True
     """
 
 
@@ -393,6 +406,80 @@ class VectorDB(abc.ABC):
 
     Raises:
         VectorDBError: Wraps any database delete error raised by the underlying client.
+    """
+
+
+# endregion
+# region semanticsearchengine
+#######################################################################################################################
+SSE = TypeVar("SSE", bound="SemanticSearchEngine")
+
+
+class SemanticSearchEngine(abc.ABC, Generic[SSE]):
+  @abc.abstractmethod
+  def add_resource(self, **kwargs: Dict[str, Any]) -> SSE:
+    """Add a resource to the semantic search engine."""
+
+  @abc.abstractmethod
+  def delete_collection(self) -> bool:
+    """Deletes the collection from the vector db."""
+
+  @abc.abstractmethod
+  def create_collection(self) -> bool:
+    """Creates the collection in vector db."""
+
+  @abc.abstractmethod
+  def ingest(self) -> None:
+    """Trigger blocking ingestion for the newly added resources."""
+
+  @abc.abstractmethod
+  async def aingest(self) -> None:
+    """Trigger async ingestion for the newly added resources."""
+
+  @abc.abstractmethod
+  def ann(
+    self, query: TextLike, astream: Optional[bool] = None, n: Optional[int] = 5
+  ) -> Union[List[Node], AsyncIterator[List[Node]]]:
+    """Search for the nearest vectors in the database for given query and return results.
+
+    Args:
+      query(TextLike): flexible input
+        1. can be a `str`, or
+        2. a dict with key `text`, or
+        3. an object with property text, like `~bodhilib.Prompt`, `~bodhilib.Node`, `~bodhilib.Document`
+      astream(Optional[bool]): option to asynchronously stream the results as they are ready.
+      n: maximum number of nearest neighbours to return.
+    Returns:
+      List[Node]: list of nodes with metadata.
+      AsyncIterator[List[Node]]: async iterator of nodes with metadata.
+    """
+
+  @abc.abstractmethod
+  def rag(
+    self, query: TextLike, prompt_template: Optional[PromptTemplate] = None, astream: Optional[bool] = None
+  ) -> Union[Prompt, AsyncIterator[Prompt]]:
+    """Generate answer for given query using RAG technique.
+
+    In RAG (Retrieval Augmented Generation), the following happens:
+      1. Query is converted to an embedding using the embedder.
+      2. Query embedding is searched in the Vector DB for nearest neighbours.
+      3. The nearest neighbours are used to generate prompts using the prompt template.
+      4. The prompts are passed to the LLM service to generate answers.
+      5. The answers are returned.
+
+    Args:
+      query(TextLike): flexible input
+        1. can be a `str`, or
+        2. a dict with key `text`, or
+        3. an object with property text, like `~bodhilib.Prompt`, `~bodhilib.Node`, `~bodhilib.Document`
+      prompt_template (Optional[PromptTemplate]): prompt template to use for generating prompts
+      astream (Optional[bool]): option to asynchronously stream the results as they are ready.
+          If True, returns a PromptStream that streams the results as they are ready from LLM.
+          If False, returns the result synchronously when ready.
+
+    Returns:
+      Prompt: a Prompt, if astream is False
+      AsyncIterator[Prompt]: an async iterator of Prompt, if astream is True
     """
 
 

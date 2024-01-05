@@ -69,7 +69,7 @@ class LocalPromptSource(PromptSource):
     self.templates: Optional[List[PromptTemplate]] = None
 
   def find(
-    self, filter: Union[Filter, Dict[str, Any]], stream: bool = False
+    self, filter: Union[Filter, Dict[str, Any]], stream: Optional[bool] = False
   ) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
     if isinstance(filter, dict):
       filter = Filter.from_dict(filter)
@@ -81,13 +81,17 @@ class LocalPromptSource(PromptSource):
       return iter(templates)
     return templates
 
-  def list_all(self, stream: bool = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
+  def list_all(self, stream: Optional[bool] = False) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
     if not self.templates:
       self.templates = self._load_templates()
     # TODO: implement stream for list_all
     if stream:
       return iter(self.templates)
     return self.templates
+
+  def find_by_id(self, id: str) -> Optional[PromptTemplate]:
+    templates: List[PromptTemplate] = self.find({"id": str(id)}) # type: ignore #TODO
+    return templates[0] if templates else None
 
   def _load_files(self, dir: PathLike) -> List[str]:
     return [os.path.join(root, file) for root, _, files in os.walk(dir) for file in files if _is_yaml(file)]

@@ -432,6 +432,14 @@ def to_text(textlike: TextLike) -> str:
   raise ValueError(f"Cannot convert type {type(textlike)} to text.")
 
 
+def to_embedding(embedding: Union[Embedding, SupportsEmbedding]) -> Embedding:
+  if supportsembedding(embedding):
+    return cast(SupportsEmbedding, embedding).embedding
+  elif isinstance(embedding, list):
+    return embedding
+  raise ValueError(f"Cannot convert type {type(embedding)} to embedding.")
+
+
 def to_prompt_list(inputs: SerializedInput) -> List[Prompt]:
   """Converts a :data:`~bodhilib.SerializedInput` to list of :class:`~Prompt`."""
   if istextlike(inputs):

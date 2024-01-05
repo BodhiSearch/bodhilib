@@ -32,14 +32,14 @@ def test_file_loader_recursive_true(file_loader, tmp_loader_dir):
   file_loader.add_resource(dir=tmp_loader_dir, recursive=True)
 
   # iterate over documents and check if they are loaded correctly
-  docs = list(iter(file_loader))
+  docs = file_loader.load()
   assert_docs(docs, tmp_loader_dir)
 
 
 @pytest.mark.asyncio
 async def test_file_loader_async_recursive_true(file_loader, tmp_loader_dir):
   file_loader.add_resource(dir=tmp_loader_dir, recursive=True)
-  docs = [doc async for doc in file_loader]
+  docs = [doc async for doc in file_loader.apop()]
   assert_docs(docs, tmp_loader_dir)
 
 
@@ -62,14 +62,14 @@ def assert_docs(docs, tmp_loader_dir):
 
 def test_file_loader_loads_recursive_false(file_loader, tmp_loader_dir):
   file_loader.add_resource(dir=tmp_loader_dir, recursive=False)
-  docs = list(iter(file_loader))
+  docs = file_loader.load()
   assert_recursive_false(docs, tmp_loader_dir)
 
 
 @pytest.mark.asyncio
 async def test_file_loader_loads_async_recursive_false(file_loader, tmp_loader_dir):
   file_loader.add_resource(dir=tmp_loader_dir, recursive=False)
-  docs = [doc async for doc in file_loader]
+  docs = [doc async for doc in file_loader.apop()]
   assert_recursive_false(docs, tmp_loader_dir)
 
 
@@ -88,14 +88,14 @@ def assert_recursive_false(docs, tmp_loader_dir):
 
 def test_file_loader_loads_given_files(file_loader, tmp_loader_dir):
   file_loader.add_resource(file=f"{tmp_loader_dir}/test1.txt")
-  docs = list(iter(file_loader))
+  docs = file_loader.load()
   assert_loads_given_file(docs, tmp_loader_dir)
 
 
 @pytest.mark.asyncio
 async def test_file_loader_loads_async_given_files(file_loader, tmp_loader_dir):
   file_loader.add_resource(file=f"{tmp_loader_dir}/test1.txt")
-  docs = [doc async for doc in file_loader]
+  docs = [doc async for doc in file_loader.apop()]
   assert_loads_given_file(docs, tmp_loader_dir)
 
 

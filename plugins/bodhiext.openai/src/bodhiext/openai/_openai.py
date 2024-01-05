@@ -41,10 +41,11 @@ class OpenAIChat(LLM):
 
     def generate(
         self,
-        prompt_input: SerializedInput,
+        prompts: SerializedInput,
         *,
         llm_config: Optional[LLMConfig] = None,
         stream: Optional[bool] = None,
+        astream: Optional[bool] = None,
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
@@ -62,7 +63,10 @@ class OpenAIChat(LLM):
             Union[:class:`~bodhilib.Prompt`, :class:`~bodhilib.PromptStream`]: response from LLM
                 as :class:`~bodhilib.Prompt` or :class:`~bodhilib.PromptStream`
         """
-        prompts = to_prompt_list(prompt_input)
+        # TODO: support async generate
+        if astream:
+            raise NotImplementedError("async generate is not implemented")
+        prompts = to_prompt_list(prompts)
         default_config = self.llm_config.model_dump(exclude_none=True)
         override_config = llm_config.model_dump(exclude_none=True) if llm_config is not None else {}
         all_args = {
@@ -106,10 +110,11 @@ class OpenAIText(LLM):
 
     def generate(
         self,
-        prompt_input: SerializedInput,
+        prompts: SerializedInput,
         *,
         llm_config: Optional[LLMConfig] = None,
         stream: Optional[bool] = None,
+        astream: Optional[bool] = None,
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
@@ -127,7 +132,10 @@ class OpenAIText(LLM):
             Union[:class:`~bodhilib.Prompt`, :class:`~bodhilib.PromptStream`]: response from LLM
                 as :class:`~bodhilib.Prompt` or :class:`~bodhilib.PromptStream`
         """
-        prompts = to_prompt_list(prompt_input)
+        # TODO: implement async generate
+        if astream:
+            raise NotImplementedError("async generate is not implemented")
+        prompts = to_prompt_list(prompts)
         prompt = self._to_prompt(prompts)
         default_config = self.llm_config.model_dump(exclude_none=True)
         override_config = llm_config.model_dump(exclude_none=True) if llm_config is not None else {}

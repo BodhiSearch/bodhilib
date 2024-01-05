@@ -6,6 +6,7 @@ from ._components import DataLoader as DataLoader
 from ._components import Embedder as Embedder
 from ._components import PromptSource as PromptSource
 from ._components import PromptTemplate as PromptTemplate
+from ._components import SemanticSearchEngine as SemanticSearchEngine
 from ._components import Splitter as Splitter
 from ._components import VectorDB as VectorDB
 from ._components import VectorDBError as VectorDBError
@@ -52,6 +53,7 @@ from ._models import supportsembedding as supportsembedding
 from ._models import supportstext as supportstext
 from ._models import to_document as to_document
 from ._models import to_document_list as to_document_list
+from ._models import to_embedding as to_embedding
 from ._models import to_node as to_node
 from ._models import to_node_list as to_node_list
 from ._models import to_prompt as to_prompt

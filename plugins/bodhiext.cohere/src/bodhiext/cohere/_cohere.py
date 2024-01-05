@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
 
 from bodhilib import (
     LLM,
@@ -67,10 +67,11 @@ class Cohere(LLM):
 
     def generate(
         self,
-        prompt_input: SerializedInput,
+        prompts: SerializedInput,
         *,
         llm_config: Optional[LLMConfig] = None,
         stream: Optional[bool] = None,
+        astream: Optional[bool] = None,
         temperature: Optional[float] = None,
         top_p: Optional[float] = None,
         top_k: Optional[int] = None,
@@ -81,8 +82,11 @@ class Cohere(LLM):
         frequency_penalty: Optional[float] = None,
         user: Optional[str] = None,
         **kwargs: Dict[str, Any],
-    ) -> Union[Prompt, PromptStream]:
-        prompts = to_prompt_list(prompt_input)
+    ) -> Union[Prompt, Iterator[Prompt], AsyncIterator[Prompt]]:
+        # TODO: implement async stream
+        if astream:
+            raise NotImplementedError("Async stream is not supported by Cohere")
+        prompts = to_prompt_list(prompts)
         if len(prompts) == 0:
             raise ValueError("Prompt is empty")
         input = self._to_cohere_prompt(prompts)

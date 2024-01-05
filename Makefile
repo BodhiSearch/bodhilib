@@ -20,6 +20,11 @@ exec:
 	python make.py exec $(filter-out $@,$(MAKECMDGOALS))
 	@:
 
+stub:
+	@# Invoke the Python script with 'stub' and all passed arguments.
+	python make.py stub $(filter-out $@,$(MAKECMDGOALS))
+	@:
+
 ci.check-pyproj:
 	@python make.py check-pyproj all
 

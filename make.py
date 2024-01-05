@@ -309,6 +309,28 @@ def exec_check_pyproj(targets: List[str]) -> int:
         return 1
     return 0
 
+def exec_stub(targets: List[str]) -> int:
+    folders = list(set(itertools.chain(*[parse_args_target(target) for target in targets])))
+    for folder in folders:
+        src_folder = f"{folder}/src"
+        if not os.path.exists(src_folder):
+            raise ValueError(f"{folder}/src not found")
+        # find all python files
+        files = []
+        modules = []
+        for root, _, filenames in os.walk(src_folder):
+            for filename in filenames:
+                if filename == "__init__.py":
+                    modules.append(root.replace(src_folder + '/', '').replace('/', '.'))
+                elif filename.endswith(".py"):
+                    files.append(os.path.join(root, filename).replace(folder + '/', ''))
+        for module in modules:
+            subprocess.run(["stubgen", "-m", module, "-o", "stubs"], cwd=folder)
+            # print(' ' .join(["stubgen", "-m", module, "-o", "stubs", "cwd", folder]))
+        subprocess.run(["stubgen", "-o", "stubs", *files], cwd=folder)
+        subprocess.run(["ruff", "format", "stubs"], cwd=folder)
+        # print(' '.join(["stubgen", "-o", "stubs", *files, 'cwd', folder]))
+    return 0
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Python library to automate and orchestrate bodhilib build process.")
@@ -377,6 +399,17 @@ def main() -> None:
         "--python-versions", type=str, default=",".join(python_versions), help="Python version to run tox against"
     )
 
+    # 'stub' generate mypy stubs
+    stub_command = subparsers.add_parser("stub", help="Generate mypy stubs")
+    stub_command.add_argument(
+        "targets",
+        type=str,
+        choices=dir_opts,
+        nargs="*",
+        default="all",
+        help="Run stubs for given projects",
+    )
+
     # 'update-configs' command
     _ = subparsers.add_parser("update-configs", help="Update configs")
 
@@ -408,6 +441,8 @@ def main() -> None:
         sys.exit(exec_update_configs())
     elif args.top_command == "check-pyproj":
         sys.exit(exec_check_pyproj(args.targets))
+    elif args.top_command == "stub":
+        sys.exit(exec_stub(args.targets))
     else:
         print(f"Unknown command {args.top_command}")
         sys.exit(1)

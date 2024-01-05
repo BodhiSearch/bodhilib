@@ -1,0 +1,3 @@
+import logging
+
+def init_logger(package_name: str) -> logging.Logger: ...

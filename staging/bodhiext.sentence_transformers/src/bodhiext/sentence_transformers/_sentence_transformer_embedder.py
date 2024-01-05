@@ -73,6 +73,10 @@ class SentenceTransformerEmbedder(Embedder):
       return dimension
     raise ValueError(f"Unknown type for dimension, type={type(dimension)}")
 
+  @property
+  def batch_size(self) -> int:
+    return 32
+
 
 def sentence_transformer_builder(
   *,

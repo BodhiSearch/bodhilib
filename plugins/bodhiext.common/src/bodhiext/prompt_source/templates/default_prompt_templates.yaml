@@ -1,5 +1,5 @@
 templates:
-- id: "default-1"
+- id: "default-few-shot-1"
   tags: ["few-shot"]
   description: |
     A few-shot prompt template. Takes in examples and query and tries to generate a response.
@@ -18,3 +18,22 @@ templates:
       {% endfor %}
       Example input: {{query}}
       Example output:
+- id: "default-rag-1"
+  tags: ["rag"]
+  description: |
+    A RAG prompt template. Takes in context and query and tries to extract an answer.
+  format: "jinja2"
+  prompts:
+  - role: "system"
+    source: "input"
+    text: "You are a helpful AI assistant"
+  - role: "user"
+    source: "input"
+    text: |
+      Below are snippets of document related to question at the end.
+      Read and understand the context properly to answer the question.
+      {% for context in contexts -%}
+      {{ loop.index }}. {{context}}
+      {% endfor %}
+      Answer the question below based on the context provided above
+      Question: {{query}}
