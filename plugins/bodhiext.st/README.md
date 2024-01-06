@@ -1,14 +1,14 @@
 # SentenceTransformers Bodhilib plugin
 
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/BodhiSearch/bodhiext.sentence_transformers/blob/main/LICENSE)
-![pypi](https://img.shields.io/pypi/v/bodhiext.sentence_transformers.svg)
-[![CI/CD](https://github.com/BodhiSearch/bodhiext.sentence_transformers/actions/workflows/main.yml/badge.svg)](https://github.com/BodhiSearch/bodhiext.sentence_transformers/actions/workflows/main.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/BodhiSearch/bodhiext.st/blob/main/LICENSE)
+![pypi](https://img.shields.io/pypi/v/bodhiext.st.svg)
+[![CI/CD](https://github.com/BodhiSearch/bodhiext.st/actions/workflows/main.yml/badge.svg)](https://github.com/BodhiSearch/bodhiext.st/actions/workflows/main.yml)
 [![Documentation Status](https://readthedocs.org/projects/bodhiextsentence-transformers/badge/?version=stable)](https://bodhiextsentence-transformers.readthedocs.io/en/stable/)
 
 Bodhilib plugin for Sentence Transformer Embedder
 
 * Free software: MIT license
-* Documentation: <https:/>/bodhiext.sentence_transformers.readthedocs.io.
+* Documentation: <https:/>/bodhiext.st.readthedocs.io.
 
 # Features
 

@@ -1,5 +1,5 @@
 import pytest
-from bodhiext.sentence_transformers import SentenceTransformerEmbedder, sentence_transformer_builder
+from bodhiext.st import SentenceTransformerEmbedder, sentence_transformer_builder
 from bodhilib import Embedder
 
 

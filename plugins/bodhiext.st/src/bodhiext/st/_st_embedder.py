@@ -1,4 +1,4 @@
-""":mod:`bodhiext.sentence_transformers` module defines classes and methods for embedder using sentence-transformer."""
+""":mod:`bodhiext.st` module defines classes and methods for embedder using sentence-transformer."""
 from __future__ import annotations
 
 from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
@@ -7,7 +7,7 @@ from bodhiext.common import AsyncListIterator
 from bodhilib import Embedder, Embedding, Node, SerializedInput, Service, service_provider, to_node_list
 from bodhilib.logging import logger
 
-import sentence_transformers as st
+import sentence_transformers as sentence_transformers
 
 from ._version import __version__
 
@@ -17,13 +17,13 @@ class SentenceTransformerEmbedder(Embedder):
 
   def __init__(
     self,
-    client: Optional[st.SentenceTransformer] = None,
+    client: Optional[sentence_transformers.SentenceTransformer] = None,
     model: Optional[str] = None,
     **kwargs: Dict[str, Any],
   ) -> None:
     kwargs = {k: v for k, v in kwargs.items() if v is not None}
     self.kwargs = kwargs
-    self.client: Optional[st.SentenceTransformer] = None
+    self.client: Optional[sentence_transformers.SentenceTransformer] = None
     if client:
       self.client = client
       return
@@ -47,7 +47,7 @@ class SentenceTransformerEmbedder(Embedder):
     """
     nodes = to_node_list(inputs)
     if self.client is None:
-      self.client = st.SentenceTransformer(self.model)
+      self.client = sentence_transformers.SentenceTransformer(self.model)
     embeddings: List[Embedding] = self.client.encode([node.text for node in nodes]).tolist()
     for node, embedding in zip(nodes, embeddings):
       node.embedding = embedding
@@ -65,7 +65,7 @@ class SentenceTransformerEmbedder(Embedder):
         int: dimension of the embeddings
     """
     if self.client is None:
-      self.client = st.SentenceTransformer(self.model)
+      self.client = sentence_transformers.SentenceTransformer(self.model)
     dimension = self.client.get_sentence_embedding_dimension()
     if dimension is None:
       raise ValueError("Dimension of the model is None.")
@@ -82,7 +82,7 @@ def sentence_transformer_builder(
   *,
   service_name: Optional[str] = None,
   service_type: Optional[str] = "embedder",
-  client: Optional[st.SentenceTransformer] = None,
+  client: Optional[sentence_transformers.SentenceTransformer] = None,
   model: Optional[str] = None,
   **kwargs: Dict[str, Any],
 ) -> SentenceTransformerEmbedder:

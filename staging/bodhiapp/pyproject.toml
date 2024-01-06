@@ -14,7 +14,7 @@ bodhilib = { path = "../../core", develop = true }
 bodhiext-common = { path = "../../plugins/bodhiext.common", develop = true }
 bodhiext-openai = { path = "../../plugins/bodhiext.openai", develop = true }
 bodhiext-qdrant = { path = "../../plugins/bodhiext.qdrant", develop = true }
-bodhiext-sentence-transformers = { path = "../bodhiext.sentence_transformers" }
+bodhiext-st = { path = "../../plugins/bodhiext.st", develop = true }
 python-dotenv = "^1.0.0"
 
 [build-system]

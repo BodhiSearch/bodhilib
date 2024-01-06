@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
 import pytest
-from bodhiext.sentence_transformers import sentence_transformer_builder
+from bodhiext.st import sentence_transformer_builder
 from bodhilib import Node
 
 

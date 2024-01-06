@@ -24,6 +24,7 @@ on:
           - bodhiext.common
           - bodhiext.openai
           - bodhiext.qdrant
+          - bodhiext.st
         required: true
         default: all
 jobs:
