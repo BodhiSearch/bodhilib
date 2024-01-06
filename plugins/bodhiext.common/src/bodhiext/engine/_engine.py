@@ -1,3 +1,4 @@
+import logging
 import textwrap
 from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
@@ -6,19 +7,20 @@ from bodhiext.prompt_template import StringPromptTemplate
 from bodhilib import (
   LLM,
   DataLoader,
+  Document,
   Embedder,
   Node,
   Prompt,
   PromptTemplate,
+  SemanticSearchEngine,
   Splitter,
   TextLike,
   VectorDB,
   to_prompt,
 )
-from bodhilib import SemanticSearchEngine as SSE
 
 
-class DefaultSemanticEngine(SSE["DefaultSemanticEngine"]):
+class DefaultSemanticEngine(SemanticSearchEngine):
   def __init__(
     self,
     data_loader: DataLoader,
@@ -37,9 +39,8 @@ class DefaultSemanticEngine(SSE["DefaultSemanticEngine"]):
     self.collection_name = collection_name
     self.distance = distance or "cosine"
 
-  def add_resource(self, **kwargs: Dict[str, Any]) -> "DefaultSemanticEngine":
-    self.data_loader.add_resource(**kwargs)
-    return self
+  def add_resource(self, **kwargs: Dict[str, Any]) -> None:
+    self.data_loader.push(**kwargs)
 
   def delete_collection(self) -> bool:
     return self.vector_db.delete_collection(self.collection_name)
@@ -47,21 +48,26 @@ class DefaultSemanticEngine(SSE["DefaultSemanticEngine"]):
   def create_collection(self) -> bool:
     return self.vector_db.create_collection(self.collection_name, self.embedder.dimension, self.distance)
 
+  def run_ingest(self) -> None:
+    docs = self.data_loader.load()
+    for doc in docs:
+      self._process_doc(doc)
+
   def ingest(self) -> None:
-    for doc in self.data_loader.pop():
-      nodes: List[Node] = self.splitter.split(doc)  # type: ignore #TODO
-      batch_size = max(1, self.embedder.batch_size)
-      for node_batch in batch(nodes, batch_size):
-        embeddings: List[Node] = self.embedder.embed(node_batch)  # type: ignore #TODO
-        self.vector_db.upsert(self.collection_name, embeddings)
+    while (doc := self.data_loader.pop()) is not None:
+      logging.info("[ingest] received item")
+      self._process_doc(doc)
+      logging.info("[ingest] process complete")
 
   async def aingest(self) -> None:
-    async for doc in self.data_loader.apop():  # type: ignore
+    while (doc := await self.data_loader.apop()) is not None:
+      logging.info("[aingest] received item")
       nodes: AsyncIterator[Node] = self.splitter.split(doc, astream=True)  # type: ignore #TODO
       batch_size = max(1, self.embedder.batch_size)
       async for node_batch in abatch(nodes, batch_size):
         embeddings: List[Node] = self.embedder.embed(node_batch)  # type: ignore #TODO
         self.vector_db.upsert(self.collection_name, embeddings)
+      logging.info("[aingest] process complete")
 
   def ann(
     self, query: TextLike, astream: Optional[bool] = None, n: Optional[int] = 5
@@ -99,3 +105,10 @@ class DefaultSemanticEngine(SSE["DefaultSemanticEngine"]):
     prompts = prompt_template.to_prompts(contexts=contexts, query=query)  # type: ignore #TODO
     response: Prompt = self.llm.generate(prompts, astream=astream)  # type: ignore #TODO
     return response
+
+  def _process_doc(self, doc: Document) -> None:
+    nodes: List[Node] = self.splitter.split(doc)  # type: ignore #TODO
+    batch_size = max(1, self.embedder.batch_size)
+    for node_batch in batch(nodes, batch_size):
+      embeddings: List[Node] = self.embedder.embed(node_batch)  # type: ignore #TODO
+      self.vector_db.upsert(self.collection_name, embeddings)

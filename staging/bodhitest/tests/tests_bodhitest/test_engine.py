@@ -32,7 +32,7 @@ def vector_db():
 
 @pytest.fixture
 def engine(llm, file_loader, embedder, splitter, vector_db):
-  return DefaultSemanticEngine(
+  engine = DefaultSemanticEngine(
     data_loader=file_loader,
     splitter=splitter,
     embedder=embedder,
@@ -40,6 +40,9 @@ def engine(llm, file_loader, embedder, splitter, vector_db):
     llm=llm,
     collection_name="test_collection",
   )
+  engine.delete_collection()
+  engine.create_collection()
+  return engine
 
 
 @pytest.fixture
@@ -49,10 +52,8 @@ def test_file():
 
 @pytest.mark.live
 def test_engine_rag(engine, test_file):
-  engine.delete_collection()
-  engine.create_collection()
   engine.add_resource(file=str(test_file))
-  engine.ingest()
+  engine.run_ingest()
   response = engine.rag("What are authors thought about painting?")
   print(response)
   assert "painting" in response.text

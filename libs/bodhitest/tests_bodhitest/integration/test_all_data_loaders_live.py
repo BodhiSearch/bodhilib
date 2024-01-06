@@ -28,7 +28,7 @@ def happypath_args(request):
 def test_all_data_loaders_live_happypath(data_loader_service: DataLoader, happypath_args):
   try:
     happypath_args["setup"]()
-    data_loader_service.add_resource(files=happypath_args["resources"])
+    data_loader_service.push(files=happypath_args["resources"])
     nodes = data_loader_service.load()
     assert len(nodes) == len(happypath_args["text"])
     assert [node.text for node in nodes] == happypath_args["text"]

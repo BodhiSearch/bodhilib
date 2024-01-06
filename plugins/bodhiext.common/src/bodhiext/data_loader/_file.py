@@ -1,18 +1,17 @@
 """module for file data loader plugin for bodhilib."""
 from __future__ import annotations
 
+import asyncio
 import os
-import threading
-from collections import deque
+import queue
 from pathlib import Path
+from queue import Queue
 from typing import (
   Any,
   AsyncGenerator,
   Awaitable,
   Callable,
-  Deque,
   Dict,
-  Generator,
   List,
   Optional,
 )
@@ -51,11 +50,10 @@ class FileLoader(DataLoader):
       ".txt": reads txt file and returns a Document with text and metadata
   """
 
-  def __init__(self) -> None:
-    self.paths: Deque[Path] = deque()
-    self.lock = threading.Lock()
+  def __init__(self, max_size: Optional[int] = 0) -> None:
+    self.queue: Queue[Path] = Queue(maxsize=max_size)
 
-  def add_resource(  # type: ignore
+  def push(  # type: ignore
     self,
     *,
     files: Optional[List[PathLike]] = None,
@@ -84,35 +82,56 @@ class FileLoader(DataLoader):
     else:
       logger.info("paths or path must be provided")
 
-  def pop(self) -> Generator[Document, None, None]:
+  def pop(self, timeout: Optional[float] = None) -> Optional[Document]:
     """Pop a document from the data loader."""
-    while True:
-      with self.lock:
-        if not self.paths:
-          break
-        path = self.paths.popleft()
-        document = self._get_document(path)
-        if document is not None:
-          yield document
+    try:
+      path = self.queue.get(timeout=timeout)
+      document = self._get_document(path)
+      self.queue.task_done()
+      return document
+    except queue.Empty:
+      return None
 
-  async def apop(self) -> AsyncGenerator[Document, None]:  # type: ignore
+  async def apop(self, timeout: Optional[float] = None) -> AsyncGenerator[Document, None]:  # type: ignore
     """Pop a document from the data loader asynchronously."""
+    loop = asyncio.get_running_loop()
+    path = await loop.run_in_executor(None, self._pop_from_queue, timeout)
+    if path is None:
+      return None
+    document = await self._async_get_document(path)
+    self.queue.task_done()
+    if document is not None:
+      return document
+
+  def load(self) -> List[Document]:
+    """Returns the document as list."""
+    docs = []
     while True:
-      with self.lock:
-        if not self.paths:
-          break
-        path = self.paths.popleft()
-        document = await self._async_get_document(path)
-        if document is not None:
-          yield document
+      try:
+        path = self.queue.get(block=False)
+        doc = self._get_document(path)
+        if doc is not None:
+          docs.append(doc)
+      except queue.Empty:
+        break
+    return docs
+
+  def shutdown(self) -> None:
+    raise NotImplementedError("shutdown not implemented") # TODO
+
+  def _pop_from_queue(self, timeout):
+    try:
+      path = self.queue.get(timeout=timeout)
+      return path
+    except queue.Empty:
+      return None
 
   def _add_path(self, path: PathLike) -> None:
     if isinstance(path, str):
       path = Path(path)
     if not path.exists():
       raise ValueError(f"Path {path.absolute()} does not exist")
-    with self.lock:
-      self.paths.append(path)
+    self.queue.put(path)
 
   def _add_dir(self, dir: PathLike, recursive: bool) -> None:
     if isinstance(dir, str):

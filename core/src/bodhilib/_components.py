@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import abc
+import typing
 from typing import (
   Any,
   AsyncGenerator,
@@ -129,20 +130,56 @@ class DataLoader(abc.ABC):
   """
 
   @abc.abstractmethod
-  def add_resource(self, **kwargs: Dict[str, Any]) -> None:
+  def push(self, **kwargs: Dict[str, Any]) -> None:
     """Add a resource to the data loader."""
 
+  @typing.overload
   @abc.abstractmethod
-  def pop(self) -> Generator[Document, None, None]:
-    """Returns the top fetched resource as Document."""
+  def pop(self, timeout: None) -> Document:
+    ...
+
+  @typing.overload
+  @abc.abstractmethod
+  def pop(self, timeout: float) -> Optional[Document]:
+    ...
+
+  @abc.abstractmethod
+  def pop(self, timeout: Optional[float] = None) -> Optional[Document]:
+    """Returns the top fetched resource as Document.
+
+    This is a blocking call. Method only returns when the next item is available.
+    Or if timeout is specified, it returns None after timeout seconds.
+    """
+
+  @typing.overload
+  @abc.abstractmethod
+  async def apop(self, timeout: None) -> Document:
+    ...
+
+  @typing.overload
+  @abc.abstractmethod
+  async def apop(self, timeout: float) -> Optional[Document]:
+    ...
 
   @abc.abstractmethod
   async def apop(self) -> AsyncGenerator[Document, None]:
-    """Returns the top fetched resource as Document asynchronously."""
+    """Returns the top fetched resource as Document asynchronously.
+
+    This is an asynchronously blocking call. Method only returns when the next item is available.
+
+    Or if timeout is specified, it returns None after timeout seconds.
+    """
 
   def load(self) -> List[Document]:
     """Returns the document as list."""
-    return [doc for doc in self.pop()]
+    docs = []
+    while (doc := self.pop(timeout=1)) is not None:
+      docs.append(doc)
+    return docs
+
+  @abc.abstractmethod
+  def shutdown(self) -> None:
+    """Shutdown the data loader queue."""
 
 
 # endregion
@@ -412,12 +449,9 @@ class VectorDB(abc.ABC):
 # endregion
 # region semanticsearchengine
 #######################################################################################################################
-SSE = TypeVar("SSE", bound="SemanticSearchEngine")
-
-
-class SemanticSearchEngine(abc.ABC, Generic[SSE]):
+class SemanticSearchEngine(abc.ABC):
   @abc.abstractmethod
-  def add_resource(self, **kwargs: Dict[str, Any]) -> SSE:
+  def add_resource(self, **kwargs: Dict[str, Any]):
     """Add a resource to the semantic search engine."""
 
   @abc.abstractmethod
@@ -429,12 +463,16 @@ class SemanticSearchEngine(abc.ABC, Generic[SSE]):
     """Creates the collection in vector db."""
 
   @abc.abstractmethod
+  def run_ingest(self) -> None:
+    """Trigger non-blocking ingestion for the newly added resources."""
+
+  @abc.abstractmethod
   def ingest(self) -> None:
-    """Trigger blocking ingestion for the newly added resources."""
+    """Trigger non-return ingestion loop."""
 
   @abc.abstractmethod
   async def aingest(self) -> None:
-    """Trigger async ingestion for the newly added resources."""
+    """Trigger non-return async ingestion loop."""
 
   @abc.abstractmethod
   def ann(

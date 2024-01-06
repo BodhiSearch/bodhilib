@@ -1,3 +1,7 @@
+import asyncio
+import logging
+import threading
+from contextlib import asynccontextmanager
 from threading import Lock
 
 from bodhiext.engine import DefaultSemanticEngine
@@ -6,8 +10,8 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from typing_extensions import Annotated
 
+logging.basicConfig(level=logging.INFO)
 load_dotenv(dotenv_path=".env.test")
-app = FastAPI()
 service_lock = Lock()
 search_engine = None
 
@@ -32,17 +36,42 @@ def get_search_engine() -> DefaultSemanticEngine:
   return search_engine
 
 
+# @asynccontextmanager
+# async def start_ingest(app: FastAPI):
+#   search_engine = get_search_engine()
+#   thread = threading.Thread(target=search_engine.ingest)
+#   thread.daemon = True
+#   thread.start()
+#   yield
+
+
+@asynccontextmanager
+async def start_aingest(app: FastAPI):
+  search_engine = get_search_engine()
+  asyncio.create_task(search_engine.aingest())
+  yield
+
+
+# app = FastAPI(lifespan=start_ingest)
+app = FastAPI(lifespan=start_aingest)
+
+
+@app.post("/ingest_and_run")
+async def ingest_and_run(path: str, service: Annotated[DefaultSemanticEngine, Depends(get_search_engine)]):
+  service.add_resource(file=str(path))
+  service.run_ingest()
+  return {"message": "ingested"}
+
+
 @app.post("/ingest")
 async def ingest(path: str, service: Annotated[DefaultSemanticEngine, Depends(get_search_engine)]):
   service.add_resource(file=str(path))
-  service.ingest()
-  return {"message": "ingested"}
+  return {"message": "queued"}
 
 
 @app.post("/aingest")
 async def aingest(path: str, service: Annotated[DefaultSemanticEngine, Depends(get_search_engine)]):
   service.add_resource(file=str(path))
-  service.aingest()
   return {"message": "aingested"}
 
 
