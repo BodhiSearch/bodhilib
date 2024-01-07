@@ -39,7 +39,7 @@ pygments_style = "sphinx"
 todo_include_todos = False
 nitpick_ignore = [
   ("py:class", "bodhilib._components.PS"),
-  ("py:class", "bodhilib._components.DL"),
+  ("py:class", "bodhilib._components.RQ"),
   ("py:class", "bodhilib._components.E"),
   ("py:class", "bodhilib._components.L"),
   ("py:class", "bodhilib._components.V"),

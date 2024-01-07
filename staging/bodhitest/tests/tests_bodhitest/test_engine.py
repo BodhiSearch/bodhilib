@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from bodhiext.engine import DefaultSemanticEngine
-from bodhilib import get_data_loader, get_embedder, get_llm, get_splitter, get_vector_db
+from bodhilib import get_resource_queue, get_embedder, get_llm, get_splitter, get_vector_db
 
 
 @pytest.fixture
@@ -11,8 +11,8 @@ def llm():
 
 
 @pytest.fixture
-def file_loader():
-  return get_data_loader(service_name="file")
+def resource_queue():
+  return get_resource_queue(service_name="in_memory")
 
 
 @pytest.fixture
@@ -31,9 +31,9 @@ def vector_db():
 
 
 @pytest.fixture
-def engine(llm, file_loader, embedder, splitter, vector_db):
+def engine(llm, resource_queue, embedder, splitter, vector_db):
   engine = DefaultSemanticEngine(
-    data_loader=file_loader,
+    resource_queue=resource_queue,
     splitter=splitter,
     embedder=embedder,
     vector_db=vector_db,

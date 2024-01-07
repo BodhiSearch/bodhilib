@@ -1,12 +1,12 @@
 import tempfile
 
 import pytest
-from bodhilib import DataLoader, get_data_loader
+from bodhilib import ResourceQueue, get_resource_queue, local_dir, local_file
 
 
 @pytest.fixture
-def file_loader() -> DataLoader:
-  return get_data_loader("file")
+def in_memory_queue() -> ResourceQueue:
+  return get_resource_queue("in_memory")
 
 
 def _tmpfile(tmpdir, filename, content):
@@ -27,25 +27,25 @@ def tmp_loader_dir():
     yield tmpdir
 
 
-def test_file_loader_load(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(dir=tmp_loader_dir, recursive=True)
-  docs = file_loader.load()
+def test_resource_queue_local_dir(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_dir(path=tmp_loader_dir, recursive=True))
+  docs = in_memory_queue.load()
   assert_docs(docs, tmp_loader_dir)
 
 
-def test_file_loader_pop(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(dir=tmp_loader_dir, recursive=True)
+def test_resource_queue_pop(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_dir(path=tmp_loader_dir, recursive=True))
   docs = []
-  while (doc := file_loader.pop(timeout=1)) is not None:
+  while (doc := in_memory_queue.pop(timeout=1)) is not None:
     docs.append(doc)
   assert_docs(docs, tmp_loader_dir)
 
 
 @pytest.mark.asyncio
-async def test_file_loader_async_recursive_true(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(dir=tmp_loader_dir, recursive=True)
+async def test_resource_queue_async_recursive_true(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_dir(path=tmp_loader_dir, recursive=True))
   docs = []
-  while (doc := await file_loader.apop(timeout=1)) is not None:
+  while (doc := await in_memory_queue.apop(timeout=1)) is not None:
     docs.append(doc)
   assert_docs(docs, tmp_loader_dir)
 
@@ -67,17 +67,17 @@ def assert_docs(docs, tmp_loader_dir):
   assert doc.metadata["dirname"].startswith(tmp_loader_dir + "/tmpdir2")
 
 
-def test_file_loader_loads_recursive_false(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(dir=tmp_loader_dir, recursive=False)
-  docs = file_loader.load()
+def test_resource_queue_loads_recursive_false(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_dir(path=tmp_loader_dir, recursive=False))
+  docs = in_memory_queue.load()
   assert_recursive_false(docs, tmp_loader_dir)
 
 
 @pytest.mark.asyncio
-async def test_file_loader_loads_async_recursive_false(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(dir=tmp_loader_dir, recursive=False)
+async def test_in_memory_loads_async_recursive_false(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_dir(path=tmp_loader_dir, recursive=False))
   docs = []
-  while (doc := await file_loader.apop(timeout=1)) is not None:
+  while (doc := await in_memory_queue.apop(timeout=1)) is not None:
     docs.append(doc)
   assert_recursive_false(docs, tmp_loader_dir)
 
@@ -95,17 +95,17 @@ def assert_recursive_false(docs, tmp_loader_dir):
   assert doc.metadata["dirname"] == tmp_loader_dir
 
 
-def test_file_loader_loads_given_files(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(file=f"{tmp_loader_dir}/test1.txt")
-  docs = file_loader.load()
+def test_resource_queue_loads_given_files(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_file(path=f"{tmp_loader_dir}/test1.txt"))
+  docs = in_memory_queue.load()
   assert_loads_given_file(docs, tmp_loader_dir)
 
 
 @pytest.mark.asyncio
-async def test_file_loader_loads_async_given_files(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(file=f"{tmp_loader_dir}/test1.txt")
+async def test_resource_queue_loads_async_given_files(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_file(path=f"{tmp_loader_dir}/test1.txt"))
   docs = []
-  while (doc := await file_loader.apop(timeout=1)) is not None:
+  while (doc := await in_memory_queue.apop(timeout=1)) is not None:
     docs.append(doc)
   assert_loads_given_file(docs, tmp_loader_dir)
 
@@ -118,9 +118,9 @@ def assert_loads_given_file(docs, tmp_loader_dir):
   assert doc.metadata["dirname"] == tmp_loader_dir
 
 
-def test_file_loader_loads_method(file_loader: DataLoader, tmp_loader_dir):
-  file_loader.push(dir=tmp_loader_dir, recursive=True)
-  docs = file_loader.load()
+def test_resource_queue_loads_method(in_memory_queue: ResourceQueue, tmp_loader_dir):
+  in_memory_queue.push(local_dir(path=tmp_loader_dir, recursive=True))
+  docs = in_memory_queue.load()
   assert len(docs) == 3
   docs = sorted(docs, key=lambda x: x.metadata["filename"])
   doc = docs[0]

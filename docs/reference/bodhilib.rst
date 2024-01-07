@@ -51,9 +51,9 @@ bodhilib
 
    TypeVar for type bound to :class:`~bodhilib.PromptSource`
 
-.. data:: bodhilib.DL
+.. data:: bodhilib.RQ
 
-   TypeVar for type bound to :class:`~bodhilib.DataLoader`
+   TypeVar for type bound to :class:`~bodhilib.ResourceQueue`
 
 .. data:: bodhilib.S
 

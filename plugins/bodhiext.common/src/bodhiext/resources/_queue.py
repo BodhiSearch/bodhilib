@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import os
 import queue
+import typing
 from pathlib import Path
 from queue import Queue
 from typing import (
@@ -14,11 +15,12 @@ from typing import (
   List,
   Optional,
 )
-import typing
 
 import aiofiles
-from bodhilib import DataLoader, Document, PathLike
+from bodhilib import LOCAL_DIR, LOCAL_FILE, RESOURCE_QUEUE, Document, IsResource, PathLike, ResourceQueue
 from bodhilib.logging import logger
+
+from ..common._constants import IN_MEMORY_SERVICE
 
 LoaderCallable = Callable[[Path], Document]
 AwaitLoaderCallable = Callable[[Path], Awaitable[Document]]
@@ -43,8 +45,8 @@ ASYNC_FILE_LOADERS: Dict[str, AwaitLoaderCallable] = {
 }
 
 
-class FileLoader(DataLoader):
-  """File data loader plugin for bodhilib.
+class InMemoryResourceQueue(ResourceQueue):
+  """InMemoryResource queue.
 
   Supported file types:
       ".txt": reads txt file and returns a Document with text and metadata
@@ -54,38 +56,21 @@ class FileLoader(DataLoader):
     maxsize = maxsize if maxsize is not None else 0
     self.queue: Queue[Path] = Queue(maxsize=maxsize)
 
-  def push( # type: ignore[override]
-    self,
-    *,
-    files: Optional[List[PathLike]] = None,
-    file: Optional[PathLike] = None,
-    dir: Optional[PathLike] = None,
-    recursive: bool = False,
-    **kwargs: Dict[str, Any],
-  ) -> None:
-    """Add a file or directory resource to the data loader with given :data:`~bodhilib.PathLike` location.
+  def push(self, resource: IsResource) -> None:
+    """Add a resource to the queue with given data using :resource:`~bodhilib.IsResource` protocol.
 
     Args:
-        files (Optional[List[PathLike]]): A list of file paths to add.
-        file (Optional[PathLike]): A file path to add.
-        dir (Optional[PathLike]): A directory path to add.
-        recursive (bool): Whether to add files recursively from the directory.
-        kwargs (Any): For typing compatibility with base class.
+        resource (:class:`~bodhilib.IsResource`): Resource to be added to the queue.
 
     Raises:
         ValueError: if any of the files or the dir provided does not exists.
     """
-    if kwargs:
-      logger.warning(f"Unknown arguments: {kwargs=}")
-    if file:
-      self._add_path(file)
-    elif files:
-      for path in files:
-        self._add_path(path)
-    elif dir:
-      self._add_dir(dir, recursive)
+    if resource.resource_type == LOCAL_FILE:
+      self._add_path(resource.metadata["path"])
+    elif resource.resource_type == LOCAL_DIR:
+      self._add_dir(resource.metadata["path"], resource.metadata["recursive"])
     else:
-      logger.info("paths or path must be provided")
+      logger.info(f"unknown resource type {resource.resource_type}, skipping")
 
   @typing.overload
   def pop(self, timeout: None = ...) -> Document:
@@ -96,7 +81,7 @@ class FileLoader(DataLoader):
     ...
 
   def pop(self, timeout: Optional[float] = None) -> Optional[Document]:
-    """Pop a document from the data loader."""
+    """Pop a document from the queue."""
     while True:
       try:
         path = self.queue.get(timeout=timeout)
@@ -116,7 +101,7 @@ class FileLoader(DataLoader):
     ...
 
   async def apop(self, timeout: Optional[float] = None) -> Optional[Document]:
-    """Pop a document from the data loader asynchronously."""
+    """Pop a document from the queue asynchronously."""
     while True:
       loop = asyncio.get_running_loop()
       path = await loop.run_in_executor(None, self._pop_from_queue, timeout)
@@ -185,26 +170,26 @@ class FileLoader(DataLoader):
     return None
 
 
-def file_loader_service_builder(
+def resource_queue_service_builder(
   *,
-  service_name: Optional[str] = "file",
-  service_type: Optional[str] = "data_loader",
+  service_name: Optional[str] = IN_MEMORY_SERVICE,
+  service_type: Optional[str] = RESOURCE_QUEUE,
   publisher: Optional[str] = "bodhiext",
   **kwargs: Dict[str, Any],
-) -> FileLoader:
-  """Return a file data loader service builder.
+) -> InMemoryResourceQueue:
+  """Return a in-memory resource queue service builder.
 
-  Builds and returns an instance of :class:`~bodhiext.data_loader._file.FileLoader`
+  Builds and returns an instance of :class:`~bodhiext.data_loader._file.InMemoryResourceQueue`
   with the passed arguments.
 
   Returns:
-      FileLoader (:class:`~bodhiext.data_loader._file.FileLoader`): FileLoader instance to load local files
-          as resources.
+      InMemoryResourceQueue (:class:`~bodhiext.data_loader._file.InMemoryResourceQueue`): InMemoryResourceQueue instance
+        to process resources in-memory.
   """
-  if service_name != "file":
+  if service_name != IN_MEMORY_SERVICE:
     raise ValueError(f"Unknown service: {service_name=}")
-  if service_type != "data_loader":
-    raise ValueError(f"Service type not supported: {service_type=}, supported service types: data_loader")
+  if service_type != RESOURCE_QUEUE:
+    raise ValueError(f"Service type not supported: {service_type=}, supported service types: {RESOURCE_QUEUE}")
   if publisher is not None and publisher != "bodhiext":
     raise ValueError(f"Unknown publisher: {publisher=}")
-  return FileLoader()
+  return InMemoryResourceQueue()

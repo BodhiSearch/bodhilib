@@ -40,7 +40,7 @@ def text_splitter_service_builder(
 
 @service_provider
 def bodhilib_list_services() -> List[Service]:
-  """Return a list of services supported by the bodhiext data_loaders package."""
+  """Return a list of services supported by the bodhiext splitters package."""
   return [
     Service(
       service_name="text_splitter",

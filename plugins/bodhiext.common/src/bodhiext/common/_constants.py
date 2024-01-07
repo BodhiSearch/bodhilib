@@ -1,0 +1,1 @@
+IN_MEMORY_SERVICE = "in_memory"

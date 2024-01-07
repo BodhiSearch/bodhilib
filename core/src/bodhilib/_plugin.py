@@ -47,7 +47,7 @@ def bodhilib_list_services() -> List[Service]:
 
 C = TypeVar("C")
 """TypeVar for Component (one of sub-class of :class:`~bodhilib.LLM`, :class:`~bodhilib.Embedder`,
-:class:`~bodhilib.DataLoader`).
+:class:`~bodhilib.ResourceQueue`).
 Used for type hinting in :meth:`~bodhilib.plugin.PluginManager.get` method."""
 
 
@@ -93,7 +93,7 @@ class PluginManager:
 
     Args:
         service_name (str): name of the service, e.g. "openai", "cohere", "anthropic"
-        service_type (str): type of the service, e.g. "llm", "embedder", "data_loader"
+        service_type (str): type of the service, e.g. "llm", "embedder", "resource_queue"
         oftype (Optional[Type[T]]): if the type of service is known, pass the type in argument `oftype`,
             the service is cast to `oftype` and returned for better IDE support.
         publisher (Optional[str]): publisher or developer of the service plugin, e.g. "bodhilib","<github-username>"

@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
 import bodhiext
-from bodhiext.data_loader import FileLoader, file_loader_service_builder
+from bodhiext.resources import InMemoryResourceQueue, resource_queue_service_builder
 from bodhiext.prompt_source import LocalPromptSource, bodhi_prompt_source_builder
 from bodhiext.splitter import TextSplitter, text_splitter_service_builder
 
@@ -12,15 +12,15 @@ bodhiext_llms: Dict[str, Any] = {}
 bodhiext_vector_dbs: Dict[str, Any] = {}
 
 
-bodhiext_data_loaders = {
+bodhiext_resource_queue = {
   "file": {
     "service_name": "file",
-    "service_type": "data_loader",
-    "service_class": FileLoader,
+    "service_type": "resource_queue",
+    "service_class": InMemoryResourceQueue,
     "publisher": "bodhiext",
     "version": bodhiext.common.__version__,
     "service_args": {},
-    "service_builder": file_loader_service_builder,
+    "service_builder": resource_queue_service_builder,
     "happypath": {
       "setup": setup_file_loader,
       "resources": ["libs/bodhitest/tmp/file_loader/test1.txt", "libs/bodhitest/tmp/file_loader/test2.txt"],
@@ -59,7 +59,7 @@ bodhiext_prompt_sources = {
 all_plugins = {
   **bodhiext_llms,
   **bodhiext_vector_dbs,
-  **bodhiext_data_loaders,
+  **bodhiext_resource_queue,
   **bodhiext_splitters,
   **bodhiext_embedders,
   **bodhiext_prompt_sources,

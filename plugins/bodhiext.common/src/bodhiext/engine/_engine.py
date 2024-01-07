@@ -1,18 +1,19 @@
 import logging
 import textwrap
 import typing
-from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Union
+from typing import AsyncIterator, List, Literal, Optional, Union
 
 from bodhiext.common import abatch, batch
 from bodhiext.prompt_template import StringPromptTemplate
 from bodhilib import (
   LLM,
-  DataLoader,
   Document,
   Embedder,
+  IsResource,
   Node,
   Prompt,
   PromptTemplate,
+  ResourceQueue,
   SemanticSearchEngine,
   Splitter,
   TextLike,
@@ -24,7 +25,7 @@ from bodhilib import (
 class DefaultSemanticEngine(SemanticSearchEngine):
   def __init__(
     self,
-    data_loader: DataLoader,
+    resource_queue: ResourceQueue,
     splitter: Splitter,
     embedder: Embedder,
     vector_db: VectorDB,
@@ -32,7 +33,7 @@ class DefaultSemanticEngine(SemanticSearchEngine):
     collection_name: str,
     distance: Optional[str] = "cosine",
   ):
-    self.data_loader = data_loader
+    self.resource_queue = resource_queue
     self.splitter = splitter
     self.embedder = embedder
     self.vector_db = vector_db
@@ -40,8 +41,8 @@ class DefaultSemanticEngine(SemanticSearchEngine):
     self.collection_name = collection_name
     self.distance = distance or "cosine"
 
-  def add_resource(self, **kwargs: Dict[str, Any]) -> None:
-    self.data_loader.push(**kwargs)
+  def add_resource(self, resource: IsResource) -> None:
+    self.resource_queue.push(resource)
 
   def delete_collection(self) -> bool:
     return self.vector_db.delete_collection(self.collection_name)
@@ -50,18 +51,18 @@ class DefaultSemanticEngine(SemanticSearchEngine):
     return self.vector_db.create_collection(self.collection_name, self.embedder.dimension, self.distance)
 
   def run_ingest(self) -> None:
-    docs = self.data_loader.load()
+    docs = self.resource_queue.load()
     for doc in docs:
       self._process_doc(doc)
 
   def ingest(self) -> None:
-    while (doc := self.data_loader.pop()) is not None:
+    while (doc := self.resource_queue.pop()) is not None:
       logging.info("[ingest] received item")
       self._process_doc(doc)
       logging.info("[ingest] process complete")
 
   async def aingest(self) -> None:
-    while (doc := await self.data_loader.apop()) is not None:
+    while (doc := await self.resource_queue.apop()) is not None:
       logging.info("[aingest] received item")
       nodes: AsyncIterator[Node] = self.splitter.split(doc, astream=True)
       batch_size = max(1, self.embedder.batch_size)
@@ -115,7 +116,7 @@ class DefaultSemanticEngine(SemanticSearchEngine):
       text = textwrap.dedent(text).strip()
       prompt = Prompt(text=text)
       prompt_template = StringPromptTemplate(prompts=[prompt], metadata={"format": "jinja2"})
-    prompts = prompt_template.to_prompts(contexts=contexts, query=query) # type: ignore
+    prompts = prompt_template.to_prompts(contexts=contexts, query=query)  # type: ignore
     response = self.llm.generate(prompts, astream=astream)
     return response
 

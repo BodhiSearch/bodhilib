@@ -340,6 +340,62 @@ class LLMConfig(BaseModel):
 
 
 # endregion
+# region resource
+#######################################################################################################################
+LOCAL_FILE = "local_file"
+LOCAL_DIR = "local_dir"
+GLOB = "glob"
+URL = "url"
+BODHILIB_RESOURCES = [LOCAL_FILE, LOCAL_DIR, URL]
+"""List of known resource types provided by bodhilib. This list is non-exhaustive."""
+
+
+class IsResource(Protocol):
+  """Protocol for Resource type."""
+
+  resource_type: str
+
+  metadata: Dict[str, Any]
+
+
+class Resource(BaseModel):
+  """Resource defines the basic interface for a processible resource.
+
+  Primarily contains resource type and metadata.
+  """
+
+  resource_type: str
+  """Type of the resource."""
+
+  model_config = ConfigDict(extra="allow")
+
+  @property
+  def metadata(self) -> Dict[str, Any]:
+    """Returns the metadata associated with the resource."""
+    return self.model_dump()
+
+
+def local_file(path: PathLike) -> Resource:
+  """Factory method to generate a local file resource."""
+  return Resource(resource_type=LOCAL_FILE, path=path)
+
+
+def local_dir(path: PathLike, recursive: Optional[bool] = False, exclude_hidden: Optional[bool] = True) -> Resource:
+  """Factory method to generate a local directory resource."""
+  return Resource(resource_type=LOCAL_DIR, path=path, recursive=recursive, exclude_hidden=exclude_hidden)
+
+
+def glob_pattern(pattern: str, recursive: Optional[bool] = False, exclude_hidden: Optional[bool] = True) -> Resource:
+  """Factory method to generate a local directory resource."""
+  return Resource(resource_type=GLOB, pattern=pattern, recursive=recursive, exclude_hidden=exclude_hidden)
+
+
+def url_resource(url: str) -> Resource:
+  """Factory method to generate a url resource."""
+  return Resource(resource_type=URL, path=url)
+
+
+# endregion
 # region document
 #######################################################################################################################
 class Document(BaseModel):

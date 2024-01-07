@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from threading import Lock
 
 from bodhiext.engine import DefaultSemanticEngine
-from bodhilib import get_data_loader, get_embedder, get_llm, get_splitter, get_vector_db
+from bodhilib import get_resource_queue, get_embedder, get_llm, get_splitter, get_vector_db
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from typing_extensions import Annotated
@@ -20,12 +20,12 @@ def get_search_engine() -> DefaultSemanticEngine:
   with service_lock:
     if search_engine is None:
       llm = get_llm(service_name="openai_chat", model="gpt-3.5-turbo")
-      data_loader = get_data_loader(service_name="file")
+      resource_queue = get_resource_queue(service_name="in_memory")
       embedder = get_embedder(service_name="sentence_transformers")
       splitter = get_splitter(service_name="text_splitter", max_len=256, min_len=128, overlap=16)
       vector_db = get_vector_db(service_name="qdrant", host="localhost", port=6333)
       search_engine = DefaultSemanticEngine(
-        data_loader=data_loader,
+        resource_queue=resource_queue,
         splitter=splitter,
         embedder=embedder,
         vector_db=vector_db,

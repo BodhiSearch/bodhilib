@@ -21,6 +21,7 @@ from ._models import (
   Distance,
   Document,
   Embedding,
+  IsResource,
   LLMApiConfig,
   LLMConfig,
   Node,
@@ -31,7 +32,12 @@ from ._models import (
 )
 from ._plugin import PluginManager, Service
 
+# region constants
+#######################################################################################################################
+RESOURCE_QUEUE = "resource_queue"
 
+
+# endregion
 # region prompt template
 #######################################################################################################################
 class PromptTemplate(abc.ABC):
@@ -125,19 +131,19 @@ class PromptSource(abc.ABC):
 
 
 # endregion
-# region data loader
+# region resource queue
 #######################################################################################################################
-class DataLoader(abc.ABC):
-  """Abstract base class for data loader queue.
+class ResourceQueue(abc.ABC):
+  """Abstract base class for a resource queue.
 
-  A data loader should inherit from this class and implement the abstract methods.
+  A resource queue provides a queue interface for pushing a source and getting a resource.
 
-  Data loader queue should be thread safe.
+  Resource queue should be thread safe.
   """
 
   @abc.abstractmethod
-  def push(self, **kwargs: Dict[str, Any]) -> None:
-    """Add a resource to the data loader."""
+  def push(self, resource: IsResource) -> None:
+    """Add a resource to the queue."""
 
   @typing.overload
   def pop(self, timeout: None = ...) -> Document:
@@ -181,7 +187,7 @@ class DataLoader(abc.ABC):
 
   @abc.abstractmethod
   def shutdown(self) -> None:
-    """Shutdown the data loader queue."""
+    """Shutdown the queue."""
 
 
 # endregion
@@ -531,7 +537,7 @@ class VectorDB(abc.ABC):
 #######################################################################################################################
 class SemanticSearchEngine(abc.ABC):
   @abc.abstractmethod
-  def add_resource(self, **kwargs: Dict[str, Any]) -> None:
+  def add_resource(self, resource: IsResource) -> None:
     """Add a resource to the semantic search engine."""
 
   @abc.abstractmethod
@@ -658,60 +664,60 @@ def get_prompt_source(
   return cast(PS, prompt_source)
 
 
-# DataLoader
-DL = TypeVar("DL", bound=DataLoader)
-"""TypeVar for DataLoader."""
+# ResourceQueue
+RQ = TypeVar("RQ", bound=ResourceQueue)
+"""TypeVar for ResourceQueue."""
 
 
-def get_data_loader(
+def get_resource_queue(
   service_name: str,
   *,
-  oftype: Optional[Type[DL]] = None,
+  oftype: Optional[Type[RQ]] = None,
   publisher: Optional[str] = None,
   version: Optional[str] = None,
   **kwargs: Dict[str, Any],
-) -> DL:
-  """Get an instance of data loader for given arguments.
+) -> RQ:
+  """Get an instance of resource queue for given arguments.
 
   Given the service name, publisher (optional) and version(optional),
-  return the registered data loader oftype (optional).
+  return the registered resource queue oftype (optional).
 
   Args:
       service_name (str): name of the service, e.g. "file", "notion", "s3"
-      oftype (Optional[Type[T]]): if the type of data loader is known, pass the type in argument `oftype`,
-          the data loader is cast to `oftype` and returned for better IDE support.
-      publisher (Optional[str]): publisher or developer of the data loader plugin, e.g. "bodhilib","<github-username>"
-      version (Optional[str]): version of the data loader
-      **kwargs (Dict[str, Any]): pass through arguments for the data loader, e.g. aws_access_key_id, notion_db etc.
+      oftype (Optional[Type[T]]): if the type of resource queue is known, pass the type in argument `oftype`,
+          the resource queue is cast to `oftype` and returned for better IDE support.
+      publisher (Optional[str]): publisher/developer of the resource queue plugin, e.g. "bodhilib","<github-username>"
+      version (Optional[str]): version of the resource queue
+      **kwargs (Dict[str, Any]): pass through arguments for the resource queue, e.g. aws_access_key_id, notion_db etc.
 
   Returns:
-      DL (:data:`~bodhilib.DL` | :class:`~bodhilib.DataLoader`): an instance of DataLoader service
-          of type `oftype`, if oftype is passed, else of type :class:`~bodhilib.DataLoader`
+      RQ (:data:`~bodhilib.RQ` | :class:`~bodhilib.ResourceQueue`): an instance of ResourceQueue service
+          of type `oftype`, if oftype is passed, else of type :class:`~bodhilib.ResourceQueue`
 
   Raises:
-      TypeError: if the type of data loader is not oftype
+      TypeError: if the type of resource queue is not oftype
   """
   if oftype is None:
-    return_type: Type[Any] = DataLoader
+    return_type: Type[Any] = ResourceQueue
   else:
     return_type = oftype
 
   manager = PluginManager.instance()
-  data_loader: DL = manager.get(
+  resource_queue: RQ = manager.get(
     service_name=service_name,
-    service_type="data_loader",
+    service_type=RESOURCE_QUEUE,
     oftype=return_type,
     publisher=publisher,
     version=version,
     **kwargs,
   )
-  return cast(DL, data_loader)
+  return cast(RQ, resource_queue)
 
 
-def list_data_loaders() -> List[Service]:
-  """List all data loaders installed and available."""
+def list_resource_queues() -> List[Service]:
+  """List all resource queues installed and available."""
   manager = PluginManager.instance()
-  return manager.list_services("data_loader")
+  return manager.list_services(RESOURCE_QUEUE)
 
 
 # Splitter
