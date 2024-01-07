@@ -1,13 +1,13 @@
 """:mod:`bodhiext.st` module defines classes and methods for embedder using sentence-transformer."""
 from __future__ import annotations
 
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+import typing
+from typing import Any, AsyncIterator, Dict, List, Literal, Optional, Union
 
+import sentence_transformers as sentence_transformers
 from bodhiext.common import AsyncListIterator
 from bodhilib import Embedder, Embedding, Node, SerializedInput, Service, service_provider, to_node_list
 from bodhilib.logging import logger
-
-import sentence_transformers as sentence_transformers
 
 from ._version import __version__
 
@@ -33,14 +33,24 @@ class SentenceTransformerEmbedder(Embedder):
     else:
       self.model = model
 
-  def embed(
-    self, inputs: SerializedInput, stream: Optional[bool] = False, astream: Optional[bool] = False
-  ) -> Union[List[Node], Iterator[Node], AsyncIterator[Node]]:
+  @typing.overload
+  def embed(self, inputs: SerializedInput) -> List[Node]:
+    ...
+
+  @typing.overload
+  def embed(self, inputs: SerializedInput, astream: Optional[Literal[False]]) -> List[Node]:
+    ...
+
+  @typing.overload
+  def embed(self, inputs: SerializedInput, astream: Literal[True]) -> AsyncIterator[Node]:
+    ...
+
+  def embed(self, inputs: SerializedInput, astream: Optional[bool] = None) -> Union[List[Node], AsyncIterator[Node]]:
     """Embeds the nodes using sentence-transformer.
 
     Args:
         nodes (List[:class:`~bodhilib.Node`]): list of nodes to embed
-        stream (bool): whether to stream the embeddings (default: False)
+        astream (bool): whether to stream the embeddings (default: None)
 
     Returns:
         List[:class:`~bodhilib.Embedding`]: list of embeddings
@@ -51,11 +61,9 @@ class SentenceTransformerEmbedder(Embedder):
     embeddings: List[Embedding] = self.client.encode([node.text for node in nodes]).tolist()
     for node, embedding in zip(nodes, embeddings):
       node.embedding = embedding
-    if stream:
-      return iter(nodes)
-    if astream:
-      return AsyncListIterator(nodes)
-    return nodes
+    if astream is None or astream is False:
+      return nodes
+    return AsyncListIterator(nodes)
 
   @property
   def dimension(self) -> int:

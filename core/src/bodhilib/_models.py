@@ -57,7 +57,7 @@ class SupportsEmbedding(Protocol):
   """SupportsEmbedding matches the types that contains a field `embedding` of type :data:`~bodhilib.Embedding`."""
 
   @property
-  def embedding(self) -> Embedding:
+  def embedding(self) -> Optional[Embedding]:
     """Return the embedding of the object as :data:`~bodhilib.Embedding`."""
 
 
@@ -432,10 +432,12 @@ def to_text(textlike: TextLike) -> str:
   raise ValueError(f"Cannot convert type {type(textlike)} to text.")
 
 
-def to_embedding(embedding: Union[Embedding, SupportsEmbedding]) -> Embedding:
+def to_embedding(embedding: Union[Embedding, Node, SupportsEmbedding]) -> Optional[Embedding]:
+  if isinstance(embedding, Node):
+    return cast(Node, embedding).embedding
   if supportsembedding(embedding):
     return cast(SupportsEmbedding, embedding).embedding
-  elif isinstance(embedding, list):
+  elif isinstance(embedding, list) and all(isinstance(e, float) for e in embedding):
     return embedding
   raise ValueError(f"Cannot convert type {type(embedding)} to embedding.")
 
@@ -473,7 +475,7 @@ def to_node_list(inputs: SerializedInput) -> List[Node]:
     and isinstance(inputs, Iterable)  # if is list
     and all(isinstance(input, Node) for input in inputs)  # and if all are Node instance
   ):
-    return inputs  # type: ignore
+    return cast(List[Node], inputs)
   if istextlike(inputs):
     return [to_node(cast(TextLike, inputs))]  # cast to fix mypy warning
   elif isinstance(inputs, dict):

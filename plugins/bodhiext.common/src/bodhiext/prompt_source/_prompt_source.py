@@ -1,7 +1,8 @@
 import importlib.resources
 import os
 import sys
-from typing import Any, Dict, Iterator, List, Optional, Union
+import typing
+from typing import Any, Dict, Iterator, List, Literal, Optional, Union
 
 from bodhiext.common import __version__
 from bodhilib import Filter, PathLike, PromptSource, PromptTemplate, Service, service_provider
@@ -68,6 +69,14 @@ class LocalPromptSource(PromptSource):
       raise ValueError("No files found to load")
     self.templates: Optional[List[PromptTemplate]] = None
 
+  @typing.overload
+  def find(self, filter: Union[Filter, Dict[str, Any]], stream: Optional[Literal[False]] = ...) -> List[PromptTemplate]:
+    ...
+
+  @typing.overload
+  def find(self, filter: Union[Filter, Dict[str, Any]], stream: Literal[True]) -> Iterator[PromptTemplate]:
+    ...
+
   def find(
     self, filter: Union[Filter, Dict[str, Any]], stream: Optional[bool] = False
   ) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
@@ -90,7 +99,7 @@ class LocalPromptSource(PromptSource):
     return self.templates
 
   def find_by_id(self, id: str) -> Optional[PromptTemplate]:
-    templates: List[PromptTemplate] = self.find({"id": str(id)})  # type: ignore #TODO
+    templates: List[PromptTemplate] = self.find({"id": str(id)})
     return templates[0] if templates else None
 
   def _load_files(self, dir: PathLike) -> List[str]:

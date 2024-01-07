@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import sys
-from typing import Any, Callable, List, NamedTuple, Optional, Type, TypeVar, cast
+from typing import Any, Callable, Dict, List, NamedTuple, Optional, Type, TypeVar, cast
 
 import pluggy
 
@@ -87,7 +87,7 @@ class PluginManager:
     oftype: Optional[Type[C]] = None,
     publisher: Optional[str] = None,
     version: Optional[str] = None,
-    **kwargs: Any,
+    **kwargs: Dict[str, Any],
   ) -> C:
     """Get an instance of service for the given service and type.
 

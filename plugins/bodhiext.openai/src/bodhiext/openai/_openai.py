@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
 
 from bodhilib import (
   LLM,
@@ -56,7 +56,7 @@ class OpenAIChat(LLM):
     frequency_penalty: Optional[float] = None,
     user: Optional[str] = None,
     **kwargs: Dict[str, Any],
-  ) -> Union[Prompt, PromptStream]:
+  ) -> Union[Prompt, Iterator[Prompt], AsyncIterator[Prompt]]:
     """Bodhilib LLM service implementation for OpenAI Chat API.
 
     Returns:
@@ -124,7 +124,7 @@ class OpenAIText(LLM):
     presence_penalty: Optional[float] = None,
     frequency_penalty: Optional[float] = None,
     user: Optional[str] = None,
-    **kwargs: Any,
+    **kwargs: Dict[str, Any],
   ) -> Union[Prompt, PromptStream]:
     """Bodhilib LLM service implementation for OpenAI Text API.
 

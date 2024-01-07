@@ -1,5 +1,6 @@
 import re
-from typing import AsyncIterator, Callable, Iterator, List, Optional, Tuple, Union
+import typing
+from typing import AsyncIterator, Callable, Iterator, List, Literal, Optional, Tuple, Union
 
 from bodhiext.common import AsyncListIterator
 from bodhilib import Document, Node, SerializedInput, Splitter, to_document_list
@@ -46,8 +47,20 @@ class TextSplitter(Splitter):
       eow_patterns = [r"\s", r"-", r":", r"\.", r"\?", r"\!", r"\n"]
     self.word_splitter = _build_word_splitter(eow_patterns)
 
+  @typing.overload
+  def split(self, inputs: SerializedInput) -> List[Node]:
+    ...
+
+  @typing.overload
+  def split(self, inputs: SerializedInput, astream: Optional[Literal[False]]) -> List[Node]:
+    ...
+
+  @typing.overload
+  def split(self, inputs: SerializedInput, astream: Literal[True]) -> AsyncIterator[Node]:
+    ...
+
   def split(
-    self, inputs: SerializedInput, stream: Optional[bool] = False, astream: Optional[bool] = False
+    self, inputs: SerializedInput, astream: Optional[bool] = None
   ) -> Union[List[Node], Iterator[Node], AsyncIterator[Node]]:
     docs = to_document_list(inputs)
     nodes = []
@@ -71,11 +84,9 @@ class TextSplitter(Splitter):
         node = Node(text=node_text, parent=doc)
         nodes.append(node)
     # TODO: implement streaming for text splitter
-    if stream:
-      return iter(nodes)
-    if astream:
-      return AsyncListIterator(nodes)
-    return nodes
+    if astream is None or astream is False:
+      return nodes
+    return AsyncListIterator(nodes)
 
   def _build_nodes(
     self, doc: Document, current_words: List[str], words: List[str]

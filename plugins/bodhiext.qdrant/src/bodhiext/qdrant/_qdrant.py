@@ -153,19 +153,21 @@ class Qdrant(VectorDB):
   def query(
     self,
     collection_name: str,
-    embedding: Union[Embedding, SupportsEmbedding],
+    embedding: Union[Embedding, Node, SupportsEmbedding],
     filter: Optional[Union[Dict[str, Any], BodhiFilter]] = None,
     **kwargs: Dict[str, Any],
   ) -> List[Node]:
     # TODO: support MongoDBFilter object
-    embedding = to_embedding(embedding)
+    parsed_embedding = to_embedding(embedding)
+    if parsed_embedding is None:
+      raise VectorDBError(ValueError("Embedding is not present"))
     try:
       if filter:
         qdrant_filter = _mongodb_to_qdrant_filter(filter)
         query_filter = Filter(**qdrant_filter)
       else:
         query_filter = None
-      results = self.client.search(collection_name, embedding, query_filter=query_filter, **kwargs)
+      results = self.client.search(collection_name, parsed_embedding, query_filter=query_filter, **kwargs)
       return _to_nodes(results)
     except (ValueError, RuntimeError) as e:
       raise VectorDBError(e) from e

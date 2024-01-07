@@ -8,13 +8,13 @@ from pathlib import Path
 from queue import Queue
 from typing import (
   Any,
-  AsyncGenerator,
   Awaitable,
   Callable,
   Dict,
   List,
   Optional,
 )
+import typing
 
 import aiofiles
 from bodhilib import DataLoader, Document, PathLike
@@ -50,16 +50,18 @@ class FileLoader(DataLoader):
       ".txt": reads txt file and returns a Document with text and metadata
   """
 
-  def __init__(self, max_size: Optional[int] = 0) -> None:
-    self.queue: Queue[Path] = Queue(maxsize=max_size)
+  def __init__(self, maxsize: Optional[int] = 0) -> None:
+    maxsize = maxsize if maxsize is not None else 0
+    self.queue: Queue[Path] = Queue(maxsize=maxsize)
 
-  def push(  # type: ignore
+  def push( # type: ignore[override]
     self,
     *,
     files: Optional[List[PathLike]] = None,
     file: Optional[PathLike] = None,
     dir: Optional[PathLike] = None,
     recursive: bool = False,
+    **kwargs: Dict[str, Any],
   ) -> None:
     """Add a file or directory resource to the data loader with given :data:`~bodhilib.PathLike` location.
 
@@ -68,10 +70,13 @@ class FileLoader(DataLoader):
         file (Optional[PathLike]): A file path to add.
         dir (Optional[PathLike]): A directory path to add.
         recursive (bool): Whether to add files recursively from the directory.
+        kwargs (Any): For typing compatibility with base class.
 
     Raises:
         ValueError: if any of the files or the dir provided does not exists.
     """
+    if kwargs:
+      logger.warning(f"Unknown arguments: {kwargs=}")
     if file:
       self._add_path(file)
     elif files:
@@ -82,26 +87,45 @@ class FileLoader(DataLoader):
     else:
       logger.info("paths or path must be provided")
 
+  @typing.overload
+  def pop(self, timeout: None = ...) -> Document:
+    ...
+
+  @typing.overload
+  def pop(self, timeout: float = ...) -> Optional[Document]:
+    ...
+
   def pop(self, timeout: Optional[float] = None) -> Optional[Document]:
     """Pop a document from the data loader."""
-    try:
-      path = self.queue.get(timeout=timeout)
-      document = self._get_document(path)
-      self.queue.task_done()
-      return document
-    except queue.Empty:
-      return None
+    while True:
+      try:
+        path = self.queue.get(timeout=timeout)
+        document = self._get_document(path)
+        self.queue.task_done()
+        if document is not None:
+          return document
+      except queue.Empty:
+        return None
 
-  async def apop(self, timeout: Optional[float] = None) -> AsyncGenerator[Document, None]:  # type: ignore
+  @typing.overload
+  async def apop(self, timeout: None = ...) -> Document:
+    ...
+
+  @typing.overload
+  async def apop(self, timeout: float = ...) -> Optional[Document]:
+    ...
+
+  async def apop(self, timeout: Optional[float] = None) -> Optional[Document]:
     """Pop a document from the data loader asynchronously."""
-    loop = asyncio.get_running_loop()
-    path = await loop.run_in_executor(None, self._pop_from_queue, timeout)
-    if path is None:
-      return None
-    document = await self._async_get_document(path)
-    self.queue.task_done()
-    if document is not None:
-      return document
+    while True:
+      loop = asyncio.get_running_loop()
+      path = await loop.run_in_executor(None, self._pop_from_queue, timeout)
+      if path is None:
+        return None
+      document = await self._async_get_document(path)
+      self.queue.task_done()
+      if document is not None:
+        return document
 
   def load(self) -> List[Document]:
     """Returns the document as list."""
@@ -117,9 +141,9 @@ class FileLoader(DataLoader):
     return docs
 
   def shutdown(self) -> None:
-    raise NotImplementedError("shutdown not implemented") # TODO
+    raise NotImplementedError("shutdown not implemented")  # TODO
 
-  def _pop_from_queue(self, timeout):
+  def _pop_from_queue(self, timeout: Optional[float]) -> Optional[Path]:
     try:
       path = self.queue.get(timeout=timeout)
       return path

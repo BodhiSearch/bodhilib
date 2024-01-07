@@ -4,13 +4,11 @@ import abc
 import typing
 from typing import (
   Any,
-  AsyncGenerator,
   AsyncIterator,
   Dict,
-  Generator,
-  Generic,
   Iterator,
   List,
+  Literal,
   Optional,
   Type,
   TypeVar,
@@ -83,9 +81,17 @@ class PromptSource(abc.ABC):
   A prompt source provides a browsable/searchable interface for prompt templates.
   """
 
+  @typing.overload
+  def find(self, filter: Union[Filter, Dict[str, Any]], stream: Optional[Literal[False]] = ...) -> List[PromptTemplate]:
+    ...
+
+  @typing.overload
+  def find(self, filter: Union[Filter, Dict[str, Any]], stream: Literal[True]) -> Iterator[PromptTemplate]:
+    ...
+
   @abc.abstractmethod
   def find(
-    self, filter: Filter, stream: Optional[bool] = False
+    self, filter: Union[Filter, Dict[str, Any]], stream: Optional[bool] = False
   ) -> Union[List[PromptTemplate], Iterator[PromptTemplate]]:
     """Find a prompt template for given tags.
 
@@ -134,13 +140,11 @@ class DataLoader(abc.ABC):
     """Add a resource to the data loader."""
 
   @typing.overload
-  @abc.abstractmethod
-  def pop(self, timeout: None) -> Document:
+  def pop(self, timeout: None = ...) -> Document:
     ...
 
   @typing.overload
-  @abc.abstractmethod
-  def pop(self, timeout: float) -> Optional[Document]:
+  def pop(self, timeout: float = ...) -> Optional[Document]:
     ...
 
   @abc.abstractmethod
@@ -152,17 +156,15 @@ class DataLoader(abc.ABC):
     """
 
   @typing.overload
-  @abc.abstractmethod
-  async def apop(self, timeout: None) -> Document:
+  async def apop(self, timeout: None = ...) -> Document:
     ...
 
   @typing.overload
-  @abc.abstractmethod
-  async def apop(self, timeout: float) -> Optional[Document]:
+  async def apop(self, timeout: float = ...) -> Optional[Document]:
     ...
 
   @abc.abstractmethod
-  async def apop(self) -> AsyncGenerator[Document, None]:
+  async def apop(self, timeout: Optional[float] = None) -> Document:
     """Returns the top fetched resource as Document asynchronously.
 
     This is an asynchronously blocking call. Method only returns when the next item is available.
@@ -193,9 +195,21 @@ class Splitter(abc.ABC):
   The shorter text are then used to create embeddings.
   """
 
+  @typing.overload
+  def split(self, inputs: SerializedInput) -> List[Node]:
+    ...
+
+  @typing.overload
+  def split(self, inputs: SerializedInput, astream: Optional[Literal[False]]) -> List[Node]:
+    ...
+
+  @typing.overload
+  def split(self, inputs: SerializedInput, astream: Literal[True]) -> AsyncIterator[Node]:
+    ...
+
   @abc.abstractmethod
   def split(
-    self, inputs: SerializedInput, stream: Optional[bool] = None, astream: Optional[bool] = None
+    self, inputs: SerializedInput, astream: Optional[bool] = None
   ) -> Union[List[Node], Iterator[Node], AsyncIterator[Node]]:
     """Split a :data:`~bodhilib.SerializedInput` into a list of :class:`~bodhilib.Node`.
 
@@ -203,13 +217,9 @@ class Splitter(abc.ABC):
         inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
             a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
             or a serialized dict of the object.
-        stream (Optional[bool]=None): option to stream the splits as they are ready.
-            If True, returns an Iterator that splits the document lazily on demand.
-            If False, fallback to default behaviour.
-        astream (Optional[bool]=None): option to asynchronously stream the splits as they are ready.
-            If True, returns an AsyncIterator that splits the document lazily on demand.
-            If False, fallback to default behaviour.
-            if stream=True, astream is ignored.
+        astream (Optional[bool]=None): option to sent result as list, iterator or an async iterator.
+            If None or False, returns result as List[Node]
+            If True, returns result as an AsyncIterator that splits the document lazily on demand.
 
     Returns:
         List[:class:`~bodhilib.Node`]: a list of :class:`~bodhilib.Node` as result of the split
@@ -227,23 +237,29 @@ class Embedder(abc.ABC):
   An embedder should inherit from this class and implement the abstract methods.
   """
 
+  @typing.overload
+  def embed(self, inputs: SerializedInput) -> List[Node]:
+    ...
+
+  @typing.overload
+  def embed(self, inputs: SerializedInput, astream: Optional[Literal[False]]) -> List[Node]:
+    ...
+
+  @typing.overload
+  def embed(self, inputs: SerializedInput, astream: Literal[True]) -> AsyncIterator[Node]:
+    ...
+
   @abc.abstractmethod
-  def embed(
-    self, inputs: SerializedInput, stream: Optional[bool] = None, astream: Optional[bool] = None
-  ) -> Union[List[Node], Iterator[Node], AsyncIterator[Node]]:
+  def embed(self, inputs: SerializedInput, astream: Optional[bool] = None) -> Union[List[Node], AsyncIterator[Node]]:
     """Embed a :data:`~bodhilib.SerializedInput` using the embedder service.
 
     Args:
         inputs (:data:`~bodhilib.SerializedInput`): takes input as :data:`~bodhilib.SerializedInput`,
             a generic type that can be a :data:`~bodhilib.TextLike`, a list of :data:`~bodhilib.TextLike`,
             or a serialized dict of the object.
-        stream (Optional[bool] = None): option to embed document lazily on demand.
-            If True, returns an iterator that embeds the document lazily on demand.
-            If False, fallback to default behaviour.
-        astream (Optional[bool] = None): option to asynchronously embed document lazily on demand.
-            If True, returns an async iterator that embeds the document lazily on demand.
-            If False, fallback to default behaviour.
-            if stream=True, astream is ignored.
+        astream (Optional[bool] = None): option to non-streaming, streaming or  asynchronously stream embeddings.
+            If skipped, None or False, returns result as List[Node]
+            If True, returns embedding as asynchronous stream AsyncIterator[Node]
 
     Returns:
         List[:data:`~bodhilib.Node`] | Iterator[:data:`~bodhilib.Node` | AsyncIterator[:data:`~bodhilib.Node`]]: list or
@@ -425,7 +441,7 @@ class VectorDB(abc.ABC):
   def query(
     self,
     collection_name: str,
-    embedding: Union[Embedding, SupportsEmbedding],
+    embedding: Union[Embedding, Node, SupportsEmbedding],
     filter: Optional[Union[Dict[str, Any], Filter]] = None,
     **kwargs: Dict[str, Any],
   ) -> List[Node]:
@@ -451,7 +467,7 @@ class VectorDB(abc.ABC):
 #######################################################################################################################
 class SemanticSearchEngine(abc.ABC):
   @abc.abstractmethod
-  def add_resource(self, **kwargs: Dict[str, Any]):
+  def add_resource(self, **kwargs: Dict[str, Any]) -> None:
     """Add a resource to the semantic search engine."""
 
   @abc.abstractmethod
@@ -474,9 +490,21 @@ class SemanticSearchEngine(abc.ABC):
   async def aingest(self) -> None:
     """Trigger non-return async ingestion loop."""
 
+  @typing.overload
+  def ann(self, query: TextLike, *, n: Optional[int] = ...) -> List[Node]:
+    ...
+
+  @typing.overload
+  def ann(self, query: TextLike, *, astream: Optional[Literal[False]], n: Optional[int] = ...) -> List[Node]:
+    ...
+
+  @typing.overload
+  def ann(self, query: TextLike, *, astream: Literal[True], n: Optional[int] = ...) -> AsyncIterator[List[Node]]:
+    ...
+
   @abc.abstractmethod
   def ann(
-    self, query: TextLike, astream: Optional[bool] = None, n: Optional[int] = 5
+    self, query: TextLike, *, astream: Optional[bool] = None, n: Optional[int] = 5
   ) -> Union[List[Node], AsyncIterator[List[Node]]]:
     """Search for the nearest vectors in the database for given query and return results.
 
@@ -494,7 +522,12 @@ class SemanticSearchEngine(abc.ABC):
 
   @abc.abstractmethod
   def rag(
-    self, query: TextLike, prompt_template: Optional[PromptTemplate] = None, astream: Optional[bool] = None
+    self,
+    query: TextLike,
+    *,
+    astream: Optional[bool] = None,
+    prompt_template: Optional[PromptTemplate] = None,
+    n: Optional[int] = 5,
   ) -> Union[Prompt, AsyncIterator[Prompt]]:
     """Generate answer for given query using RAG technique.
 
@@ -763,8 +796,8 @@ def get_llm(
     oftype=return_type,
     publisher=publisher,
     version=version,
-    api_config=passed_api_config,
-    llm_config=passed_llm_config,
+    api_config=passed_api_config,  # type: ignore
+    llm_config=passed_llm_config,  # type: ignore
     **kwargs,
   )
   return cast(L, llm)

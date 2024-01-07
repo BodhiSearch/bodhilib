@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import threading
 from contextlib import asynccontextmanager
 from threading import Lock
 
