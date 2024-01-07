@@ -116,7 +116,7 @@ class DefaultSemanticEngine(SemanticSearchEngine):
       prompt = Prompt(text=text)
       prompt_template = StringPromptTemplate(prompts=[prompt], metadata={"format": "jinja2"})
     prompts = prompt_template.to_prompts(contexts=contexts, query=query) # type: ignore
-    response: Prompt = self.llm.generate(prompts, astream=astream) # type: ignore
+    response = self.llm.generate(prompts, astream=astream)
     return response
 
   def _process_doc(self, doc: Document) -> None:

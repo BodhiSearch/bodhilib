@@ -286,14 +286,77 @@ class Embedder(abc.ABC):
 class LLM(abc.ABC):
   """Abstract Base Class LLM defines the common interface implemented by all LLM implementations."""
 
+  @typing.overload
+  def generate(
+    self,
+    prompts: SerializedInput,
+    *,
+    stream: Optional[Literal[False]] = None,
+    astream: Optional[Literal[False]] = None,
+    llm_config: Optional[LLMConfig] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    top_k: Optional[int] = None,
+    n: Optional[int] = None,
+    stop: Optional[List[str]] = None,
+    max_tokens: Optional[int] = None,
+    presence_penalty: Optional[float] = None,
+    frequency_penalty: Optional[float] = None,
+    user: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+  ) -> Prompt:
+    ...
+
+  @typing.overload
+  def generate(
+    self,
+    prompts: SerializedInput,
+    *,
+    stream: Optional[Literal[False]],
+    astream: Literal[True],
+    llm_config: Optional[LLMConfig] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    top_k: Optional[int] = None,
+    n: Optional[int] = None,
+    stop: Optional[List[str]] = None,
+    max_tokens: Optional[int] = None,
+    presence_penalty: Optional[float] = None,
+    frequency_penalty: Optional[float] = None,
+    user: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+  ) -> AsyncIterator[Prompt]:
+    ...
+
+  @typing.overload
+  def generate(
+    self,
+    prompts: SerializedInput,
+    *,
+    stream: Literal[True],
+    astream: Literal[True],
+    llm_config: Optional[LLMConfig] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    top_k: Optional[int] = None,
+    n: Optional[int] = None,
+    stop: Optional[List[str]] = None,
+    max_tokens: Optional[int] = None,
+    presence_penalty: Optional[float] = None,
+    frequency_penalty: Optional[float] = None,
+    user: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+  ) -> Iterator[Prompt]:
+    ...
+
   @abc.abstractmethod
   def generate(
     self,
     prompts: SerializedInput,
     *,
-    llm_config: Optional[LLMConfig] = None,
     stream: Optional[bool] = None,
     astream: Optional[bool] = None,
+    llm_config: Optional[LLMConfig] = None,
     temperature: Optional[float] = None,
     top_p: Optional[float] = None,
     top_k: Optional[int] = None,
@@ -332,9 +395,10 @@ class LLM(abc.ABC):
         kwargs (Dict[str, Any]): pass through arguments for the LLM service
 
     Returns:
-        :class:`~bodhilib.Prompt`: a Prompt object, if stream is False
+        :class:`~bodhilib.Prompt`: a Prompt object, if stream is False and astream is False
         Iterator[:class:`~bodhilib.Prompt`]: an iterator of Prompt objects, if stream is True
-        AsyncIterator[:class:`~bodhilib.Prompt`]: an async iterator of Prompt objects, if astream is True
+        AsyncIterator[:class:`~bodhilib.Prompt`]: an async iterator of Prompt objects
+          if astream is True, and stream is None or False
     """
 
 

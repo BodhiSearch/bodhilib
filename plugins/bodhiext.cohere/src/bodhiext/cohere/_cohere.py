@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import os
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional, Union
+import typing
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
 
 from bodhilib import (
   LLM,
@@ -65,13 +66,76 @@ class Cohere(LLM):
       args = {k: v for k, v in all_args.items() if k in allowed_args}
       self.client = cohere.Client(**args)
 
+  @typing.overload
   def generate(
     self,
     prompts: SerializedInput,
     *,
+    stream: Optional[Literal[False]] = None,
+    astream: Optional[Literal[False]] = None,
     llm_config: Optional[LLMConfig] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    top_k: Optional[int] = None,
+    n: Optional[int] = None,
+    stop: Optional[List[str]] = None,
+    max_tokens: Optional[int] = None,
+    presence_penalty: Optional[float] = None,
+    frequency_penalty: Optional[float] = None,
+    user: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+  ) -> Prompt:
+    ...
+
+  @typing.overload
+  def generate(
+    self,
+    prompts: SerializedInput,
+    *,
+    stream: Optional[Literal[False]],
+    astream: Literal[True],
+    llm_config: Optional[LLMConfig] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    top_k: Optional[int] = None,
+    n: Optional[int] = None,
+    stop: Optional[List[str]] = None,
+    max_tokens: Optional[int] = None,
+    presence_penalty: Optional[float] = None,
+    frequency_penalty: Optional[float] = None,
+    user: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+  ) -> AsyncIterator[Prompt]:
+    ...
+
+  @typing.overload
+  def generate(
+    self,
+    prompts: SerializedInput,
+    *,
+    stream: Literal[True],
+    astream: Literal[True],
+    llm_config: Optional[LLMConfig] = None,
+    temperature: Optional[float] = None,
+    top_p: Optional[float] = None,
+    top_k: Optional[int] = None,
+    n: Optional[int] = None,
+    stop: Optional[List[str]] = None,
+    max_tokens: Optional[int] = None,
+    presence_penalty: Optional[float] = None,
+    frequency_penalty: Optional[float] = None,
+    user: Optional[str] = None,
+    **kwargs: Dict[str, Any],
+  ) -> Iterator[Prompt]:
+    ...
+
+  def generate(
+    self,
+    prompts: SerializedInput,
+    *,
     stream: Optional[bool] = None,
     astream: Optional[bool] = None,
+    llm_config: Optional[LLMConfig] = None,
     temperature: Optional[float] = None,
     top_p: Optional[float] = None,
     top_k: Optional[int] = None,
