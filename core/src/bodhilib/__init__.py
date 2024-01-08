@@ -2,24 +2,38 @@
 import inspect
 
 from ._components import LLM as LLM
+from ._components import LLM_SERVICE as LLM_SERVICE
+from ._components import PROMPT_SOURCE as PROMPT_SOURCE
+from ._components import RESOURCE_FACTORY as RESOURCE_FACTORY
+from ._components import RESOURCE_PROCESSOR as RESOURCE_PROCESSOR
 from ._components import RESOURCE_QUEUE as RESOURCE_QUEUE
+from ._components import VECTOR_DB as VECTOR_DB
 from ._components import Embedder as Embedder
 from ._components import PromptSource as PromptSource
 from ._components import PromptTemplate as PromptTemplate
+from ._components import ResourceProcessMatcher as ResourceProcessMatcher
+from ._components import ResourceProcessor as ResourceProcessor
+from ._components import ResourceProcessorFactory as ResourceProcessorFactory
 from ._components import ResourceQueue as ResourceQueue
+from ._components import ResourceQueueProcessor as ResourceQueueProcessor
 from ._components import SemanticSearchEngine as SemanticSearchEngine
 from ._components import Splitter as Splitter
+from ._components import SupportsPush as SupportsPush
 from ._components import VectorDB as VectorDB
 from ._components import VectorDBError as VectorDBError
 from ._components import get_embedder as get_embedder
 from ._components import get_llm as get_llm
 from ._components import get_prompt_source as get_prompt_source
+from ._components import get_resource_factory as get_resource_factory
+from ._components import get_resource_processor as get_resource_processor
 from ._components import get_resource_queue as get_resource_queue
 from ._components import get_splitter as get_splitter
 from ._components import get_vector_db as get_vector_db
 from ._components import list_embedders as list_embedders
 from ._components import list_llms as list_llms
 from ._components import list_prompt_sources as list_prompt_sources
+from ._components import list_resource_factory as list_resource_factory
+from ._components import list_resource_processors as list_resource_processors
 from ._components import list_resource_queues as list_resource_queues
 from ._components import list_splitters as list_splitters
 from ._components import list_vector_dbs as list_vector_dbs
@@ -61,6 +75,7 @@ from ._models import prompt_system as prompt_system
 from ._models import prompt_user as prompt_user
 from ._models import supportsembedding as supportsembedding
 from ._models import supportstext as supportstext
+from ._models import text_plain_file as text_plain_file
 from ._models import to_document as to_document
 from ._models import to_document_list as to_document_list
 from ._models import to_embedding as to_embedding

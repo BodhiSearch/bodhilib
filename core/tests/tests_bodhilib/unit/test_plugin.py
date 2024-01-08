@@ -68,3 +68,10 @@ def test_plugin_manager_get_passes_config_to_service_builder():
       "llm_config": llm_config,
     }
   )
+
+
+def test_plugin_service_eq():
+  first = Service("test", "llm", "test_bodhilib", object(), "0.1.0")
+  other = Service("test", "llm", "test_bodhilib", object(), "0.1.0", {})
+  assert first == other
+  assert hash(first) == hash(other)

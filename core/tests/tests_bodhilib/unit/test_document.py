@@ -3,17 +3,21 @@ from bodhilib import Document, Node, Prompt, to_document, to_document_list
 
 
 def test_document_repr():
-  doc = Document(text="Hello World!" * 30, metadata={"filename": "test.txt"})
-  assert repr(doc) == "Document(text='Hello World!...!Hello World!', metadata={'filename': 'test.txt'})"
+  doc = Document(text="Hello World!" * 30, path="/tmp/dir/filename1.txt")
+  assert (
+    repr(doc)
+    == "Document(text='Hello World!...!Hello World!', "
+    + "metadata={'path': '/tmp/dir/filename1.txt', 'resource_type': 'document'})"
+  )
 
 
 def test_node_repr():
-  parent = Document(text="World Hello!" * 30, metadata={"filename": "test.txt"})
+  parent = Document(text="World Hello!" * 30, path="/tmp/dir/filename1.txt")
   node = Node(text="Hello World!" * 30, parent=parent)
   assert (
     repr(node)
     == "Node(id=None, text='Hello World!...!Hello World!', parent=Document(text='World Hello!...!World Hello!',"
-    " metadata={'filename': 'test.txt'}))"
+    " metadata={'path': '/tmp/dir/filename1.txt', 'resource_type': 'document'}))"
   )
 
 

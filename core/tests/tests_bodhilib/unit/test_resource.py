@@ -22,16 +22,14 @@ def test_local_dir(tmpdir):
 
 def test_glob_patter(tmpdir):
   pattern = "*.txt"
-  resource = glob_pattern(pattern, True, True)
+  resource = glob_pattern(pattern, True)
   assert resource.resource_type == "glob"
   assert resource.pattern == pattern
   assert resource.recursive is True
-  assert resource.exclude_hidden is True
   assert resource.metadata == {
     "pattern": pattern,
     "resource_type": "glob",
     "recursive": True,
-    "exclude_hidden": True,
   }
 
 

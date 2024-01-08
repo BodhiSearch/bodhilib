@@ -343,19 +343,24 @@ class LLMConfig(BaseModel):
 # region resource
 #######################################################################################################################
 LOCAL_FILE = "local_file"
+TEXT_PLAIN = "text/plain"
 LOCAL_DIR = "local_dir"
 GLOB = "glob"
 URL = "url"
-BODHILIB_RESOURCES = [LOCAL_FILE, LOCAL_DIR, URL]
+BODHILIB_RESOURCES = [LOCAL_FILE, LOCAL_DIR, GLOB, URL]
 """List of known resource types provided by bodhilib. This list is non-exhaustive."""
 
 
 class IsResource(Protocol):
   """Protocol for Resource type."""
 
-  resource_type: str
+  @property
+  def resource_type(self) -> str:
+    """Returns the resource type."""
 
-  metadata: Dict[str, Any]
+  @property
+  def metadata(self) -> Dict[str, Any]:
+    """Returns the metadata associated with the resource."""
 
 
 class Resource(BaseModel):
@@ -385,9 +390,9 @@ def local_dir(path: PathLike, recursive: Optional[bool] = False, exclude_hidden:
   return Resource(resource_type=LOCAL_DIR, path=path, recursive=recursive, exclude_hidden=exclude_hidden)
 
 
-def glob_pattern(pattern: str, recursive: Optional[bool] = False, exclude_hidden: Optional[bool] = True) -> Resource:
+def glob_pattern(pattern: str, recursive: Optional[bool] = False) -> Resource:
   """Factory method to generate a local directory resource."""
-  return Resource(resource_type=GLOB, pattern=pattern, recursive=recursive, exclude_hidden=exclude_hidden)
+  return Resource(resource_type=GLOB, pattern=pattern, recursive=recursive)
 
 
 def url_resource(url: str) -> Resource:
@@ -395,10 +400,15 @@ def url_resource(url: str) -> Resource:
   return Resource(resource_type=URL, path=url)
 
 
+def text_plain_file(path: PathLike) -> Resource:
+  """Factory method to generate a local txt file resource."""
+  return Resource(resource_type=TEXT_PLAIN, path=path)
+
+
 # endregion
 # region document
 #######################################################################################################################
-class Document(BaseModel):
+class Document(Resource):
   """Document defines the basic interface for a processible resource.
 
   Primarily contains text (content) and metadata.
@@ -407,8 +417,12 @@ class Document(BaseModel):
   text: str
   """Text content of the document."""
 
-  metadata: Dict[str, Any] = Field(default_factory=dict)
-  """Metadata associated with the document. e.g. filename, dirname, url etc."""
+  resource_type: str = "document"
+
+  @property
+  def metadata(self) -> Dict[str, Any]:
+    """Returns the metadata associated with the resource."""
+    return self.model_dump(exclude={"text"})
 
   def __repr__(self) -> str:
     """Returns a string representation of the document."""

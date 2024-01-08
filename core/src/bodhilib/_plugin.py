@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import itertools
 import sys
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Type, TypeVar, cast
+from typing import Any, Callable, Dict, List, Optional, Type, TypeVar, cast
 
 import pluggy
 
@@ -14,22 +14,55 @@ service_provider = pluggy.HookimplMarker(package_name)
 current_module = sys.modules[__name__]
 
 
-class Service(NamedTuple):
+class Service:
   """Encapsulates basic info of service provided by the plugin."""
 
-  service_name: str
-  """Name of the service provided by the plugin. E.g. openai, cohere, anthropic, etc."""
-  service_type: str
-  """Type of service provided by the plugin. E.g. llm, embed etc."""
-  publisher: str
-  """Publisher identifier of the plugin. E.g. bodhilib, openai, <github-user> etc."""
-  service_builder: Callable  # signature(**kwargs: Dict[str, Any])
-  """Callable which returns an instance of service.
-
-    Callable takes in `**kwargs: Dict[str, Any]` and returns an instance of service.
+  def __init__(
+    self,
+    service_name: str,
+    service_type: str,
+    publisher: str,
+    service_builder: Callable,
+    version: str,
+    metadata: Optional[Dict[str, Any]] = None,
+  ) -> None:
     """
-  version: str = ""
-  """Version of the plugin"""
+
+    Args:
+      service_name: Name of the service provided by the plugin. E.g. openai, cohere, anthropic, etc.
+      service_type: Type of service provided by the plugin. E.g. llm, embed etc.
+      publisher: Publisher identifier of the plugin. E.g. bodhilib, openai, <github-user> etc.
+      service_builder: Callable which returns an instance of service.
+      version: Version of the plugin.
+      metadata: Optional metadata for the service.
+    """
+
+    self.service_name = service_name
+    self.service_type = service_type
+    self.publisher = publisher
+    self.service_builder = service_builder
+    self.version = version
+    self.metadata = metadata if metadata is not None else {}
+
+  def __repr__(self) -> str:
+    return (
+      f"Service(service_name={self.service_name}, service_type={self.service_type}, "
+      f"publisher={self.publisher}, version={self.version}, metadata={self.metadata})"
+    )
+
+  def __eq__(self, other: Any) -> bool:
+    if not isinstance(other, Service):
+      return False
+    return (
+      self.service_name == other.service_name
+      and self.service_type == other.service_type
+      and self.publisher == other.publisher
+      and self.version == other.version
+      and self.metadata == other.metadata
+    )
+
+  def __hash__(self) -> int:
+    return hash((self.service_name, self.service_type, self.publisher, self.version))
 
 
 @hookspec

@@ -1,5 +1,16 @@
 import pytest
-from bodhilib import Node, Prompt, Role, Source, prompt_output, prompt_system, prompt_user, to_prompt, to_prompt_list
+from bodhilib import (
+  Node,
+  Prompt,
+  Role,
+  Source,
+  prompt_output,
+  prompt_system,
+  prompt_user,
+  to_prompt,
+  to_prompt_list,
+  to_text,
+)
 
 from tests_bodhilib.utils import default_system_prompt, default_user_prompt
 
@@ -99,3 +110,27 @@ def test_to_prompt_list_raises_exception_on_invalid_arg():
   with pytest.raises(ValueError) as e:
     _ = to_prompt_list(object())
   assert str(e.value) == "Cannot convert type <class 'object'> to Prompt."
+
+
+class _TestText:
+  @property
+  def text(self):
+    return "hello"
+
+
+@pytest.mark.parametrize(
+  "valid_arg",
+  [
+    ("hello"),
+    (_TestText()),
+  ],
+)
+def test_prompt_to_text(valid_arg):
+  prompt = to_text(valid_arg)
+  assert prompt == "hello"
+
+
+def test_prompt_to_text_raises_exception_on_invalid_arg():
+  with pytest.raises(ValueError) as e:
+    _ = to_text(object())
+  assert str(e.value) == "Cannot convert type <class 'object'> to text."

@@ -6,10 +6,12 @@ from typing import (
   Any,
   AsyncIterator,
   Dict,
+  Generic,
   Iterator,
   List,
   Literal,
   Optional,
+  Protocol,
   Type,
   TypeVar,
   Union,
@@ -34,7 +36,14 @@ from ._plugin import PluginManager, Service
 
 # region constants
 #######################################################################################################################
+PROMPT_SOURCE = "prompt_source"
 RESOURCE_QUEUE = "resource_queue"
+RESOURCE_PROCESSOR = "resource_processor"
+RESOURCE_FACTORY = "resource_factory"
+SPLITTER = "splitter"
+EMBEDDER = "embedder"
+LLM_SERVICE = "llm"
+VECTOR_DB = "vector_db"
 
 
 # endregion
@@ -133,6 +142,19 @@ class PromptSource(abc.ABC):
 # endregion
 # region resource queue
 #######################################################################################################################
+SP = TypeVar("SP", contravariant=True)
+
+
+class SupportsPush(Protocol, Generic[SP]):
+  @abc.abstractmethod
+  def push(self, resource: SP) -> None:
+    """Add a resource to the queue."""
+
+  @abc.abstractmethod
+  async def apush(self, resource: SP) -> None:
+    """Add a resource to the queue."""
+
+
 class ResourceQueue(abc.ABC):
   """Abstract base class for a resource queue.
 
@@ -146,48 +168,128 @@ class ResourceQueue(abc.ABC):
     """Add a resource to the queue."""
 
   @typing.overload
-  def pop(self, timeout: None = ...) -> Document:
+  def pop(self, block: Literal[True] = ..., timeout: Optional[float] = ...) -> IsResource:
     ...
 
   @typing.overload
-  def pop(self, timeout: float = ...) -> Optional[Document]:
+  def pop(self, block: Literal[False] = ..., timeout: Optional[float] = ...) -> Optional[IsResource]:
     ...
 
   @abc.abstractmethod
-  def pop(self, timeout: Optional[float] = None) -> Optional[Document]:
-    """Returns the top fetched resource as Document.
+  def pop(self, block: Optional[bool] = True, timeout: Optional[float] = None) -> Optional[IsResource]:
+    """Returns the first resource in queue.
 
     This is a blocking call. Method only returns when the next item is available.
     Or if timeout is specified, it returns None after timeout seconds.
     """
 
   @typing.overload
-  async def apop(self, timeout: None = ...) -> Document:
+  async def apop(self, block: Literal[True] = ..., timeout: Optional[float] = ...) -> IsResource:
     ...
 
   @typing.overload
-  async def apop(self, timeout: float = ...) -> Optional[Document]:
+  async def apop(self, block: Literal[False] = ..., timeout: Optional[float] = ...) -> Optional[IsResource]:
     ...
 
   @abc.abstractmethod
-  async def apop(self, timeout: Optional[float] = None) -> Document:
-    """Returns the top fetched resource as Document asynchronously.
+  async def apop(self, block: Optional[bool] = True, timeout: Optional[float] = None) -> IsResource:
+    """Returns the first resource in queue asynchronously.
 
     This is an asynchronously blocking call. Method only returns when the next item is available.
 
     Or if timeout is specified, it returns None after timeout seconds.
     """
 
-  def load(self) -> List[Document]:
-    """Returns the document as list."""
-    docs = []
-    while (doc := self.pop(timeout=1)) is not None:
-      docs.append(doc)
-    return docs
+  def load(self) -> List[IsResource]:
+    """Returns the pending resources as list."""
+    resources = []
+    while (resource := self.pop(block=False)) is not None:
+      resources.append(resource)
+    return resources
 
   @abc.abstractmethod
   def shutdown(self) -> None:
     """Shutdown the queue."""
+
+
+class ResourceProcessorFactory(abc.ABC):
+  @abc.abstractmethod
+  def find(self, resource_type: str) -> List[ResourceProcessor]:
+    """Factory method to get list of supported resource processors for given resource type."""
+
+
+class ResourceQueueProcessor(abc.ABC):
+  """Abstract base class for a resource queue processor.
+
+  A resource queue processor takes a listener to queue, means to discover resource processors for given resource type,
+  and processes the resource matching it to the resource processor. Once the resource is processed, if it is a resource,
+  it is added back to the queue, if it is a document, it is sent to the listener.
+  """
+
+  @abc.abstractmethod
+  def __init__(
+    self,
+    resource_queue: ResourceQueue,
+    processor_factory: ResourceProcessorFactory,
+    **kwargs: Dict[str, Any],
+  ) -> None:
+    """Takes in a resource queue and processor_factory as dependencies."""
+
+  @abc.abstractmethod
+  def add_docs_queue(self, docs_queue: SupportsPush[Document]) -> None:
+    """Add a queue to send the processed documents to."""
+
+  @abc.abstractmethod
+  def process(self) -> None:
+    """Process all the pending resources in queue."""
+
+  @abc.abstractmethod
+  def start(self) -> None:
+    """Start listening to the resource queue processor."""
+
+  @abc.abstractmethod
+  async def astart(self) -> None:
+    """Start listening to the resource queue processor asynchronously."""
+
+  @abc.abstractmethod
+  def shutdown(self) -> None:
+    """Start listening to the resource queue processor asynchronously."""
+
+
+class ResourceProcessor(abc.ABC):
+  """Abstract base class for a resource processor.
+
+  A resource processor takes in a Resource and produces another Resource or a Document.
+  """
+
+  @abc.abstractmethod
+  def process(self, resource: IsResource) -> List[IsResource]:
+    """Process the resource and return a Document or another resource for further processing."""
+
+  async def aprocess(self, resource: IsResource) -> List[IsResource]:
+    """Process the resource and return a Document or another resource for further processing."""
+    return self.process(resource)
+
+  @property
+  @abc.abstractmethod
+  def supported_types(self) -> List[str]:
+    """List of supported resource types."""
+
+  @property
+  @abc.abstractmethod
+  def service_name(self) -> str:
+    """Service name of the component."""
+
+
+class ResourceProcessMatcher(abc.ABC):
+  """Abstract base class for a resource process matcher.
+
+  A resource process matcher matches a resource to a resource processor.
+  """
+
+  @abc.abstractmethod
+  def match(self, resource: IsResource) -> List[ResourceProcessor]:
+    """Match the resource to a resource processor."""
 
 
 # endregion
@@ -635,7 +737,7 @@ PS = TypeVar("PS", bound=PromptSource)
 def list_prompt_sources() -> List[Service]:
   """List all prompt sources installed and available."""
   manager = PluginManager.instance()
-  return manager.list_services("prompt_sources")
+  return manager.list_services(PROMPT_SOURCE)
 
 
 def get_prompt_source(
@@ -655,7 +757,7 @@ def get_prompt_source(
   manager = PluginManager.instance()
   prompt_source: PS = manager.get(
     service_name=service_name,
-    service_type="prompt_source",
+    service_type=PROMPT_SOURCE,
     oftype=return_type,
     publisher=publisher,
     version=version,
@@ -720,6 +822,74 @@ def list_resource_queues() -> List[Service]:
   return manager.list_services(RESOURCE_QUEUE)
 
 
+RP = TypeVar("RP", bound=ResourceProcessor)
+
+
+def get_resource_processor(
+  service_name: str,
+  *,
+  oftype: Optional[Type[RP]] = None,
+  publisher: Optional[str] = None,
+  version: Optional[str] = None,
+  **kwargs: Dict[str, Any],
+) -> RP:
+  if oftype is None:
+    return_type: Type[Any] = ResourceProcessor
+  else:
+    return_type = oftype
+
+  manager = PluginManager.instance()
+  resource_processor: RP = manager.get(
+    service_name=service_name,
+    service_type=RESOURCE_PROCESSOR,
+    oftype=return_type,
+    publisher=publisher,
+    version=version,
+    **kwargs,
+  )
+  return cast(RP, resource_processor)
+
+
+def list_resource_processors() -> List[Service]:
+  """List all resource processors installed and available."""
+  manager = PluginManager.instance()
+  return manager.list_services(RESOURCE_PROCESSOR)
+
+
+RF = TypeVar("RF", bound=ResourceProcessorFactory)
+
+
+def get_resource_factory(
+  service_name: str,
+  *,
+  oftype: Optional[Type[RF]] = None,
+  publisher: Optional[str] = None,
+  version: Optional[str] = None,
+  **kwargs: Dict[str, Any],
+) -> RF:
+  if oftype is None:
+    return_type: Type[Any] = ResourceProcessorFactory
+  else:
+    return_type = oftype
+
+  manager = PluginManager.instance()
+  resource_processor: RF = manager.get(
+    service_name=service_name,
+    service_type=RESOURCE_FACTORY,
+    oftype=return_type,
+    publisher=publisher,
+    version=version,
+    **kwargs,
+  )
+  return cast(RF, resource_processor)
+
+
+def list_resource_factory() -> List[Service]:
+  """List all resource factories installed and available."""
+  manager = PluginManager.instance()
+  return manager.list_services(RESOURCE_FACTORY)
+
+
 # Splitter
 S = TypeVar("S", bound=Splitter)
 """TypeVar for Splitter."""
@@ -728,7 +898,7 @@ S = TypeVar("S", bound=Splitter)
 def list_splitters() -> List[Service]:
   """List all splitters installed and available."""
   manager = PluginManager.instance()
-  return manager.list_services("splitter")
+  return manager.list_services(SPLITTER)
 
 
 def get_splitter(
@@ -752,7 +922,7 @@ def get_splitter(
   manager = PluginManager.instance()
   splitter: S = manager.get(
     service_name=service_name,
-    service_type="splitter",
+    service_type=SPLITTER,
     oftype=return_type,
     publisher=publisher,
     version=version,
@@ -797,16 +967,14 @@ def get_embedder(
     return_type = oftype
 
   manager = PluginManager.instance()
-  embedder: E = manager.get(
-    service_name, "embedder", oftype=return_type, publisher=publisher, version=version, **kwargs
-  )
+  embedder: E = manager.get(service_name, EMBEDDER, oftype=return_type, publisher=publisher, version=version, **kwargs)
   return cast(E, embedder)
 
 
 def list_embedders() -> List[Service]:
   """List all embedders installed and available."""
   manager = PluginManager.instance()
-  return manager.list_services("embedder")
+  return manager.list_services(EMBEDDER)
 
 
 # LLM
@@ -862,7 +1030,7 @@ def get_llm(
   manager = PluginManager.instance()
   llm: L = manager.get(
     service_name=service_name,
-    service_type="llm",
+    service_type=LLM_SERVICE,
     oftype=return_type,
     publisher=publisher,
     version=version,
@@ -876,7 +1044,7 @@ def get_llm(
 def list_llms() -> List[Service]:
   """List all LLM services installed and available."""
   manager = PluginManager.instance()
-  return manager.list_services("llm")
+  return manager.list_services(LLM_SERVICE)
 
 
 # VectorDB
@@ -905,7 +1073,7 @@ def get_vector_db(
   manager = PluginManager.instance()
   vector_db: V = manager.get(
     service_name=service_name,
-    service_type="vector_db",
+    service_type=VECTOR_DB,
     oftype=return_type,
     publisher=publisher,
     version=version,
@@ -917,7 +1085,7 @@ def get_vector_db(
 def list_vector_dbs() -> List[Service]:
   """List all VectorDB services installed and available."""
   manager = PluginManager.instance()
-  return manager.list_services("vector_db")
+  return manager.list_services(VECTOR_DB)
 
 
 # endregion

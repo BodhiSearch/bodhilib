@@ -4,7 +4,15 @@ from contextlib import asynccontextmanager
 from threading import Lock
 
 from bodhiext.engine import DefaultSemanticEngine
-from bodhilib import get_resource_queue, get_embedder, get_llm, get_splitter, get_vector_db
+from bodhilib import (
+  get_embedder,
+  get_llm,
+  get_resource_factory,
+  get_resource_queue,
+  get_splitter,
+  get_vector_db,
+  local_file,
+)
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI
 from typing_extensions import Annotated
@@ -24,8 +32,10 @@ def get_search_engine() -> DefaultSemanticEngine:
       embedder = get_embedder(service_name="sentence_transformers")
       splitter = get_splitter(service_name="text_splitter", max_len=256, min_len=128, overlap=16)
       vector_db = get_vector_db(service_name="qdrant", host="localhost", port=6333)
+      factory = get_resource_factory(service_name="resource_factory")
       search_engine = DefaultSemanticEngine(
         resource_queue=resource_queue,
+        factory=factory,
         splitter=splitter,
         embedder=embedder,
         vector_db=vector_db,
@@ -57,20 +67,20 @@ app = FastAPI(lifespan=start_aingest)
 
 @app.post("/ingest_and_run")
 async def ingest_and_run(path: str, service: Annotated[DefaultSemanticEngine, Depends(get_search_engine)]):
-  service.add_resource(file=str(path))
+  service.add_resource(local_file(path))
   service.run_ingest()
   return {"message": "ingested"}
 
 
 @app.post("/ingest")
 async def ingest(path: str, service: Annotated[DefaultSemanticEngine, Depends(get_search_engine)]):
-  service.add_resource(file=str(path))
+  service.add_resource(local_file(path))
   return {"message": "queued"}
 
 
 @app.post("/aingest")
 async def aingest(path: str, service: Annotated[DefaultSemanticEngine, Depends(get_search_engine)]):
-  service.add_resource(file=str(path))
+  service.add_resource(local_file(path))
   return {"message": "aingested"}
 
 
