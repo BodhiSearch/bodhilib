@@ -13,7 +13,6 @@ from bodhilib import (
   ResourceQueue,
   ResourceQueueProcessor,
   Service,
-  SupportsPush,
   get_resource_processor,
   list_resource_processors,
   local_file,
@@ -182,26 +181,32 @@ class TextPlainProcessor(ResourceProcessor):
 
 class DefaultFactory(ResourceProcessorFactory):
   def __init__(self) -> None:
-    self.processors: Optional[Dict[str, List[Service]]] = None
-    self.services: Dict[str, List[ResourceProcessor]] = {}
+    self.services: Optional[Dict[str, List[Service]]] = None
+    self.cached: Dict[str, List[ResourceProcessor]] = {}
+
+  def add_resource_processor(self, processor: ResourceProcessor) -> None:
+    for supported_type in processor.supported_types:
+      if supported_type not in self.cached:
+        self.cached[supported_type] = []
+      self.cached[supported_type].append(processor)
 
   def find(self, resource_type: str) -> List[ResourceProcessor]:
-    if resource_type in self.services:
-      return self.services[resource_type]
-    if self.processors is None:
+    if resource_type in self.cached:
+      return self.cached[resource_type]
+    if self.services is None:
       self._set_processors_from_plugins()
-    if resource_type not in self.processors:  # type: ignore
+    if resource_type not in self.services:  # type: ignore
       logger.warning(f"No processors found for resource type: {resource_type}")
       return []
     processors: List[ResourceProcessor] = [
       get_resource_processor(service.service_name, publisher=service.publisher, version=service.version)
-      for service in self.processors[resource_type]  # type: ignore
+      for service in self.services[resource_type]  # type: ignore
     ]
-    self.services[resource_type] = processors
+    self.cached[resource_type] = processors
     return processors
 
   def _set_processors_from_plugins(self) -> None:
-    self.processors = self._fetch_processors()
+    self.services = self._fetch_processors()
 
   def _fetch_processors(self) -> Dict[str, List[Service]]:
     processors: Dict[str, List[Service]] = {}
@@ -227,27 +232,15 @@ class DefaultQueueProcessor(ResourceQueueProcessor):
   ):
     self.resource_queue = resource_queue
     self.factory = factory
-    self.docs_queue: List[SupportsPush] = []
 
-  def add_docs_queue(self, docs_queue: SupportsPush[Document]) -> None:
-    self.docs_queue.append(docs_queue)
+  def add_resource_processor(self, processor: ResourceProcessor) -> None:
+    return self.factory.add_resource_processor(processor)
 
   def process(self) -> None:
     while (resource := self.resource_queue.pop(block=False)) is not None:
       results = self._process(resource)
       for result in results:
-        if result.resource_type == "document":
-          for doc_queue in self.docs_queue:
-            doc_queue.push(result)
-        else:
-          self.resource_queue.push(result)
-
-  def _process(self, resource: IsResource) -> List[IsResource]:
-    processor = self._find_processor(resource)
-    if processor is None:
-      return []
-    results = processor.process(resource)
-    return results
+        self.resource_queue.push(result)
 
   def start(self) -> None:
     while (resource := self.resource_queue.pop()) is not None:
@@ -263,15 +256,18 @@ class DefaultQueueProcessor(ResourceQueueProcessor):
         continue
       results = await processor.aprocess(resource)
       for result in results:
-        if result.resource_type == "document":
-          for doc_queue in self.docs_queue:
-            await doc_queue.apush(result)
-        else:
-          self.resource_queue.push(result)
+        self.resource_queue.push(result)
       logger.info("[astart] process complete")
 
   def shutdown(self) -> None:
     raise NotImplementedError()
+
+  def _process(self, resource: IsResource) -> List[IsResource]:
+    processor = self._find_processor(resource)
+    if processor is None:
+      return []
+    results = processor.process(resource)
+    return results
 
   def _find_processor(self, resource: IsResource) -> Optional[ResourceProcessor]:
     resource_type = resource.resource_type

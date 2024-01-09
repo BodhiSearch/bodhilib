@@ -11,14 +11,12 @@ from ._components import VECTOR_DB as VECTOR_DB
 from ._components import Embedder as Embedder
 from ._components import PromptSource as PromptSource
 from ._components import PromptTemplate as PromptTemplate
-from ._components import ResourceProcessMatcher as ResourceProcessMatcher
 from ._components import ResourceProcessor as ResourceProcessor
 from ._components import ResourceProcessorFactory as ResourceProcessorFactory
 from ._components import ResourceQueue as ResourceQueue
 from ._components import ResourceQueueProcessor as ResourceQueueProcessor
 from ._components import SemanticSearchEngine as SemanticSearchEngine
 from ._components import Splitter as Splitter
-from ._components import SupportsPush as SupportsPush
 from ._components import VectorDB as VectorDB
 from ._components import VectorDBError as VectorDBError
 from ._components import get_embedder as get_embedder
@@ -43,6 +41,7 @@ from ._filter import Filter as Filter
 from ._filter import Nor as Nor
 from ._filter import OperatorCondition as OperatorCondition
 from ._filter import Or as Or
+from ._models import DOCUMENT as DOCUMENT
 from ._models import GLOB as GLOB
 from ._models import LOCAL_DIR as LOCAL_DIR
 from ._models import LOCAL_FILE as LOCAL_FILE

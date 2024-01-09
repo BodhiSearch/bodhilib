@@ -23,23 +23,11 @@ from typing import (
 from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import TypeAlias
 
+
 # region type aliases
 #######################################################################################################################
 # Update the documentation in bodhilib.rst file directly. TypeAlias inline documentation not picked up by sphinx.
 # Duplicating it here to make it easier when browsing the code.
-PathLike: TypeAlias = Union[str, Path]
-"""Type alias for Union of :class:`str` and :class:`~pathlib.Path`"""
-TextLike: TypeAlias = Union[str, "SupportsText"]
-"""Type alias for Union of :class:`str` and protocol :data:`~bodhilib.SupportsText`"""
-TextLikeOrTextLikeList: TypeAlias = Union[TextLike, Iterable[TextLike]]
-"""Type alias for Union of :data:`~bodhilib.TextLike` or list of :data:`~bodhilib.TextLike`"""
-SerializedInput: TypeAlias = Union[TextLikeOrTextLikeList, Dict[str, Any], Iterable[Dict[str, Any]]]
-"""Type alias for various inputs that can be passed to the components."""
-Embedding: TypeAlias = List[float]
-"""Type alias for list of :class:`float`, to indicate the embedding generated
-from :class:`~bodhilib.Embedder` operation"""
-
-
 class SupportsText(Protocol):
   """TextLike is a protocol for types that can be converted to text.
 
@@ -51,6 +39,20 @@ class SupportsText(Protocol):
   @property
   def text(self) -> str:
     """Return the content of the object as string."""
+
+
+ST = TypeVar("ST", bound=SupportsText)
+PathLike: TypeAlias = Union[str, Path]
+"""Type alias for Union of :class:`str` and :class:`~pathlib.Path`"""
+TextLike: TypeAlias = Union[str, ST]
+"""Type alias for Union of :class:`str` and protocol :data:`~bodhilib.SupportsText`"""
+TextLikeOrTextLikeList: TypeAlias = Union[TextLike, Iterable[TextLike]]
+"""Type alias for Union of :data:`~bodhilib.TextLike` or list of :data:`~bodhilib.TextLike`"""
+SerializedInput: TypeAlias = Union[TextLikeOrTextLikeList, Dict[str, Any], Iterable[Dict[str, Any]]]
+"""Type alias for various inputs that can be passed to the components."""
+Embedding: TypeAlias = List[float]
+"""Type alias for list of :class:`float`, to indicate the embedding generated
+from :class:`~bodhilib.Embedder` operation"""
 
 
 class SupportsEmbedding(Protocol):
@@ -347,6 +349,7 @@ TEXT_PLAIN = "text/plain"
 LOCAL_DIR = "local_dir"
 GLOB = "glob"
 URL = "url"
+DOCUMENT = "document"
 BODHILIB_RESOURCES = [LOCAL_FILE, LOCAL_DIR, GLOB, URL]
 """List of known resource types provided by bodhilib. This list is non-exhaustive."""
 
@@ -417,16 +420,12 @@ class Document(Resource):
   text: str
   """Text content of the document."""
 
-  resource_type: str = "document"
-
-  @property
-  def metadata(self) -> Dict[str, Any]:
-    """Returns the metadata associated with the resource."""
-    return self.model_dump(exclude={"text"})
+  resource_type: str = DOCUMENT
 
   def __repr__(self) -> str:
     """Returns a string representation of the document."""
-    return f"Document(text={reprlib.repr(self.text)}, metadata={reprlib.repr(self.metadata)})"
+    all_but_text = {k: v for k, v in self.metadata.items() if k != "text"}
+    return f"Document(text={reprlib.repr(self.text)}, metadata={reprlib.repr(all_but_text)})"
 
 
 class Node(BaseModel):
@@ -464,6 +463,10 @@ def to_document(textlike: TextLike) -> Document:
   """Converts a :data:`~bodhilib.TextLike` to :class:`~bodhilib.Document`."""
   if isinstance(textlike, Document):
     return textlike
+  elif isinstance(textlike, Resource):
+    if not supportstext(textlike):
+      raise ValueError(f"Resource of resource_type {textlike.resource_type} does not have property `text`")
+    return Document(**textlike.metadata)
   elif isinstance(textlike, str):
     return Document(text=textlike)
   elif supportstext(textlike):
@@ -498,7 +501,7 @@ def to_text(textlike: TextLike) -> str:
   if isinstance(textlike, str):
     return textlike
   if supportstext(textlike):
-    return textlike.text
+    return cast(str, textlike.text)
   raise ValueError(f"Cannot convert type {type(textlike)} to text.")
 
 

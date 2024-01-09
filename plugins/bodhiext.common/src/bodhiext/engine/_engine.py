@@ -1,13 +1,11 @@
 import textwrap
 import typing
-from typing import AsyncIterator, Callable, List, Literal, Optional, Union
+from typing import AsyncIterator, List, Literal, Optional, Union
 
-from bodhiext.common import abatch, batch
 from bodhiext.prompt_template import StringPromptTemplate
 from bodhiext.resources import DefaultQueueProcessor
 from bodhilib import (
   LLM,
-  Document,
   Embedder,
   IsResource,
   Node,
@@ -17,20 +15,12 @@ from bodhilib import (
   ResourceQueue,
   SemanticSearchEngine,
   Splitter,
-  SupportsPush,
   TextLike,
   VectorDB,
   to_prompt,
 )
-from bodhilib.logging import logger
 
-
-class CallbackQueue:
-  def __init__(self, callback: Callable[[Document], None]) -> None:
-    self.callback = callback
-
-  def push(self, resource: Document) -> None:
-    self.callback(resource)
+from ._doc_vec import DocumentVectorizer
 
 
 class DefaultSemanticEngine(SemanticSearchEngine):
@@ -46,27 +36,14 @@ class DefaultSemanticEngine(SemanticSearchEngine):
     distance: Optional[str] = "cosine",
   ):
     self.resource_queue = resource_queue
-    self.splitter = splitter
     self.embedder = embedder
     self.vector_db = vector_db
     self.llm = llm
     self.collection_name = collection_name
     self.distance = distance or "cosine"
+    document_vectorizer = DocumentVectorizer(splitter, embedder, vector_db, llm, collection_name, distance)
     self.queue_processor = DefaultQueueProcessor(resource_queue, factory)
-    self.queue_processor.add_docs_queue(self._docs_queue())
-
-  def _docs_queue(self) -> SupportsPush[Document]:
-    class _DocsQueue:
-      def __init__(self, engine: DefaultSemanticEngine) -> None:
-        self.engine = engine
-
-      def push(self, resource: Document) -> None:
-        self.engine._process_doc(resource)
-
-      async def apush(self, resource: Document) -> None:
-        await self.engine._aprocess_doc(resource)
-
-    return _DocsQueue(self)
+    self.queue_processor.add_resource_processor(document_vectorizer)
 
   def add_resource(self, resource: IsResource) -> None:
     self.resource_queue.push(resource)
@@ -134,21 +111,3 @@ class DefaultSemanticEngine(SemanticSearchEngine):
     prompts = prompt_template.to_prompts(contexts=contexts, query=query)  # type: ignore
     response = self.llm.generate(prompts, astream=astream)
     return response
-
-  def _process_doc(self, doc: Document) -> None:
-    logger.info("[process] received document")
-    nodes: List[Node] = self.splitter.split(doc)
-    batch_size = max(1, self.embedder.batch_size)
-    for node_batch in batch(nodes, batch_size):
-      embeddings: List[Node] = self.embedder.embed(node_batch)
-      self.vector_db.upsert(self.collection_name, embeddings)
-    logger.info("[process] process complete")
-
-  async def _aprocess_doc(self, doc: Document) -> None:
-    logger.info("[aprocess] received document")
-    nodes: AsyncIterator[Node] = self.splitter.split(doc, astream=True)
-    batch_size = max(1, self.embedder.batch_size)
-    async for node_batch in abatch(nodes, batch_size):
-      embeddings = self.embedder.embed(node_batch)
-      self.vector_db.upsert(self.collection_name, embeddings)
-    logger.info("[aprocess] process complete")

@@ -6,12 +6,10 @@ from typing import (
   Any,
   AsyncIterator,
   Dict,
-  Generic,
   Iterator,
   List,
   Literal,
   Optional,
-  Protocol,
   Type,
   TypeVar,
   Union,
@@ -21,7 +19,6 @@ from typing import (
 from ._filter import Filter
 from ._models import (
   Distance,
-  Document,
   Embedding,
   IsResource,
   LLMApiConfig,
@@ -142,19 +139,6 @@ class PromptSource(abc.ABC):
 # endregion
 # region resource queue
 #######################################################################################################################
-SP = TypeVar("SP", contravariant=True)
-
-
-class SupportsPush(Protocol, Generic[SP]):
-  @abc.abstractmethod
-  def push(self, resource: SP) -> None:
-    """Add a resource to the queue."""
-
-  @abc.abstractmethod
-  async def apush(self, resource: SP) -> None:
-    """Add a resource to the queue."""
-
-
 class ResourceQueue(abc.ABC):
   """Abstract base class for a resource queue.
 
@@ -214,6 +198,10 @@ class ResourceQueue(abc.ABC):
 
 class ResourceProcessorFactory(abc.ABC):
   @abc.abstractmethod
+  def add_resource_processor(self, processor: ResourceProcessor) -> None:
+    """Add a custom resource processor."""
+
+  @abc.abstractmethod
   def find(self, resource_type: str) -> List[ResourceProcessor]:
     """Factory method to get list of supported resource processors for given resource type."""
 
@@ -236,8 +224,8 @@ class ResourceQueueProcessor(abc.ABC):
     """Takes in a resource queue and processor_factory as dependencies."""
 
   @abc.abstractmethod
-  def add_docs_queue(self, docs_queue: SupportsPush[Document]) -> None:
-    """Add a queue to send the processed documents to."""
+  def add_resource_processor(self, processor: ResourceProcessor) -> None:
+    """Add a custom resource processor."""
 
   @abc.abstractmethod
   def process(self) -> None:
@@ -279,17 +267,6 @@ class ResourceProcessor(abc.ABC):
   @abc.abstractmethod
   def service_name(self) -> str:
     """Service name of the component."""
-
-
-class ResourceProcessMatcher(abc.ABC):
-  """Abstract base class for a resource process matcher.
-
-  A resource process matcher matches a resource to a resource processor.
-  """
-
-  @abc.abstractmethod
-  def match(self, resource: IsResource) -> List[ResourceProcessor]:
-    """Match the resource to a resource processor."""
 
 
 # endregion

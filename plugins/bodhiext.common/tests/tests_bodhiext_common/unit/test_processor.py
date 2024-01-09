@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from bodhiext.resources import GlobProcessor, LocalDirProcessor, LocalFileProcessor, TextPlainProcessor
 from bodhilib import (
+  DOCUMENT,
   LOCAL_FILE,
   Document,
   IsResource,
@@ -262,7 +263,8 @@ def test_processor_text_plain(tmp_test_dir, text_plain_processor: ResourceProces
   resource = text_plain_processor.process(text_plain_file(path=Path(tmp_test_dir).joinpath("test1.txt")))
   assert len(resource) == 1
   assert isinstance(resource[0], Document)
-  assert resource[0].metadata == {"resource_type": "document", "path": str(Path(tmp_test_dir).joinpath("test1.txt"))}
+  assert resource[0].metadata["resource_type"] == DOCUMENT
+  assert resource[0].metadata["path"] == str(Path(tmp_test_dir).joinpath("test1.txt"))
 
 
 def test_processor_text_plain_unsupported_ext(tmp_test_dir, local_file_processor: ResourceProcessor):
