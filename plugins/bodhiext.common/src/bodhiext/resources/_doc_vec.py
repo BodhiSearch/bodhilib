@@ -1,12 +1,22 @@
 from typing import AsyncIterator, List, Optional
 
-from bodhilib import DOCUMENT, LLM, Embedder, IsResource, Node, ResourceProcessor, Splitter, VectorDB, to_document
+from bodhilib import (
+  DOCUMENT,
+  LLM,
+  AbstractResourceProcessor,
+  Embedder,
+  IsResource,
+  Node,
+  Splitter,
+  VectorDB,
+  to_document,
+)
 from bodhilib.logging import logger
 
 from ..common._aiter import abatch, batch
 
 
-class DocumentVectorizer(ResourceProcessor):
+class DocumentVectorizer(AbstractResourceProcessor):
   def __init__(
     self,
     splitter: Splitter,

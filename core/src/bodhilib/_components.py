@@ -10,6 +10,7 @@ from typing import (
   List,
   Literal,
   Optional,
+  Protocol,
   Type,
   TypeVar,
   Union,
@@ -235,7 +236,28 @@ class ResourceQueueProcessor(abc.ABC):
     """Start listening to the resource queue processor asynchronously."""
 
 
-class ResourceProcessor(abc.ABC):
+class ResourceProcessor(Protocol):
+  """Abstract base class for a resource processor.
+
+  A resource processor takes in a Resource and produces another Resource or a Document.
+  """
+
+  def process(self, resource: IsResource) -> List[IsResource]:
+    """Process the resource and return a Document or another resource for further processing."""
+
+  async def aprocess(self, resource: IsResource) -> List[IsResource]:
+    """Process the resource and return a Document or another resource for further processing."""
+
+  @property
+  def supported_types(self) -> List[str]:
+    """List of supported resource types."""
+
+  @property
+  def service_name(self) -> str:
+    """Service name of the component."""
+
+
+class AbstractResourceProcessor:
   """Abstract base class for a resource processor.
 
   A resource processor takes in a Resource and produces another Resource or a Document.

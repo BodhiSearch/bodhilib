@@ -8,6 +8,7 @@ from ._components import RESOURCE_FACTORY as RESOURCE_FACTORY
 from ._components import RESOURCE_PROCESSOR as RESOURCE_PROCESSOR
 from ._components import RESOURCE_QUEUE as RESOURCE_QUEUE
 from ._components import VECTOR_DB as VECTOR_DB
+from ._components import AbstractResourceProcessor as AbstractResourceProcessor
 from ._components import Embedder as Embedder
 from ._components import PromptSource as PromptSource
 from ._components import PromptTemplate as PromptTemplate

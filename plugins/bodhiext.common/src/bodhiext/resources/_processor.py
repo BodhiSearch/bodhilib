@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 from bodhilib import (
   RESOURCE_FACTORY,
   RESOURCE_PROCESSOR,
+  AbstractResourceProcessor,
   Document,
   IsResource,
   ResourceProcessor,
@@ -35,7 +36,7 @@ SUPPORTED_PROCESSORS = {
 SUPPORTED_EXTS = [".txt"]
 
 
-class GlobProcessor(ResourceProcessor):
+class GlobProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
@@ -67,7 +68,7 @@ class GlobProcessor(ResourceProcessor):
     return GLOB
 
 
-class LocalDirProcessor(ResourceProcessor):
+class LocalDirProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
@@ -113,7 +114,7 @@ class LocalDirProcessor(ResourceProcessor):
     return LOCAL_DIR
 
 
-class LocalFileProcessor(ResourceProcessor):
+class LocalFileProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
@@ -148,7 +149,7 @@ class LocalFileProcessor(ResourceProcessor):
     return LOCAL_FILE
 
 
-class TextPlainProcessor(ResourceProcessor):
+class TextPlainProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
