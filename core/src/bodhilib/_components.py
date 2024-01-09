@@ -242,10 +242,30 @@ class ResourceProcessor(Protocol):
   A resource processor takes in a Resource and produces another Resource or a Document.
   """
 
-  def process(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  def process(self, resource: IsResource, stream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
+    ...
+
+  def process(
+    self, resource: IsResource, stream: Optional[bool] = False
+  ) -> Union[List[IsResource], Iterator[IsResource]]:
     """Process the resource and return a Document or another resource for further processing."""
 
-  async def aprocess(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
+    ...
+
+  async def aprocess(
+    self, resource: IsResource, astream: Optional[bool] = False
+  ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
     """Process the resource and return a Document or another resource for further processing."""
 
   @property
@@ -263,13 +283,33 @@ class AbstractResourceProcessor:
   A resource processor takes in a Resource and produces another Resource or a Document.
   """
 
+  @typing.overload
+  def process(self, resource: IsResource, stream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
+    ...
+
   @abc.abstractmethod
-  def process(self, resource: IsResource) -> List[IsResource]:
+  def process(
+    self, resource: IsResource, stream: Optional[bool] = False
+  ) -> Union[List[IsResource], Iterator[IsResource]]:
     """Process the resource and return a Document or another resource for further processing."""
 
-  async def aprocess(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
+    ...
+
+  @abc.abstractmethod
+  async def aprocess(
+    self, resource: IsResource, astream: Optional[bool] = False
+  ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
     """Process the resource and return a Document or another resource for further processing."""
-    return self.process(resource)
 
   @property
   @abc.abstractmethod

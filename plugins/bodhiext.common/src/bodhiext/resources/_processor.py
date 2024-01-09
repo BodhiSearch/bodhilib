@@ -1,7 +1,8 @@
 import os
 from glob import glob
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
+import typing
 
 from bodhilib import (
   RESOURCE_FACTORY,
@@ -21,6 +22,7 @@ from bodhilib import (
 )
 from bodhilib.logging import logger
 
+from ..common._aiter import AsyncListIterator
 from ..common._constants import DEFAULT_RESOURCE_FACTORY
 
 GLOB = "glob"
@@ -40,7 +42,17 @@ class GlobProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
-  def process(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  def process(self, resource: IsResource, stream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
+    ...
+
+  def process(
+    self, resource: IsResource, stream: Optional[bool] = False
+  ) -> Union[List[IsResource], Iterator[IsResource]]:
     if resource.resource_type != "glob":
       raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports {self.supported_types}")
     if "pattern" not in resource.metadata:
@@ -57,6 +69,24 @@ class GlobProcessor(AbstractResourceProcessor):
       if os.path.isdir(file):
         continue
       resources.append(local_file(file))
+    if stream:
+      return iter(resources)
+    return resources
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
+    ...
+
+  async def aprocess(
+    self, resource: IsResource, astream: Optional[bool] = False
+  ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
+    resources = self.process(resource)
+    if astream:
+      return AsyncListIterator(resources).__aiter__()
     return resources
 
   @property
@@ -72,7 +102,17 @@ class LocalDirProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
-  def process(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  def process(self, resource: IsResource, stream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
+    ...
+
+  def process(
+    self, resource: IsResource, stream: Optional[bool] = False
+  ) -> Union[List[IsResource], Iterator[IsResource]]:
     if resource.resource_type != LOCAL_DIR:
       raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports ['local_dir']")
     if "path" not in resource.metadata:
@@ -95,6 +135,24 @@ class LocalDirProcessor(AbstractResourceProcessor):
       resources.extend(self._glob_files(path, pattern, recursive))
     pattern = "**/*" if recursive else "*"
     resources.extend(self._glob_files(path, pattern, recursive))
+    if stream:
+      return iter(resources)
+    return resources
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
+    ...
+
+  async def aprocess(
+    self, resource: IsResource, astream: Optional[bool] = False
+  ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
+    resources = self.process(resource)
+    if astream:
+      return AsyncListIterator(resources)
     return resources
 
   def _glob_files(self, path: Path, pattern: str, recursive: bool) -> List[IsResource]:
@@ -118,7 +176,17 @@ class LocalFileProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
-  def process(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  def process(self, resource: IsResource, stream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
+    ...
+
+  def process(
+    self, resource: IsResource, stream: Optional[bool] = False
+  ) -> Union[List[IsResource], Iterator[IsResource]]:
     if resource.resource_type != "local_file":
       raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports ['local_file']")
     if "path" not in resource.metadata:
@@ -137,8 +205,27 @@ class LocalFileProcessor(AbstractResourceProcessor):
     # get path extension
     ext = path.suffix
     if ext == ".txt":
-      return [text_plain_file(path=path)]
+      resources: List[IsResource] = [text_plain_file(path=path)]
+      if stream:
+        return iter(resources)
+      return resources
     raise ValueError(f"Unsupported file extension: {ext}, supports {SUPPORTED_EXTS}")
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
+    ...
+
+  async def aprocess(
+    self, resource: IsResource, astream: Optional[bool] = False
+  ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
+    resources = self.process(resource)
+    if astream:
+      return AsyncListIterator(resources)
+    return resources
 
   @property
   def supported_types(self) -> List[str]:
@@ -153,7 +240,17 @@ class TextPlainProcessor(AbstractResourceProcessor):
   def __init__(self) -> None:
     super().__init__()
 
-  def process(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  def process(self, resource: IsResource, stream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
+    ...
+
+  def process(
+    self, resource: IsResource, stream: Optional[bool] = False
+  ) -> Union[List[IsResource], Iterator[IsResource]]:
     if resource.resource_type != "text/plain":
       raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports ['text/plain']")
     if "path" not in resource.metadata:
@@ -169,7 +266,26 @@ class TextPlainProcessor(AbstractResourceProcessor):
       raise ValueError(f"File does not exist: {path}")
     if not path.is_file():
       raise ValueError(f"Path is not a file: {path}")
-    return [Document(text=path.read_text(), path=str(path))]
+    resources: List[IsResource] = [Document(text=path.read_text(), path=str(path))]
+    if stream:
+      return iter(resources)
+    return resources
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
+    ...
+
+  async def aprocess(
+    self, resource: IsResource, astream: Optional[bool] = False
+  ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
+    resources = self.process(resource)
+    if astream:
+      return AsyncListIterator(resources)
+    return resources
 
   @property
   def supported_types(self) -> List[str]:

@@ -1,4 +1,5 @@
-from typing import AsyncIterator, List, Optional
+from typing import AsyncIterator, Iterator, List, Literal, Optional, Union
+import typing
 
 from bodhilib import (
   DOCUMENT,
@@ -13,7 +14,7 @@ from bodhilib import (
 )
 from bodhilib.logging import logger
 
-from ..common._aiter import abatch, batch
+from ..common._aiter import AsyncListIterator, abatch, batch
 
 
 class DocumentVectorizer(AbstractResourceProcessor):
@@ -33,7 +34,17 @@ class DocumentVectorizer(AbstractResourceProcessor):
     self.collection_name = collection_name
     self.distance = distance or "cosine"
 
-  def process(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  def process(self, resource: IsResource, stream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
+    ...
+
+  def process(
+    self, resource: IsResource, stream: Optional[bool] = False
+  ) -> Union[List[IsResource], Iterator[IsResource]]:
     if resource.resource_type != DOCUMENT:
       raise ValueError(f"Expected resource type '{DOCUMENT}', got '{resource.resource_type}'")
     logger.info("[doc_vec] received resource")
@@ -44,9 +55,21 @@ class DocumentVectorizer(AbstractResourceProcessor):
       embeddings: List[Node] = self.embedder.embed(node_batch)
       self.vector_db.upsert(self.collection_name, embeddings)
     logger.info("[process] process complete")
+    if stream:
+      return iter([])
     return []
 
-  async def aprocess(self, resource: IsResource) -> List[IsResource]:
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
+    ...
+
+  @typing.overload
+  async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
+    ...
+
+  async def aprocess(
+    self, resource: IsResource, astream: Optional[bool] = False
+  ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
     if resource.resource_type != DOCUMENT:
       raise ValueError(f"Expected resource type '{DOCUMENT}', got '{resource.resource_type}'")
     logger.info("[doc_vec] async received document")
@@ -57,6 +80,8 @@ class DocumentVectorizer(AbstractResourceProcessor):
       embeddings = self.embedder.embed(node_batch)
       self.vector_db.upsert(self.collection_name, embeddings)
     logger.info("[doc_vec] async process complete")
+    if astream:
+      return AsyncListIterator([])
     return []
 
   @property
