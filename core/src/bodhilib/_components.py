@@ -215,15 +215,6 @@ class ResourceQueueProcessor(abc.ABC):
   """
 
   @abc.abstractmethod
-  def __init__(
-    self,
-    resource_queue: ResourceQueue,
-    processor_factory: ResourceProcessorFactory,
-    **kwargs: Dict[str, Any],
-  ) -> None:
-    """Takes in a resource queue and processor_factory as dependencies."""
-
-  @abc.abstractmethod
   def add_resource_processor(self, processor: ResourceProcessor) -> None:
     """Add a custom resource processor."""
 
