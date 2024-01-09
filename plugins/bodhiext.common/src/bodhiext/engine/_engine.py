@@ -3,7 +3,7 @@ import typing
 from typing import AsyncIterator, List, Literal, Optional, Union
 
 from bodhiext.prompt_template import StringPromptTemplate
-from bodhiext.resources import DefaultQueueProcessor
+from bodhiext.resources import DefaultQueueProcessor, DocumentVectorizer
 from bodhilib import (
   LLM,
   Embedder,
@@ -19,8 +19,6 @@ from bodhilib import (
   VectorDB,
   to_prompt,
 )
-
-from ._doc_vec import DocumentVectorizer
 
 
 class DefaultSemanticEngine(SemanticSearchEngine):

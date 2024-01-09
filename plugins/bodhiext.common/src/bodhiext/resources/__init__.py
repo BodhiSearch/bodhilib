@@ -1,6 +1,7 @@
 """:mod:`bodhiext.resource_queue` bodhiext package for resource queues."""
 import inspect
 
+from ._doc_vec import DocumentVectorizer as DocumentVectorizer
 from ._plugin import bodhilib_list_services as bodhilib_list_services
 from ._processor import DefaultFactory as DefaultFactory
 from ._processor import DefaultQueueProcessor as DefaultQueueProcessor
