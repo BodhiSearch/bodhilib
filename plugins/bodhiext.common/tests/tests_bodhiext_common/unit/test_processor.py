@@ -1,6 +1,7 @@
 import os
 import tempfile
 from pathlib import Path
+from typing import Iterator, List
 
 import pytest
 from bodhiext.resources import GlobProcessor, LocalDirProcessor, LocalFileProcessor, TextPlainProcessor
@@ -17,6 +18,7 @@ from bodhilib import (
   text_plain_file,
 )
 
+
 @pytest.fixture
 def local_dir_processor():
   return LocalDirProcessor()
@@ -30,6 +32,7 @@ def glob_processor():
 @pytest.fixture
 def glob_processor_rs():
   # from bodhilibrs import GlobProcessor as GlobProcessorRs
+
   # return GlobProcessorRs()
   return GlobProcessor()
 
@@ -247,18 +250,32 @@ def test_processor_not_directory(tmpdir, all_processors, processor, resource_typ
   assert str(e.value) == msg.format(tmpfile=tmpfile)
 
 
-def test_processor_local_dir_recursive(tmp_test_dir, local_dir_processor: ResourceProcessor):
+@pytest.mark.parametrize(
+  ["stream"],
+  [(True,), (False,)],
+)
+def test_processor_local_dir_recursive(tmp_test_dir, local_dir_processor: ResourceProcessor, stream):
   resource = local_dir(path=tmp_test_dir, recursive=True, exclude_hidden=True)
-  resources = local_dir_processor.process(resource)
+  return_type = Iterator if stream else List
+  resources = local_dir_processor.process(resource, stream=stream)
+  assert isinstance(resources, return_type)
+  resources = list(resources) if stream else resources
   assert len(resources) == 3
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
   assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.csv", f"{tmp_test_dir}/tmpdir2/test4.txt"]
 
 
-def test_processor_local_dir_recursive_hidden(tmp_test_dir, local_dir_processor: ResourceProcessor):
+@pytest.mark.parametrize(
+  ["stream"],
+  [(True,), (False,)],
+)
+def test_processor_local_dir_recursive_hidden(tmp_test_dir, local_dir_processor: ResourceProcessor, stream):
   resource = local_dir(path=tmp_test_dir, recursive=True, exclude_hidden=False)
-  resources = local_dir_processor.process(resource)
+  resources = local_dir_processor.process(resource, stream=stream)
+  return_type = Iterator if stream else List
+  assert isinstance(resources, return_type)
+  resources = list(resources) if stream else resources
   assert len(resources) == 5
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
@@ -271,18 +288,32 @@ def test_processor_local_dir_recursive_hidden(tmp_test_dir, local_dir_processor:
   ]
 
 
-def test_processor_local_dir_not_recursive(tmp_test_dir, local_dir_processor: ResourceProcessor):
+@pytest.mark.parametrize(
+  ["stream"],
+  [(True,), (False,)],
+)
+def test_processor_local_dir_not_recursive(tmp_test_dir, local_dir_processor: ResourceProcessor, stream):
   resource = local_dir(path=tmp_test_dir, recursive=False, exclude_hidden=True)
-  resources = local_dir_processor.process(resource)
+  resources = local_dir_processor.process(resource, stream=stream)
+  return_type = Iterator if stream else List
+  assert isinstance(resources, return_type)
+  resources = list(resources) if stream else resources
   assert len(resources) == 2
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
   assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.csv"]
 
 
-def test_processor_local_dir_not_recursive_hidden(tmp_test_dir, local_dir_processor: ResourceProcessor):
+@pytest.mark.parametrize(
+  ["stream"],
+  [(True,), (False,)],
+)
+def test_processor_local_dir_not_recursive_hidden(tmp_test_dir, local_dir_processor: ResourceProcessor, stream):
   resource = local_dir(path=tmp_test_dir, recursive=False, exclude_hidden=False)
-  resources = local_dir_processor.process(resource)
+  resources = local_dir_processor.process(resource, stream=stream)
+  return_type = Iterator if stream else List
+  assert isinstance(resources, return_type)
+  resources = list(resources) if stream else resources
   assert len(resources) == 3
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
@@ -297,6 +328,10 @@ def test_processor_local_dir_not_recursive_hidden(tmp_test_dir, local_dir_proces
   ],
 )
 @pytest.mark.parametrize(
+  ["stream"],
+  [(True,), (False,)],
+)
+@pytest.mark.parametrize(
   ["recursive", "exclude_hidden", "files"],
   [
     (False, False, ["test1.txt", ".test3.txt"]),
@@ -309,10 +344,13 @@ def test_processor_local_dir_not_recursive_hidden(tmp_test_dir, local_dir_proces
     (True, True, ["test1.txt", "tmpdir2/test4.txt"]),
   ],
 )
-def test_processor_glob_pattern(tmp_test_dir, all_processors, processor, recursive, exclude_hidden, files):
+def test_processor_glob_pattern(tmp_test_dir, all_processors, processor, stream, recursive, exclude_hidden, files):
   glob_processor = all_processors[processor]
   resource = glob_pattern(str(tmp_test_dir), "*.txt", recursive=recursive, exclude_hidden=exclude_hidden)
-  resources = glob_processor.process(resource)
+  resources = glob_processor.process(resource, stream=stream)
+  # return_type = Iterator if stream else List
+  # assert isinstance(resources, return_type)
+  resources = list(resources) if stream else resources
   assert len(resources) == len(files)
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
@@ -320,19 +358,35 @@ def test_processor_glob_pattern(tmp_test_dir, all_processors, processor, recursi
   assert paths == expected
 
 
-def test_processor_local_file_txt(tmp_test_dir, local_file_processor: ResourceProcessor):
-  resource = local_file_processor.process(local_file(path=f"{str(tmp_test_dir)}/test1.txt"))
-  assert len(resource) == 1
-  assert resource[0].resource_type == "text/plain"
-  assert resource[0].metadata["path"] == Path(f"{tmp_test_dir}/test1.txt")
+@pytest.mark.parametrize(
+  ["stream"],
+  [(True,), (False,)],
+)
+def test_processor_local_file_txt(tmp_test_dir, local_file_processor: ResourceProcessor, stream):
+  resources = local_file_processor.process(local_file(path=f"{str(tmp_test_dir)}/test1.txt"), stream=stream)
+  return_type = Iterator if stream else List
+  assert isinstance(resources, return_type)
+  resources = list(resources) if stream else resources
+  assert len(resources) == 1
+  assert resources[0].resource_type == "text/plain"
+  assert resources[0].metadata["path"] == Path(f"{tmp_test_dir}/test1.txt")
 
 
-def test_processor_text_plain(tmp_test_dir, text_plain_processor: ResourceProcessor):
-  resource = text_plain_processor.process(text_plain_file(path=Path(tmp_test_dir).joinpath("test1.txt")))
-  assert len(resource) == 1
-  assert isinstance(resource[0], Document)
-  assert resource[0].metadata["resource_type"] == DOCUMENT
-  assert resource[0].metadata["path"] == str(Path(tmp_test_dir).joinpath("test1.txt"))
+@pytest.mark.parametrize(
+  ["stream"],
+  [(True,), (False,)],
+)
+def test_processor_text_plain(tmp_test_dir, text_plain_processor: ResourceProcessor, stream):
+  resources = text_plain_processor.process(
+    text_plain_file(path=Path(tmp_test_dir).joinpath("test1.txt")), stream=stream
+  )
+  return_type = Iterator if stream else List
+  assert isinstance(resources, return_type)
+  resources = list(resources) if stream else resources
+  assert len(resources) == 1
+  assert isinstance(resources[0], Document)
+  assert resources[0].metadata["resource_type"] == DOCUMENT
+  assert resources[0].metadata["path"] == str(Path(tmp_test_dir).joinpath("test1.txt"))
 
 
 def test_processor_text_plain_unsupported_ext(tmp_test_dir, local_file_processor: ResourceProcessor):

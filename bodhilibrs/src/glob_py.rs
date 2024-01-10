@@ -1,11 +1,13 @@
-use std::collections::HashMap;
-use std::path::PathBuf;
-
 use crate::arr_repr;
 use crate::glob;
 use pyo3::exceptions::PyAttributeError;
-use pyo3::{exceptions::PyValueError, prelude::*, types::PyDict};
+use pyo3::prelude::*;
+use pyo3::types::PyList;
+use pyo3::{exceptions::PyValueError, types::PyDict};
+use std::collections::HashMap;
+use std::path::PathBuf;
 
+#[derive(Clone)]
 #[pyclass]
 struct Resource {
   #[pyo3(get)]
@@ -51,7 +53,7 @@ impl GlobProcessor {
     }
   }
 
-  fn process(&self, resource: &PyAny) -> PyResult<Vec<Resource>> {
+  fn process<'a>(&self, resource: &'a PyAny, stream: Option<bool>) -> PyResult<&'a PyAny> {
     let resource_type = resource.getattr("resource_type")?;
     let resource_type = resource_type.extract::<String>()?;
     if resource_type != "glob" {
@@ -102,24 +104,26 @@ impl GlobProcessor {
       Some(exclude_hidden) => exclude_hidden.extract::<bool>()?,
       None => false,
     };
+    let _stream = stream.unwrap_or(false); // TODO: implement stream
     let files = glob::glob(&path, &pattern, recursive, !exclude_hidden).unwrap();
-    let files = files
-      .into_iter()
-      .map(|file| {
-        let mut metadata = HashMap::new();
-        metadata.insert("path".to_string(), file);
-        metadata.insert("resource_type".to_string(), "local_file".to_string());
-        Resource {
-          resource_type: "local_file".to_string(),
-          metadata,
-        }
-      })
-      .collect::<Vec<Resource>>();
-    Ok(files)
+    let py = resource.py();
+    let result = PyList::empty(py);
+    files.into_iter().for_each(|file| {
+      let mut metadata = HashMap::new();
+      metadata.insert("path".to_string(), file);
+      metadata.insert("resource_type".to_string(), "local_file".to_string());
+      let resource = Resource {
+        resource_type: "local_file".to_string(),
+        metadata,
+      }.into_py(py);
+      result.append(resource.into_py(py)).unwrap();
+    });
+    Ok(result)
   }
 }
 
 pub(crate) fn add_to_module(m: &PyModule) -> PyResult<()> {
   m.add_class::<GlobProcessor>()?;
+  m.add_class::<Resource>()?;
   Ok(())
 }
