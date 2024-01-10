@@ -393,9 +393,11 @@ def local_dir(path: PathLike, recursive: Optional[bool] = False, exclude_hidden:
   return Resource(resource_type=LOCAL_DIR, path=path, recursive=recursive, exclude_hidden=exclude_hidden)
 
 
-def glob_pattern(pattern: str, recursive: Optional[bool] = False) -> Resource:
+def glob_pattern(
+  path: str, pattern: str, recursive: Optional[bool] = False, exclude_hidden: Optional[bool] = False
+) -> Resource:
   """Factory method to generate a local directory resource."""
-  return Resource(resource_type=GLOB, pattern=pattern, recursive=recursive)
+  return Resource(resource_type=GLOB, path=path, pattern=pattern, recursive=recursive, exclude_hidden=exclude_hidden)
 
 
 def url_resource(url: str) -> Resource:

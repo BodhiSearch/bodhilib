@@ -55,6 +55,16 @@ class GlobProcessor(AbstractResourceProcessor):
   ) -> Union[List[IsResource], Iterator[IsResource]]:
     if resource.resource_type != "glob":
       raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports {self.supported_types}")
+    if "path" not in resource.metadata:
+      raise ValueError("Resource metadata does not contain key: 'path'")
+    path = resource.metadata["path"]
+    if path is None:
+      raise ValueError("Resource metadata key value is None: 'path'")
+    path = Path(path).absolute()
+    if not path.exists():
+      raise ValueError(f"Directory does not exist: {str(path)}")
+    if not path.is_dir():
+      raise ValueError(f"Path is not a directory: {str(path)}")
     if "pattern" not in resource.metadata:
       raise ValueError("Resource metadata does not contain key: 'pattern'")
     pattern = resource.metadata["pattern"]
@@ -63,9 +73,19 @@ class GlobProcessor(AbstractResourceProcessor):
     recursive = resource.metadata.get("recursive", False)
     exclude_hidden = resource.metadata.get("exclude_hidden", True)
     resources: List[IsResource] = []
-    for file in glob(pattern, recursive=recursive):
-      if file.startswith(".") and exclude_hidden:
-        continue
+    if not exclude_hidden:
+      root = Path(path)
+      if recursive:
+        root = Path(path).joinpath("**")
+      glob_pattern = str(root.joinpath(f".{pattern}"))
+      for file in glob(glob_pattern, recursive=recursive):
+        if os.path.isdir(file):
+          continue
+        resources.append(local_file(file))
+    if recursive:
+      path = path.joinpath("**")
+    glob_pattern = str(path.joinpath(pattern))
+    for file in glob(glob_pattern, recursive=recursive):
       if os.path.isdir(file):
         continue
       resources.append(local_file(file))

@@ -20,16 +20,20 @@ def test_local_dir(tmpdir):
   }
 
 
-def test_glob_patter(tmpdir):
+def test_glob_pattern(tmpdir):
   pattern = "*.txt"
-  resource = glob_pattern(pattern, True)
+  resource = glob_pattern(str(tmpdir), pattern, True, True)
   assert resource.resource_type == "glob"
-  assert resource.pattern == pattern
+  assert resource.path == str(tmpdir)
+  assert resource.pattern == "*.txt"
   assert resource.recursive is True
+  assert resource.exclude_hidden is True
   assert resource.metadata == {
+    "path": str(tmpdir),
     "pattern": pattern,
     "resource_type": "glob",
     "recursive": True,
+    "exclude_hidden": True,
   }
 
 

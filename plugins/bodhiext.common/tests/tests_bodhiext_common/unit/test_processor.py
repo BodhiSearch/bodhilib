@@ -17,7 +17,6 @@ from bodhilib import (
   text_plain_file,
 )
 
-
 @pytest.fixture
 def local_dir_processor():
   return LocalDirProcessor()
@@ -25,6 +24,13 @@ def local_dir_processor():
 
 @pytest.fixture
 def glob_processor():
+  return GlobProcessor()
+
+
+@pytest.fixture
+def glob_processor_rs():
+  # from bodhilibrs import GlobProcessor as GlobProcessorRs
+  # return GlobProcessorRs()
   return GlobProcessor()
 
 
@@ -39,13 +45,27 @@ def text_plain_processor():
 
 
 @pytest.fixture
-def all_processors(local_dir_processor, glob_processor, local_file_processor, text_plain_processor):
+def all_processors(local_dir_processor, glob_processor, glob_processor_rs, local_file_processor, text_plain_processor):
   return {
     "local_dir_processor": local_dir_processor,
     "glob_processor": glob_processor,
+    "glob_processor_rs": glob_processor_rs,
     "local_file_processor": local_file_processor,
     "text_plain_processor": text_plain_processor,
   }
+
+
+@pytest.fixture
+def tmp_test_dir():
+  with tempfile.TemporaryDirectory() as tmpdir:
+    _tmpfile(tmpdir, "test1.txt", "hello world!")
+    _tmpfile(tmpdir, "test2.csv", "world hello!")
+    _tmpfile(tmpdir, ".test3.txt", "world hello!")
+    tmpdir2 = f"{tmpdir}/tmpdir2"
+    os.mkdir(tmpdir2)
+    _tmpfile(tmpdir2, "test4.txt", "hey world!")
+    _tmpfile(tmpdir2, ".test5.txt", "hey world!")
+    yield tmpdir
 
 
 def _tmpfile(tmpdir, filename, content):
@@ -54,19 +74,6 @@ def _tmpfile(tmpdir, filename, content):
   tmpfile.write(content)
   tmpfile.close()
   return tmpfilepath
-
-
-@pytest.fixture
-def tmp_test_dir():
-  with tempfile.TemporaryDirectory() as tmpdir:
-    _tmpfile(tmpdir, "test1.txt", "hello world!")
-    _tmpfile(tmpdir, "test2.txt", "world hello!")
-    _tmpfile(tmpdir, ".test3.txt", "world hello!")
-    tmpdir2 = f"{tmpdir}/tmpdir2"
-    os.mkdir(tmpdir2)
-    _tmpfile(tmpdir2, "test3.txt", "hey world!")
-    _tmpfile(tmpdir2, ".test4.txt", "hey world!")
-    yield tmpdir
 
 
 @pytest.mark.parametrize(
@@ -79,6 +86,11 @@ def tmp_test_dir():
     ),
     (
       "glob_processor",
+      local_file(path="invalid"),
+      "Unsupported resource type: local_file, supports ['glob']",
+    ),
+    (
+      "glob_processor_rs",
       local_file(path="invalid"),
       "Unsupported resource type: local_file, supports ['glob']",
     ),
@@ -98,14 +110,55 @@ def test_processor_invalid_resource_type(all_processors, processor: str, invalid
   processor = all_processors[processor]
   with pytest.raises(ValueError) as e:
     processor.process(invalid_resource)
+  assert isinstance(e.value, ValueError)
   assert str(e.value) == msg
 
 
 @pytest.mark.parametrize(
   ["processor", "invalid_resource", "msg"],
   [
-    ("glob_processor", Resource(resource_type="glob"), "Resource metadata does not contain key: 'pattern'"),
-    ("glob_processor", Resource(resource_type="glob", pattern=None), "Resource metadata key value is None: 'pattern'"),
+    ("glob_processor", Resource(resource_type="glob"), "Resource metadata does not contain key: 'path'"),
+    (
+      "glob_processor",
+      Resource(resource_type="glob", path=None),
+      "Resource metadata key value is None: 'path'",
+    ),
+    (
+      "glob_processor",
+      Resource(resource_type="glob", path="."),
+      "Resource metadata does not contain key: 'pattern'",
+    ),
+    (
+      "glob_processor",
+      Resource(resource_type="glob", path="foo"),
+      "Directory does not exist: ",
+    ),
+    (
+      "glob_processor",
+      Resource(resource_type="glob", path=".", pattern=None),
+      "Resource metadata key value is None: 'pattern'",
+    ),
+    ("glob_processor_rs", Resource(resource_type="glob"), "Resource metadata does not contain key: 'path'"),
+    (
+      "glob_processor_rs",
+      Resource(resource_type="glob", path=None),
+      "Resource metadata key value is None: 'path'",
+    ),
+    (
+      "glob_processor_rs",
+      Resource(resource_type="glob", path="."),
+      "Resource metadata does not contain key: 'pattern'",
+    ),
+    (
+      "glob_processor_rs",
+      Resource(resource_type="glob", path="foo"),
+      "Directory does not exist: ",
+    ),
+    (
+      "glob_processor_rs",
+      Resource(resource_type="glob", path=".", pattern=None),
+      "Resource metadata key value is None: 'pattern'",
+    ),
     ("local_dir_processor", Resource(resource_type="local_dir"), "Resource metadata does not contain key: 'path'"),
     (
       "local_dir_processor",
@@ -160,7 +213,7 @@ def test_processor_mandatory_args(all_processors, processor: str, invalid_resour
   processor = all_processors[processor]
   with pytest.raises(ValueError) as e:
     processor.process(invalid_resource)
-  assert str(e.value) == msg
+  assert str(e.value).startswith(msg)
 
 
 @pytest.mark.parametrize(
@@ -181,14 +234,16 @@ def test_processor_is_dir(tmpdir, all_processors, processor, resource_type, msg)
   ["processor", "resource_type", "msg"],
   [
     ("local_dir_processor", "local_dir", "Path is not a directory: {tmpfile}"),
+    ("glob_processor", "glob", "Path is not a directory: {tmpfile}"),
+    ("glob_processor_rs", "glob", "Path is not a directory: {tmpfile}"),
   ],
 )
-def test_processor_is_file(tmpdir, all_processors, processor, resource_type, msg):
+def test_processor_not_directory(tmpdir, all_processors, processor, resource_type, msg):
   processor = all_processors[processor]
   tmpfile = Path(tmpdir).joinpath("test1.txt")
   _tmpfile(tmpdir, "test1.txt", "hello world!")
   with pytest.raises(ValueError) as e:
-    processor.process(Resource(resource_type=resource_type, path=tmpfile))
+    processor.process(Resource(resource_type=resource_type, path=str(tmpfile)))
   assert str(e.value) == msg.format(tmpfile=tmpfile)
 
 
@@ -198,7 +253,7 @@ def test_processor_local_dir_recursive(tmp_test_dir, local_dir_processor: Resour
   assert len(resources) == 3
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
-  assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.txt", f"{tmp_test_dir}/tmpdir2/test3.txt"]
+  assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.csv", f"{tmp_test_dir}/tmpdir2/test4.txt"]
 
 
 def test_processor_local_dir_recursive_hidden(tmp_test_dir, local_dir_processor: ResourceProcessor):
@@ -210,9 +265,9 @@ def test_processor_local_dir_recursive_hidden(tmp_test_dir, local_dir_processor:
   assert paths == [
     f"{tmp_test_dir}/.test3.txt",
     f"{tmp_test_dir}/test1.txt",
-    f"{tmp_test_dir}/test2.txt",
-    f"{tmp_test_dir}/tmpdir2/.test4.txt",
-    f"{tmp_test_dir}/tmpdir2/test3.txt",
+    f"{tmp_test_dir}/test2.csv",
+    f"{tmp_test_dir}/tmpdir2/.test5.txt",
+    f"{tmp_test_dir}/tmpdir2/test4.txt",
   ]
 
 
@@ -222,7 +277,7 @@ def test_processor_local_dir_not_recursive(tmp_test_dir, local_dir_processor: Re
   assert len(resources) == 2
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
-  assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.txt"]
+  assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.csv"]
 
 
 def test_processor_local_dir_not_recursive_hidden(tmp_test_dir, local_dir_processor: ResourceProcessor):
@@ -231,25 +286,38 @@ def test_processor_local_dir_not_recursive_hidden(tmp_test_dir, local_dir_proces
   assert len(resources) == 3
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
-  assert paths == [f"{tmp_test_dir}/.test3.txt", f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.txt"]
+  assert paths == [f"{tmp_test_dir}/.test3.txt", f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.csv"]
 
 
-def test_processor_glob_pattern_not_recursive(tmp_test_dir, glob_processor: ResourceProcessor):
-  resource = glob_pattern(f"{str(tmp_test_dir)}/**", recursive=False)
+@pytest.mark.parametrize(
+  ["processor"],
+  [
+    ("glob_processor",),
+    ("glob_processor_rs",),
+  ],
+)
+@pytest.mark.parametrize(
+  ["recursive", "exclude_hidden", "files"],
+  [
+    (False, False, ["test1.txt", ".test3.txt"]),
+    (False, True, ["test1.txt"]),
+    (True, False, ["test1.txt", ".test3.txt", "tmpdir2/test4.txt", "tmpdir2/.test5.txt"]),
+    (True, True, ["test1.txt", "tmpdir2/test4.txt"]),
+    (False, False, ["test1.txt", ".test3.txt"]),
+    (False, True, ["test1.txt"]),
+    (True, False, ["test1.txt", ".test3.txt", "tmpdir2/test4.txt", "tmpdir2/.test5.txt"]),
+    (True, True, ["test1.txt", "tmpdir2/test4.txt"]),
+  ],
+)
+def test_processor_glob_pattern(tmp_test_dir, all_processors, processor, recursive, exclude_hidden, files):
+  glob_processor = all_processors[processor]
+  resource = glob_pattern(str(tmp_test_dir), "*.txt", recursive=recursive, exclude_hidden=exclude_hidden)
   resources = glob_processor.process(resource)
-  assert len(resources) == 2
+  assert len(resources) == len(files)
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
   paths = sorted([resource.metadata["path"] for resource in resources])
-  assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.txt"]
-
-
-def test_processor_glob_pattern_recursive(tmp_test_dir, glob_processor: ResourceProcessor):
-  resource = glob_pattern(f"{str(tmp_test_dir)}/**", recursive=True)
-  resources = glob_processor.process(resource)
-  assert len(resources) == 3
-  assert all([resource.resource_type == LOCAL_FILE for resource in resources])
-  paths = sorted([resource.metadata["path"] for resource in resources])
-  assert paths == [f"{tmp_test_dir}/test1.txt", f"{tmp_test_dir}/test2.txt", f"{tmp_test_dir}/tmpdir2/test3.txt"]
+  expected = sorted([f"{tmp_test_dir}/{f}" for f in files])
+  assert paths == expected
 
 
 def test_processor_local_file_txt(tmp_test_dir, local_file_processor: ResourceProcessor):
@@ -272,3 +340,14 @@ def test_processor_text_plain_unsupported_ext(tmp_test_dir, local_file_processor
   with pytest.raises(ValueError) as e:
     _ = local_file_processor.process(local_file(path=Path(tmp_test_dir).joinpath("test1.csv")))
   assert str(e.value) == "Unsupported file extension: .csv, supports ['.txt']"
+
+
+def test_resource_object_repr(tmp_test_dir, glob_processor_rs):
+  file_path = str(Path(tmp_test_dir).joinpath("test1.txt"))
+  resources = glob_processor_rs.process(Resource(resource_type="glob", path=tmp_test_dir, pattern="test1.txt"))
+  assert len(resources) == 1
+  assert resources[0].resource_type == LOCAL_FILE
+  assert resources[0].metadata["path"] == file_path
+  assert resources[0].metadata["resource_type"] == LOCAL_FILE
+  assert resources[0].path == file_path
+  assert repr(resources[0]) == repr(local_file(path=file_path))
