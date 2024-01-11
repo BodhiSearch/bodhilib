@@ -106,7 +106,7 @@ class GlobProcessor(AbstractResourceProcessor):
   ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
     resources = self.process(resource)
     if astream:
-      return AsyncListIterator(resources).__aiter__()
+      return AsyncListIterator(resources)
     return resources
 
   @property
