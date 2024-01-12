@@ -1,9 +1,56 @@
+use std::collections::HashMap;
+
 use async_openai::error::OpenAIError;
 use pyo3::create_exception;
+use pyo3::exceptions::PyAttributeError;
+use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use pyo3::{PyErr, PyResult};
-
 create_exception!(bodhilibrs, BodhilibException, pyo3::exceptions::PyException);
+
+#[derive(Clone)]
+enum Any {
+  String(String),
+  Bool(bool),
+}
+
+#[derive(Clone)]
+#[pyclass]
+pub(crate) struct Resource {
+  #[pyo3(get)]
+  pub(crate) resource_type: String,
+  #[pyo3(get)]
+  pub(crate) metadata: HashMap<String, String>,
+}
+
+pub(crate) struct GlobResource {
+  pub(crate) resource_type: String,
+}
+
+impl TryFrom<&PyAny> for GlobResource {
+  type Error = PyErr;
+
+  fn try_from(value: &PyAny) -> Result<Self, Self::Error> {
+    let resource_type = value.getattr("resource_type")?;
+    let resource_type = resource_type.extract::<String>()?;
+    Ok(Self { resource_type })
+  }
+}
+
+#[pymethods]
+impl Resource {
+  fn __getattr__(&self, name: String) -> PyResult<String> {
+    let value = self.metadata.get(&name);
+    match value {
+      Some(value) => Ok(value.to_string()),
+      None => Err(PyAttributeError::new_err(format!("'Resource' object has no attribute '{}'", name))),
+    }
+  }
+  fn __repr__(&self) -> PyResult<String> {
+    let path = self.metadata.get("path").unwrap();
+    Ok(format!("Resource(resource_type='{}', path='{}')", self.resource_type, path))
+  }
+}
 
 pub struct BodhilibError {
   reason: String,
@@ -36,6 +83,7 @@ pub(crate) fn map_err(e: OpenAIError) -> PyErr {
 
 pub(crate) fn add_to_module(m: &PyModule) -> PyResult<()> {
   let py = m.py();
+  m.add_class::<Resource>()?;
   m.add("BodhilibException", py.get_type::<BodhilibException>())?;
   Ok(())
 }

@@ -1,37 +1,15 @@
 use crate::arr_repr;
 use crate::async_iter::AsyncListIterator;
+use crate::common::Resource;
 use crate::glob;
 use pyo3::exceptions::PyAttributeError;
 use pyo3::prelude::*;
+use pyo3::type_object;
 use pyo3::types::PyIterator;
 use pyo3::types::PyList;
 use pyo3::{exceptions::PyValueError, types::PyDict};
 use std::collections::HashMap;
 use std::path::PathBuf;
-
-#[derive(Clone)]
-#[pyclass]
-struct Resource {
-  #[pyo3(get)]
-  resource_type: String,
-  #[pyo3(get)]
-  metadata: HashMap<String, String>,
-}
-
-#[pymethods]
-impl Resource {
-  fn __getattr__(&self, name: String) -> PyResult<String> {
-    let value = self.metadata.get(&name);
-    match value {
-      Some(value) => Ok(value.to_string()),
-      None => Err(PyAttributeError::new_err(format!("'Resource' object has no attribute '{}'", name))),
-    }
-  }
-  fn __repr__(&self) -> PyResult<String> {
-    let path = self.metadata.get("path").unwrap();
-    Ok(format!("Resource(resource_type='{}', path='{}')", self.resource_type, path))
-  }
-}
 
 #[pyclass]
 struct GlobProcessor {
@@ -69,8 +47,7 @@ impl GlobProcessor {
     }
     let metadata = resource
       .getattr("metadata")
-      .map_err(|e| PyValueError::new_err(format!("Failed to get metadata: {}", e)))?;
-    let metadata = metadata
+      .map_err(|e| PyValueError::new_err(format!("Failed to get metadata: {}", e)))?
       .downcast::<PyDict>()
       .map_err(|e| PyValueError::new_err(format!("Failed to convert metadata to dict: {}", e)))?;
     let path = metadata
@@ -79,7 +56,6 @@ impl GlobProcessor {
     if path.is_none() {
       return Err(PyValueError::new_err("Resource metadata key value is None: 'path'"));
     }
-    // check if PosixPath then convert to String
     let path = path.extract::<String>()?;
     let path = PathBuf::from(path);
     if !path.exists() {
@@ -96,8 +72,7 @@ impl GlobProcessor {
       return Err(PyValueError::new_err("Resource metadata key value is None: 'pattern'"));
     }
     let pattern = pattern.extract::<String>()?;
-    let recursive = metadata.get_item("recursive")?;
-    let recursive = match recursive {
+    let recursive = match metadata.get_item("recursive")? {
       Some(recursive) => recursive.extract::<bool>()?,
       None => false,
     };
@@ -217,6 +192,5 @@ impl GlobProcessor {
 
 pub(crate) fn add_to_module(m: &PyModule) -> PyResult<()> {
   m.add_class::<GlobProcessor>()?;
-  m.add_class::<Resource>()?;
   Ok(())
 }
