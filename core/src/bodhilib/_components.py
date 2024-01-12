@@ -321,6 +321,9 @@ class AbstractResourceProcessor:
   def service_name(self) -> str:
     """Service name of the component."""
 
+  def __repr__(self) -> str:
+    return f"{self.__class__.__name__}(service_name={self.service_name}, supported_types={repr(self.supported_types)})"
+
 
 # endregion
 # region splitter

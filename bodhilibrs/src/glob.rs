@@ -1,9 +1,17 @@
-use std::path::Path;
+use std::{fmt::Display, path::Path};
 
 use glob as g;
 
 #[derive(Debug)]
-pub struct GlobError {}
+pub struct GlobError {
+  message: String,
+}
+
+impl Display for GlobError {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    f.write_str(&format!("Error: {}", self.message))
+  }
+}
 
 pub fn glob(path: &Path, pattern: &str, recursive: bool, hidden: bool) -> Result<Vec<String>, GlobError> {
   let options = g::MatchOptions {
@@ -17,8 +25,10 @@ pub fn glob(path: &Path, pattern: &str, recursive: bool, hidden: bool) -> Result
     path = path.join("**");
   }
   let glob_pattern = path.join(pattern);
-  let glob_pattern = glob_pattern.to_str().unwrap();
-  for entry in g::glob_with(glob_pattern, options).unwrap() {
+  let glob_pattern = glob_pattern.to_str().ok_or_else(|| GlobError {
+    message: "pattern not provided".to_string(),
+  })?;
+  for entry in g::glob_with(glob_pattern, options).map_err(|e| GlobError { message: e.to_string() })? {
     match entry {
       Ok(path) => {
         if path.is_dir() {

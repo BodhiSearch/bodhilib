@@ -31,10 +31,9 @@ def glob_processor():
 
 @pytest.fixture
 def glob_processor_rs():
-  # from bodhilibrs import GlobProcessor as GlobProcessorRs
+  from bodhilibrs import GlobProcessor as GlobProcessorRs
 
-  # return GlobProcessorRs()
-  return GlobProcessor()
+  return GlobProcessorRs()
 
 
 @pytest.fixture
@@ -79,6 +78,26 @@ def _tmpfile(tmpdir, filename, content):
   return tmpfilepath
 
 
+processors = [
+  ("local_dir_processor",),
+  ("glob_processor",),
+  (pytest.param("glob_processor_rs", marks=pytest.mark.rs)),
+  ("local_file_processor",),
+  ("text_plain_processor",),
+]
+
+
+@pytest.mark.parametrize(["processor"], processors)
+def test_processor_repr(all_processors, processor):
+  processor = all_processors[processor]
+  assert (
+    repr(processor)
+    == f"{processor.__class__.__name__}"
+    + f"(service_name={processor.service_name}, "
+    + f"supported_types={repr(processor.supported_types)})"
+  )
+
+
 invalid_args = [
   (
     "local_dir_processor",
@@ -91,9 +110,12 @@ invalid_args = [
     "Unsupported resource type: local_file, supports ['glob']",
   ),
   (
-    "glob_processor_rs",
-    local_file(path="invalid"),
-    "Unsupported resource type: local_file, supports ['glob']",
+    pytest.param(
+      "glob_processor_rs",
+      local_file(path="invalid"),
+      "Unsupported resource type: local_file, supports ['glob']",
+      marks=pytest.mark.rs,
+    )
   ),
   (
     "local_file_processor",
@@ -157,26 +179,45 @@ mandatory_args = [
     Resource(resource_type="glob", path=".", pattern=None),
     "Resource metadata key value is None: 'pattern'",
   ),
-  ("glob_processor_rs", Resource(resource_type="glob"), "Resource metadata does not contain key: 'path'"),
   (
-    "glob_processor_rs",
-    Resource(resource_type="glob", path=None),
-    "Resource metadata key value is None: 'path'",
+    pytest.param(
+      "glob_processor_rs",
+      Resource(resource_type="glob"),
+      "Resource metadata does not contain key: 'path'",
+      marks=pytest.mark.rs,
+    )
   ),
   (
-    "glob_processor_rs",
-    Resource(resource_type="glob", path="."),
-    "Resource metadata does not contain key: 'pattern'",
+    pytest.param(
+      "glob_processor_rs",
+      Resource(resource_type="glob", path=None),
+      "Resource metadata key value is None: 'path'",
+      marks=pytest.mark.rs,
+    )
   ),
   (
-    "glob_processor_rs",
-    Resource(resource_type="glob", path="foo"),
-    "Directory does not exist: ",
+    pytest.param(
+      "glob_processor_rs",
+      Resource(resource_type="glob", path="."),
+      "Resource metadata does not contain key: 'pattern'",
+      marks=pytest.mark.rs,
+    )
   ),
   (
-    "glob_processor_rs",
-    Resource(resource_type="glob", path=".", pattern=None),
-    "Resource metadata key value is None: 'pattern'",
+    pytest.param(
+      "glob_processor_rs",
+      Resource(resource_type="glob", path="foo"),
+      "Directory does not exist: ",
+      marks=pytest.mark.rs,
+    )
+  ),
+  (
+    pytest.param(
+      "glob_processor_rs",
+      Resource(resource_type="glob", path=".", pattern=None),
+      "Resource metadata key value is None: 'pattern'",
+      marks=pytest.mark.rs,
+    )
   ),
   ("local_dir_processor", Resource(resource_type="local_dir"), "Resource metadata does not contain key: 'path'"),
   (
@@ -284,7 +325,7 @@ async def test_processor_async_is_dir(tmpdir, all_processors, processor, resourc
 invalid_dir_instead_of_file = [
   ("local_dir_processor", "local_dir", "Path is not a directory: {tmpfile}"),
   ("glob_processor", "glob", "Path is not a directory: {tmpfile}"),
-  ("glob_processor_rs", "glob", "Path is not a directory: {tmpfile}"),
+  (pytest.param("glob_processor_rs", "glob", "Path is not a directory: {tmpfile}", marks=pytest.mark.rs)),
 ]
 
 
@@ -479,7 +520,12 @@ glob_expects = [
   ["processor"],
   [
     ("glob_processor",),
-    ("glob_processor_rs",),
+    (
+      pytest.param(
+        "glob_processor_rs",
+        marks=pytest.mark.rs,
+      )
+    ),
   ],
 )
 @pytest.mark.parametrize(
@@ -494,8 +540,8 @@ def test_processor_glob_pattern(tmp_test_dir, all_processors, processor, stream,
   glob_processor = all_processors[processor]
   resource = glob_pattern(str(tmp_test_dir), "*.txt", recursive=recursive, exclude_hidden=exclude_hidden)
   resources = glob_processor.process(resource, stream=stream)
-  # return_type = Iterator if stream else List
-  # assert isinstance(resources, return_type)
+  return_type = Iterator if stream else List
+  assert isinstance(resources, return_type)
   resources = list(resources) if stream else resources
   assert len(resources) == len(files)
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
@@ -508,7 +554,12 @@ def test_processor_glob_pattern(tmp_test_dir, all_processors, processor, stream,
   ["processor"],
   [
     ("glob_processor",),
-    ("glob_processor_rs",),
+    (
+      pytest.param(
+        "glob_processor_rs",
+        marks=pytest.mark.rs,
+      )
+    ),
   ],
 )
 @pytest.mark.parametrize(
@@ -526,8 +577,8 @@ async def test_processor_async_glob_pattern(
   glob_processor = all_processors[processor]
   resource = glob_pattern(str(tmp_test_dir), "*.txt", recursive=recursive, exclude_hidden=exclude_hidden)
   resources = await glob_processor.aprocess(resource, astream=astream)
-  # return_type = Iterator if stream else List
-  # assert isinstance(resources, return_type)
+  return_type = AsyncIterator if astream else List
+  assert isinstance(resources, return_type)
   resources = [i async for i in resources] if astream else resources
   assert len(resources) == len(files)
   assert all([resource.resource_type == LOCAL_FILE for resource in resources])
@@ -615,6 +666,7 @@ async def test_processor_async_text_plain_unsupported_ext(tmp_test_dir, local_fi
   assert str(e.value) == "Unsupported file extension: .csv, supports ['.txt']"
 
 
+@pytest.mark.rs
 def test_resource_object_repr(tmp_test_dir, glob_processor_rs):
   file_path = str(Path(tmp_test_dir).joinpath("test1.txt"))
   resources = glob_processor_rs.process(Resource(resource_type="glob", path=tmp_test_dir, pattern="test1.txt"))
@@ -627,6 +679,7 @@ def test_resource_object_repr(tmp_test_dir, glob_processor_rs):
 
 
 @pytest.mark.asyncio
+@pytest.mark.rs
 async def test_resource_async_object_repr(tmp_test_dir, glob_processor_rs):
   file_path = str(Path(tmp_test_dir).joinpath("test1.txt"))
   resources = await glob_processor_rs.aprocess(Resource(resource_type="glob", path=tmp_test_dir, pattern="test1.txt"))

@@ -25,6 +25,12 @@ stub:
 	python make.py stub $(filter-out $@,$(MAKECMDGOALS))
 	@:
 
+rs:
+	cd bodhilibrs && maturin develop
+
+testrs: rs
+	poetry run pytest -vv -m rs
+
 ci.check-pyproj:
 	@python make.py check-pyproj all
 
