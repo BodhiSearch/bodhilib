@@ -3,6 +3,7 @@ from glob import glob
 from pathlib import Path
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
 import typing
+from beartype import beartype
 
 from bodhilib import (
   RESOURCE_FACTORY,
@@ -50,6 +51,7 @@ class GlobProcessor(AbstractResourceProcessor):
   def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
     ...
 
+  @beartype
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
@@ -101,6 +103,7 @@ class GlobProcessor(AbstractResourceProcessor):
   async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
     ...
 
+  @beartype
   async def aprocess(
     self, resource: IsResource, astream: Optional[bool] = False
   ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
@@ -130,6 +133,7 @@ class LocalDirProcessor(AbstractResourceProcessor):
   def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
     ...
 
+  @beartype
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
@@ -167,6 +171,7 @@ class LocalDirProcessor(AbstractResourceProcessor):
   async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
     ...
 
+  @beartype
   async def aprocess(
     self, resource: IsResource, astream: Optional[bool] = False
   ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
@@ -204,6 +209,7 @@ class LocalFileProcessor(AbstractResourceProcessor):
   def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
     ...
 
+  @beartype
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
@@ -239,6 +245,7 @@ class LocalFileProcessor(AbstractResourceProcessor):
   async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
     ...
 
+  @beartype
   async def aprocess(
     self, resource: IsResource, astream: Optional[bool] = False
   ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
@@ -268,6 +275,7 @@ class TextPlainProcessor(AbstractResourceProcessor):
   def process(self, resource: IsResource, stream: Literal[True]) -> Iterator[IsResource]:
     ...
 
+  @beartype
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
@@ -299,6 +307,7 @@ class TextPlainProcessor(AbstractResourceProcessor):
   async def aprocess(self, resource: IsResource, astream: Literal[True]) -> AsyncIterator[IsResource]:
     ...
 
+  @beartype
   async def aprocess(
     self, resource: IsResource, astream: Optional[bool] = False
   ) -> Union[List[IsResource], AsyncIterator[IsResource]]:

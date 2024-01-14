@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import AsyncIterator, Iterator, List
 
 import pytest
+from beartype.roar import BeartypeCallHintParamViolation
 from bodhiext.resources import GlobProcessor, LocalDirProcessor, LocalFileProcessor, TextPlainProcessor
 from bodhilib import (
   DOCUMENT,
@@ -31,9 +32,9 @@ def glob_processor():
 
 @pytest.fixture
 def glob_processor_rs():
-  from bodhilibrs import GlobProcessor as GlobProcessorRs
+  from bodhilibrs.bodhilibrs import GlobProcessor
 
-  return GlobProcessorRs()
+  return GlobProcessor()
 
 
 @pytest.fixture
@@ -96,6 +97,15 @@ def test_processor_repr(all_processors, processor):
     + f"(service_name={processor.service_name}, "
     + f"supported_types={repr(processor.supported_types)})"
   )
+
+
+@pytest.mark.parametrize(["processor"], processors)
+def test_processor_called_with_invalid_resource(all_processors, processor):
+  processor = all_processors[processor]
+  with pytest.raises(BeartypeCallHintParamViolation) as e:
+    processor.process("")
+  assert isinstance(e.value, BeartypeCallHintParamViolation)
+  assert "not instance of <protocol \"bodhilib._models.IsResource\"" in str(e.value)
 
 
 invalid_args = [
