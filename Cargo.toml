@@ -1,4 +1,3 @@
 [workspace]
 members = ["bodhilibrs", "bodhilibrs_frompyo3"]
 resolver = "2"
-exclude = ["macrotmp"]

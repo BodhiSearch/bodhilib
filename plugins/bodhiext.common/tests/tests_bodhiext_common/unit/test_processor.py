@@ -32,7 +32,8 @@ def glob_processor():
 
 @pytest.fixture
 def glob_processor_rs():
-  from bodhilibrs.bodhilibrs import GlobProcessor
+  # from bodhilibrs.bodhilibrs import GlobProcessor
+  from bodhilibrs import GlobProcessorRs as GlobProcessor
 
   return GlobProcessor()
 
@@ -105,7 +106,7 @@ def test_processor_called_with_invalid_resource(all_processors, processor):
   with pytest.raises(BeartypeCallHintParamViolation) as e:
     processor.process("")
   assert isinstance(e.value, BeartypeCallHintParamViolation)
-  assert "not instance of <protocol \"bodhilib._models.IsResource\"" in str(e.value)
+  assert 'not instance of <protocol "bodhilib._models.IsResource"' in str(e.value)
 
 
 invalid_args = [
