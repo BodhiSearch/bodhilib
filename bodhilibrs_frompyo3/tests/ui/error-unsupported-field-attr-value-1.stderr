@@ -1,0 +1,5 @@
+error: Unsupported field attribute value format
+ --> tests/ui/error-unsupported-field-attr-value-1.rs:5:21
+  |
+5 |   #[frompyo3(dict = metadata)]
+  |                     ^^^^^^^^

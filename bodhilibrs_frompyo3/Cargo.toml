@@ -16,10 +16,6 @@ syn = { version = "2.0.48", features = ["extra-traits"] }
 pyo3 = { version = "0.20.1", features = ["auto-initialize"] }
 trybuild = "1.0.88"
 
-# [[test]]
-# name = "tests"
-# path = "tests/test_all.rs"
-
 [[test]]
-name = "debug"
-path = "tests/test_debug.rs"
+name = "trybuild"
+path = "tests/test_all.rs"

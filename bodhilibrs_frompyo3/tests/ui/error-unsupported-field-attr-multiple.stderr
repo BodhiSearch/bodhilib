@@ -1,0 +1,11 @@
+error: Multiple attributes not supported
+ --> tests/ui/error-unsupported-field-attr-multiple.rs:6:3
+  |
+6 |   #[frompyo3(foo = "bar")]
+  |   ^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Multiple attributes not supported
+ --> tests/ui/error-unsupported-field-attr-multiple.rs:7:3
+  |
+7 |   #[frompyo3(baz = "caz")]
+  |   ^^^^^^^^^^^^^^^^^^^^^^^^

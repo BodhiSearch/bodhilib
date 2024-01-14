@@ -1,0 +1,5 @@
+error: Unsupported struct attribute key: 'unknown'
+ --> tests/ui/error-unsupported-struct-key.rs:4:12
+  |
+4 | #[frompyo3(unknown = "Resource")]
+  |            ^^^^^^^

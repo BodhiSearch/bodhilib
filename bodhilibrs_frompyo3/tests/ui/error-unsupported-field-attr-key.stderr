@@ -1,0 +1,5 @@
+error: Unsupported field level attribute: 'unknown'
+ --> tests/ui/error-unsupported-field-attr-key.rs:5:14
+  |
+5 |   #[frompyo3(unknown = "metadata")]
+  |              ^^^^^^^

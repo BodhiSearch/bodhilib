@@ -1,0 +1,8 @@
+error: Unsupported data structure, only Struct supported
+ --> tests/ui/error-unsupported-field-union.rs:4:1
+  |
+4 | / union TestUnsupportedUnion {
+5 | |   weight: i32,
+6 | |   temp: f32,
+7 | | }
+  | |_^

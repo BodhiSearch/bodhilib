@@ -1,0 +1,5 @@
+error: Unsupported struct attribute value format
+ --> tests/ui/error-unsupported-struct-value-format.rs:4:19
+  |
+4 | #[frompyo3(name = Resource)]
+  |                   ^^^^^^^^

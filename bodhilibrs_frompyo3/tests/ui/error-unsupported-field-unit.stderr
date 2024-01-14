@@ -1,0 +1,5 @@
+error: Unsupported field format, only named fields supported
+ --> tests/ui/error-unsupported-field-unit.rs:4:27
+  |
+4 | struct TestUnsupportedUnit(i32);
+  |                           ^^^^^
