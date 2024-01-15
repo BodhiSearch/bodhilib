@@ -1,5 +1,5 @@
-error: Unsupported struct attribute format
- --> tests/ui/error-unsupported-struct-attr-format-1.rs:4:1
+error: expected `=`
+ --> tests/ui/error-unsupported-struct-attr-format-1.rs:4:16
   |
 4 | #[frompyo3(name)]
-  | ^^^^^^^^^^^^^^^^^
+  |                ^

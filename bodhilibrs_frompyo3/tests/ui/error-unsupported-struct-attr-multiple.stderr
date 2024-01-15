@@ -1,4 +1,10 @@
 error: Multiple attributes not supported
+ --> tests/ui/error-unsupported-struct-attr-multiple.rs:4:1
+  |
+4 | #[frompyo3(name = "Resource")]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Multiple attributes not supported
  --> tests/ui/error-unsupported-struct-attr-multiple.rs:5:1
   |
 5 | #[frompyo3(foo = "bar")]

@@ -1,4 +1,4 @@
-error: Unsupported data structure, only Struct supported
+error: Unions are not supported
  --> tests/ui/error-unsupported-field-union.rs:4:1
   |
 4 | / union TestUnsupportedUnion {

@@ -1,4 +1,4 @@
-error: Unsupported struct attribute value format
+error: expected string literal
  --> tests/ui/error-unsupported-struct-value-format.rs:4:19
   |
 4 | #[frompyo3(name = Resource)]

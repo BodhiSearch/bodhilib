@@ -1,4 +1,10 @@
 error: Multiple attributes not supported
+ --> tests/ui/error-multiple-struct-attrs.rs:4:1
+  |
+4 | #[frompyo3(name = "foo")]
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Multiple attributes not supported
  --> tests/ui/error-multiple-struct-attrs.rs:5:1
   |
 5 | #[frompyo3(name = "bar")]

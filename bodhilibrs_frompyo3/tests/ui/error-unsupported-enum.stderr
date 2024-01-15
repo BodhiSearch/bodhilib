@@ -1,4 +1,4 @@
-error: Unsupported data structure, only Struct supported
+error: Enums are not supported
  --> tests/ui/error-unsupported-enum.rs:4:1
   |
 4 | enum TestUnsupportedEnum {}

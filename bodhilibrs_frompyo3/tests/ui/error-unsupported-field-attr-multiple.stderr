@@ -1,4 +1,10 @@
 error: Multiple attributes not supported
+ --> tests/ui/error-unsupported-field-attr-multiple.rs:5:3
+  |
+5 |   #[frompyo3(dict = "metadata")]
+  |   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: Multiple attributes not supported
  --> tests/ui/error-unsupported-field-attr-multiple.rs:6:3
   |
 6 |   #[frompyo3(foo = "bar")]

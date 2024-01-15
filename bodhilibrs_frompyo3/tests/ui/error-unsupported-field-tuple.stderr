@@ -1,4 +1,4 @@
-error: Unsupported field format, only named fields supported
+error: Unnamed fields are not supported
  --> tests/ui/error-unsupported-field-tuple.rs:4:33
   |
 4 | struct TestUnsupportedFieldTuple(i32, i32);

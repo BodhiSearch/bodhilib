@@ -1,5 +1,5 @@
-error: Unsupported struct attribute format
- --> tests/ui/error-unsupported-struct-attr-format.rs:4:1
+error: expected identifier
+ --> tests/ui/error-unsupported-struct-attr-format.rs:4:13
   |
 4 | #[frompyo3( = "Resource")]
-  | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |             ^

@@ -1,154 +1,229 @@
+mod models;
+use models::*;
 use pm2::Ident;
-use proc_macro::TokenStream;
 use proc_macro2 as pm2;
+use proc_macro2::TokenStream;
 use quote::quote;
-use std::collections::HashSet;
 use syn::parse_macro_input;
-use syn::ExprLit;
-use syn::{
-  spanned::Spanned, Attribute, Data::Struct, DataStruct, DeriveInput, Expr, Field, Fields::Named, FieldsNamed, Lit,
-  Meta, Type::Path,
-};
+use syn::{spanned::Spanned, DeriveInput, FieldsNamed};
+
+const FROMPYO3: &str = "frompyo3";
+type Result<T> = std::result::Result<T, E>;
 
 #[proc_macro_derive(FromPyO3, attributes(frompyo3))]
-pub fn derive_from_py_o3(input: TokenStream) -> TokenStream {
+pub fn derive_from_py_o3(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
   let ast = parse_macro_input!(input as DeriveInput);
   let gen = parse_data(&ast);
   let result = match gen {
-    Ok(ts) => ts,
-    Err(ts) => ts.to_compile_error(),
+    Ok(result) => result,
+    Err(err) => match err {
+      E::One(err) => err.into_compile_error(),
+      E::Many(errs) => {
+        let errs = errs.into_iter().map(|err| err.into_compile_error()).collect::<Vec<_>>();
+        quote! {
+          #(#errs)*
+        }
+      }
+    },
   };
   result.into()
 }
 
-fn parse_data(ast: &DeriveInput) -> syn::Result<pm2::TokenStream> {
-  let name = &ast.ident;
+fn parse_data(ast: &DeriveInput) -> Result<TokenStream> {
+  let struct_meta: StructMeta = parse_struct_meta(ast)?;
+  let field_metas: Vec<FieldMeta> = parse_field_meta(ast)?;
+  parse_named_fields(&struct_meta, &field_metas)
+}
+
+fn parse_struct_meta(ast: &DeriveInput) -> Result<StructMeta> {
   let mut struct_attrs = ast
     .attrs
     .clone()
     .into_iter()
-    .filter(|a| a.path().is_ident("frompyo3"))
+    .filter(|a| a.path().is_ident(FROMPYO3))
     .collect::<Vec<_>>();
-  if struct_attrs.len() > 1 {
-    let err = accumulate_attrs_err(&struct_attrs);
-    return Err(err);
-  }
-  let struct_name = if struct_attrs.is_empty() {
-    name.to_string()
-  } else {
-    let struct_attr = struct_attrs.pop().unwrap();
-    let parsed_attr = struct_attr.parse_args::<Meta>();
-    match parsed_attr {
-      Ok(Meta::NameValue(pair)) => {
-        if !pair.path.is_ident("name") {
-          return Err(syn::Error::new(
-            pair.path.span(),
-            format!(
-              "Unsupported struct attribute key: '{}'",
-              pair.path.get_ident().expect("struct attribute should have ident")
-            ),
-          ));
-        }
-        match &pair.value {
-          Expr::Lit(ExprLit { lit: Lit::Str(lit), .. }) => lit.value(),
-          _ => return Err(syn::Error::new(pair.value.span(), "Unsupported struct attribute value format")),
+  let struct_attr = match struct_attrs.len() {
+    0 => Ok(StructAttr { name: None }),
+    1 => {
+      let struct_attr = struct_attrs.pop().expect("should have element at index 0");
+      struct_attr.parse_args::<StructAttr>().map_err(E::One)
+    }
+    len if len > 1 => Err(E::Many(
+      ast
+        .attrs
+        .clone()
+        .into_iter()
+        .map(|a| syn::Error::new(a.span(), "Multiple attributes not supported"))
+        .collect::<Vec<_>>(),
+    )),
+    len => {
+      unreachable!("len cannot be less than 0: {}", len)
+    }
+  }?;
+  Ok(StructMeta {
+    ident: IdentWrapper(ast.ident.clone()),
+    struct_attr,
+  })
+}
+
+fn parse_field_meta(ast: &DeriveInput) -> Result<Vec<FieldMeta>> {
+  let span = ast.span();
+  match &ast.data {
+    syn::Data::Struct(data) => match &data.fields {
+      syn::Fields::Named(fields_named) => {
+        let field_attrs = parse_field_attrs(fields_named);
+        let (oks, errs): (Vec<_>, Vec<_>) = field_attrs.into_iter().partition(|result| result.is_ok());
+        if !errs.is_empty() {
+          let errs = errs.into_iter().map(|r| r.unwrap_err()).collect::<Vec<_>>();
+          let errs: E = errs
+            .into_iter()
+            .fold(Vec::new(), |mut acc, err| {
+              match err {
+                E::One(err) => acc.push(err),
+                E::Many(mut errs) => acc.append(&mut errs),
+              }
+              acc
+            })
+            .into();
+          Err(errs)
+        } else {
+          let field_metas = oks
+            .into_iter()
+            .map(|ok| ok.expect("should not have any errors"))
+            .collect::<Vec<_>>();
+          Ok(field_metas)
         }
       }
-      _ => return Err(syn::Error::new(struct_attr.span(), "Unsupported struct attribute format")),
-    }
-  };
-  match &ast.data {
-    Struct(data) => parse_struct(name, struct_name, data),
-    _ => Err(syn::Error::new(ast.span(), "Unsupported data structure, only Struct supported")),
+      syn::Fields::Unnamed(e) => Err(syn::Error::new(e.span(), "Unnamed fields are not supported").into()),
+      syn::Fields::Unit => Err(syn::Error::new(data.fields.span(), "Unit structs are not supported").into()),
+    },
+    syn::Data::Enum(_) => Err(syn::Error::new(span, "Enums are not supported").into()),
+    syn::Data::Union(_) => Err(syn::Error::new(span, "Unions are not supported").into()),
   }
 }
 
-fn parse_struct(name: &pm2::Ident, struct_name: String, struct_: &DataStruct) -> syn::Result<pm2::TokenStream> {
-  match &struct_.fields {
-    Named(fields) => parse_named_fields(name, struct_name, fields),
-    _ => Err(syn::Error::new(
-      struct_.fields.span(),
-      "Unsupported field format, only named fields supported",
-    )),
-  }
+fn parse_field_attrs(fields_named: &FieldsNamed) -> Vec<Result<FieldMeta>> {
+  let field_attrs =
+    fields_named
+      .named
+      .clone()
+      .into_iter()
+      .map(|f| {
+        let mut field_attrs = f
+          .attrs
+          .clone()
+          .into_iter()
+          .filter(|a| a.path().is_ident(FROMPYO3))
+          .collect::<Vec<_>>();
+        match field_attrs.len() {
+          len if len > 1 => {
+            let errs = field_attrs
+              .iter()
+              .map(|f| syn::Error::new(f.span(), "Multiple attributes not supported"))
+              .collect::<Vec<_>>();
+            Err(E::Many(errs))
+          }
+          1 => {
+            let field_attr = field_attrs.pop().unwrap();
+            match field_attr.parse_args::<FieldAttr>() {
+              Ok(field_attr) => {
+                let field_meta =
+                  FieldMeta {
+                    ident: f.ident.clone().expect("field ident should be present").into(),
+                    ty: f.ty.clone(),
+                    field_attr,
+                  };
+                Ok(field_meta)
+              }
+              Err(err) => Err(E::One(err)),
+            }
+          }
+          0 => {
+            Ok(FieldMeta {
+              ident: f.ident.clone().expect("field ident should be present").into(),
+              ty: f.ty.clone(),
+              field_attr: FieldAttr {
+                dict: None,
+                default: None,
+              },
+            })
+          }
+          len => unreachable!("len is less than 0: {}", len),
+        }
+      })
+      .collect::<Vec<_>>();
+  field_attrs
 }
 
-fn parse_named_fields(name: &pm2::Ident, struct_name: String, fields: &FieldsNamed) -> syn::Result<pm2::TokenStream> {
-  let common_methods = parse_common_methods(fields)?;
-  let extractions = fields
-    .named
+fn parse_named_fields(struct_meta: &StructMeta, field_metas: &[FieldMeta]) -> Result<TokenStream> {
+  let common_methods = parse_common_methods(field_metas)?;
+  let extractions = field_metas
     .iter()
-    .map(|f| parse_named_field(f, &struct_name))
+    .map(|f| parse_named_field(f, struct_meta))
     .collect::<Vec<_>>();
-  let mut errors = extractions
-    .clone()
-    .into_iter()
-    .filter(|e| e.is_err())
-    .collect::<Vec<_>>();
-  if !errors.is_empty() {
-    let err = errors.pop().unwrap().unwrap_err();
-    let err = errors.into_iter().fold(err, |mut acc: syn::Error, e| {
-      acc.extend(e.unwrap_err());
+  let (oks, errs): (Vec<_>, Vec<_>) = extractions.into_iter().partition(|r| r.is_ok());
+  if !errs.is_empty() {
+    let errs: Vec<syn::Error> = errs.into_iter().fold(Vec::new(), |mut acc, err| {
+      match err.unwrap_err() {
+        E::One(err) => acc.push(err),
+        E::Many(mut errs) => acc.append(&mut errs),
+      };
       acc
     });
-    return Err(err);
+    return Err(E::Many(errs));
   }
-  let extractions = extractions.into_iter().map(|e| e.unwrap()).collect::<Vec<_>>();
-  let field_name = &fields.named.iter().map(|f| &f.ident).collect::<Vec<_>>();
+  let extractions = oks
+    .into_iter()
+    .map(|ok| ok.expect("should not be error"))
+    .collect::<Vec<_>>();
+  let field_names = field_metas.iter().map(|f| &f.ident.0).collect::<Vec<_>>();
+  let name = &struct_meta.ident.0;
   let result = quote! {
     impl std::convert::TryFrom<&pyo3::types::PyAny> for #name {
       type Error = pyo3::PyErr;
-
       fn try_from(value: &pyo3::types::PyAny) -> pyo3::PyResult<Self> {
-          #( #common_methods )*
+          #common_methods
           #( #extractions )*
-          Ok(Self { #( #field_name ),* })
+          Ok(Self { #( #field_names ),* })
       }
     }
   };
   Ok(result)
 }
 
-fn parse_common_methods(fields: &FieldsNamed) -> syn::Result<Vec<pm2::TokenStream>> {
-  let dicts = fields
-    .named
+fn parse_common_methods(field_metas: &[FieldMeta]) -> Result<TokenStream> {
+  let gens = field_metas
     .iter()
-    .map(|f| extract_field_attrs(&f.attrs))
-    .collect::<Vec<_>>();
-  let err = dicts.clone().into_iter().find(|r| r.is_err());
-  if let Some(err) = err {
-    return Err(err.unwrap_err());
-  }
-  let dicts = dicts.into_iter().filter_map(|r| r.unwrap()).collect::<HashSet<_>>();
-  let result = dicts.into_iter().map(|dict_name| {
-    let dict_id = Ident::new(&dict_name, pm2::Span::call_site());
-    quote! {
-      let #dict_id = value.getattr(#dict_name)
+    .filter(|f| f.field_attr.dict.is_some())
+    .map(|f| {
+      let dict_name = f.field_attr.dict.as_ref().expect("should be present");
+      let dict_id = Ident::new(dict_name, f.ident.0.span());
+      quote! {
+        let #dict_id = value.getattr(#dict_name)
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("Failed to get value from attribute: {}", #dict_name)))?
         .downcast::<pyo3::types::PyDict>()
         .map_err(|e| pyo3::exceptions::PyValueError::new_err(
           format!("Failed to convert {} to dict: {}", #dict_name, e)))?;
-    }
-  }).collect::<Vec<_>>();
-  Ok(result)
+      }
+    })
+    .collect::<Vec<_>>();
+  Ok(quote! {
+    #(#gens)*
+  })
 }
 
-fn parse_named_field(f: &Field, struct_name: &str) -> syn::Result<pm2::TokenStream> {
-  let attr = extract_field_attrs(&f.attrs)?;
-  match attr {
-    Some(dict_name) => extract_from_dict(f, &dict_name, struct_name),
-    None => extract_field(f),
+fn parse_named_field(field_meta: &FieldMeta, struct_meta: &StructMeta) -> Result<TokenStream> {
+  match &field_meta.field_attr.dict {
+    Some(_) => extract_from_dict(field_meta, struct_meta),
+    None => extract_field(field_meta),
   }
 }
 
-fn extract_field(f: &Field) -> syn::Result<pm2::TokenStream> {
-  let name = f
-    .ident
-    .as_ref()
-    .ok_or(syn::Error::new(f.span(), "Field identifier is missing"))?;
+fn extract_field(field_meta: &FieldMeta) -> Result<TokenStream> {
+  let name = &field_meta.ident.0;
   let name_str = name.to_string();
-  let ty = &f.ty;
-  let result = if is_option(f) {
+  let ty = &field_meta.ty;
+  let result = if field_meta.is_option() {
     quote! {
       let #name = match value.getattr(#name_str) {
         Ok(#name) => { if #name.is_none() {
@@ -173,95 +248,35 @@ fn extract_field(f: &Field) -> syn::Result<pm2::TokenStream> {
   Ok(result)
 }
 
-fn is_option(f: &Field) -> bool {
-  if let Path(type_path) = &f.ty {
-    let segments = &type_path.path.segments;
-    if let Some(first_segment) = segments.first() {
-      return first_segment.ident == "Option";
-    }
-  }
-  false
-}
-
-fn extract_from_dict(f: &Field, dict_name: &str, struct_name: &str) -> syn::Result<pm2::TokenStream> {
-  let name = f
-    .ident
+fn extract_from_dict(field_meta: &FieldMeta, struct_meta: &StructMeta) -> Result<TokenStream> {
+  let resource_name = struct_meta
+    .struct_attr
+    .name
     .as_ref()
-    .ok_or(syn::Error::new(f.span(), "Field identifier is missing"))?;
-  let name_str = name.to_string();
-  let ty = &f.ty;
-  let dict_id = Ident::new(dict_name, pm2::Span::call_site());
-  let result = if is_option(f) {
+    .map(|name| name.to_string())
+    .unwrap_or_else(|| struct_meta.ident.0.to_string());
+  let field_ident = &field_meta.ident.0;
+  let field_name = field_ident.to_string();
+  let ty = &field_meta.ty;
+  let dict_name = field_meta.field_attr.dict.as_ref().expect("dict should be present");
+  let dict_id = Ident::new(dict_name, field_ident.span());
+  let result = if field_meta.is_option() {
     quote! {
-      let #name = match #dict_id.get_item(#name_str)? {
-        Some(#name) => #name.extract::<#ty>()?,
+      let #field_ident = match #dict_id.get_item(#field_name)? {
+        Some(#field_ident) => #field_ident.extract::<#ty>()?,
         None => None,
       };
     }
   } else {
     quote! {
-      let #name = #dict_id.get_item(#name_str)?
+      let #field_ident = #dict_id.get_item(#field_name)?
           .ok_or(pyo3::exceptions::PyValueError::new_err(
-              format!("{} {} does not contain key: '{}'", #struct_name, #dict_name, #name_str)))?;
-      if #name.is_none() {
-          return Err(pyo3::exceptions::PyValueError::new_err(format!("{}['{}'] is None", #struct_name, #name_str)));
+              format!("{} {} does not contain key: '{}'", #resource_name, #dict_name, #field_name)))?;
+      if #field_ident.is_none() {
+          return Err(pyo3::exceptions::PyValueError::new_err(format!("{}['{}'] is None", #resource_name, #field_name)));
       }
-      let #name = #name.extract::<#ty>()?;
+      let #field_ident = #field_ident.extract::<#ty>()?;
     }
   };
   Ok(result)
-}
-
-fn extract_field_attrs(attrs: &[Attribute]) -> syn::Result<Option<String>> {
-  if attrs.is_empty() {
-    return Ok(None);
-  }
-  if attrs.len() > 1 {
-    let err = accumulate_attrs_err(attrs);
-    return Err(err);
-  }
-  let attr = attrs.first().unwrap();
-  let parsed_attr = attr.parse_args::<Meta>();
-  match parsed_attr {
-    Ok(parsed_attr) => match parsed_attr {
-      Meta::NameValue(pair) => {
-        if !pair.path.is_ident("dict") {
-          Err(syn::Error::new(
-            pair.path.span(),
-            format!(
-              "Unsupported field level attribute: '{}'",
-              pair.path.get_ident().expect("should have field level ident")
-            ),
-          ))
-        } else {
-          match &pair.value {
-            Expr::Lit(lit) => match &lit.lit {
-              Lit::Str(lit) => Ok(Some(lit.value())),
-              _ => Err(syn::Error::new(lit.span(), "Unsupported field attribute value format")),
-            },
-            _ => Err(syn::Error::new(pair.value.span(), "Unsupported field attribute value format")),
-          }
-        }
-      }
-      _ => Err(syn::Error::new(attr.span(), "Unsupported field level attribute format")),
-    },
-    Err(_) => Err(syn::Error::new(attr.span(), "Unsupported field level attribute format")),
-  }
-}
-
-fn accumulate_attrs_err(struct_attrs: &[Attribute]) -> syn::Error {
-  struct_attrs
-    .iter()
-    .skip(1)
-    .fold(None, |acc: Option<syn::Error>, succ| {
-      let err = syn::Error::new(succ.span(), "Multiple attributes not supported");
-      match acc {
-        Some(mut acc) => {
-          acc.extend(err);
-          Some(acc)
-        }
-        None => Some(err),
-      }
-    })
-    .expect("should have accumulated error")
 }
