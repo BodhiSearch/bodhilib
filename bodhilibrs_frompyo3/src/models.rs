@@ -1,4 +1,6 @@
+use quote::quote;
 use syn::parse::{Parse, ParseStream};
+use syn::spanned::Spanned;
 use syn::{Expr, Ident, LitStr, Token, Type};
 
 #[derive(Debug)]
@@ -85,6 +87,28 @@ impl FieldMeta {
         }
       }
       _ => false,
+    }
+  }
+
+  pub(crate) fn has_default(&self) -> bool {
+    self.field_attr.default.is_some()
+  }
+
+  pub(crate) fn default_value(&self) -> Result<Expr, syn::Error> {
+    if !self.is_option() && !self.has_default() {
+      unreachable!("should not be called if field is not an option or has no default")
+    }
+    if self.has_default() {
+      let default_value = self.field_attr.default.clone().expect("should have default expr");
+      let span = default_value.span();
+      if self.is_option() {
+        syn::parse2::<Expr>(quote! {::std::option::Option::Some(#default_value)})
+          .map_err(|e| syn::Error::new(span, format!("{}", e)))
+      } else {
+        syn::parse2::<Expr>(quote! {#default_value}).map_err(|e| syn::Error::new(span, format!("{}", e)))
+      }
+    } else {
+      Ok(syn::parse2::<Expr>(quote! {::std::option::Option::None}).expect("should parse None"))
     }
   }
 }

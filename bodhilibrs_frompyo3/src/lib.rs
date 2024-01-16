@@ -127,27 +127,24 @@ fn parse_field_attrs(fields_named: &FieldsNamed) -> Vec<Result<FieldMeta>> {
             let field_attr = field_attrs.pop().unwrap();
             match field_attr.parse_args::<FieldAttr>() {
               Ok(field_attr) => {
-                let field_meta =
-                  FieldMeta {
-                    ident: f.ident.clone().expect("field ident should be present").into(),
-                    ty: f.ty.clone(),
-                    field_attr,
-                  };
+                let field_meta = FieldMeta {
+                  ident: f.ident.clone().expect("field ident should be present").into(),
+                  ty: f.ty.clone(),
+                  field_attr,
+                };
                 Ok(field_meta)
               }
               Err(err) => Err(E::One(err)),
             }
           }
-          0 => {
-            Ok(FieldMeta {
-              ident: f.ident.clone().expect("field ident should be present").into(),
-              ty: f.ty.clone(),
-              field_attr: FieldAttr {
-                dict: None,
-                default: None,
-              },
-            })
-          }
+          0 => Ok(FieldMeta {
+            ident: f.ident.clone().expect("field ident should be present").into(),
+            ty: f.ty.clone(),
+            field_attr: FieldAttr {
+              dict: None,
+              default: None,
+            },
+          }),
           len => unreachable!("len is less than 0: {}", len),
         }
       })
@@ -223,17 +220,18 @@ fn extract_field(field_meta: &FieldMeta) -> Result<TokenStream> {
   let name = &field_meta.ident.0;
   let name_str = name.to_string();
   let ty = &field_meta.ty;
-  let result = if field_meta.is_option() {
+  let result = if field_meta.is_option() || field_meta.field_attr.default.as_ref().is_some() {
+    let default_value = field_meta.default_value()?;
     quote! {
       let #name = match value.getattr(#name_str) {
         Ok(#name) => { if #name.is_none() {
-            Ok(None)
+            Ok(#default_value)
           } else {
             Ok(#name.extract::<#ty>()?)
           }
         },
         Err(e) => { if e.is_instance_of::<pyo3::exceptions::PyAttributeError>(value.py()) {
-            Ok(None)
+            Ok(#default_value)
           } else {
             Err(e)
           }
@@ -260,11 +258,14 @@ fn extract_from_dict(field_meta: &FieldMeta, struct_meta: &StructMeta) -> Result
   let ty = &field_meta.ty;
   let dict_name = field_meta.field_attr.dict.as_ref().expect("dict should be present");
   let dict_id = Ident::new(dict_name, field_ident.span());
-  let result = if field_meta.is_option() {
+
+  let result = if field_meta.is_option() || field_meta.has_default() {
+    let default_value = field_meta.default_value()?;
     quote! {
       let #field_ident = match #dict_id.get_item(#field_name)? {
-        Some(#field_ident) => #field_ident.extract::<#ty>()?,
-        None => None,
+        Some(#field_ident) if !#field_ident.is_none() => #field_ident.extract::<#ty>()?,
+        Some(#field_ident) => #default_value,
+        None => #default_value,
       };
     }
   } else {

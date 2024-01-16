@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+
 use frompyo3::FromPyO3;
 
 #[derive(FromPyO3, Debug, PartialEq)]

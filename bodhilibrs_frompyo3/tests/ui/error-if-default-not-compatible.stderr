@@ -1,0 +1,12 @@
+error[E0308]: `if` and `else` have incompatible types
+ --> tests/ui/error-if-default-not-compatible.rs:3:10
+  |
+3 | #[derive(FromPyO3)]
+  |          ^^^^^^^^
+  |          |
+  |          expected `Result<{integer}, _>`, found `Result<bool, _>`
+  |          expected because of this
+  |
+  = note: expected enum `Result<{integer}, _>`
+             found enum `Result<bool, _>`
+  = note: this error originates in the derive macro `FromPyO3` (in Nightly builds, run with -Z macro-backtrace for more info)
