@@ -1,10 +1,10 @@
 import os
+import typing
 from glob import glob
 from pathlib import Path
 from typing import Any, AsyncIterator, Dict, Iterator, List, Literal, Optional, Union
-import typing
-from beartype import beartype
 
+from beartype import beartype
 from bodhilib import (
   RESOURCE_FACTORY,
   RESOURCE_PROCESSOR,
@@ -22,6 +22,8 @@ from bodhilib import (
   text_plain_file,
 )
 from bodhilib.logging import logger
+from pydantic import BaseModel, BeforeValidator
+from typing_extensions import Annotated
 
 from ..common._aiter import AsyncListIterator
 from ..common._constants import DEFAULT_RESOURCE_FACTORY
@@ -37,6 +39,47 @@ SUPPORTED_PROCESSORS = {
   f"{TEXT_PLAIN}": ["text/plain"],
 }
 SUPPORTED_EXTS = [".txt"]
+
+
+def _validate_path(input: Union[str, Path]) -> str:
+  assert input is not None, "Path is None"
+  path = input if isinstance(input, Path) else Path(str(input))
+  assert path.exists(), f"Directory does not exist: {str(path)}"
+  assert path.is_dir(), f"Path is not a directory: {str(path)}"
+  return str(path.absolute())
+
+
+def _validate_file(input: Union[str, Path]) -> str:
+  assert input is not None, "Path is None"
+  path = input if isinstance(input, Path) else Path(str(input))
+  assert path.exists(), f"File does not exist: {str(path)}"
+  assert path.is_file(), f"Path is not a file: {str(path)}"
+  return str(path.absolute())
+
+
+class GlobInput(BaseModel):
+  resource_type: Literal["glob"]
+  path: Annotated[str, BeforeValidator(_validate_path)]
+  pattern: str
+  recursive: bool = False
+  exclude_hidden: bool = False
+
+
+class LocalDirInput(BaseModel):
+  resource_type: Literal["local_dir"]
+  path: Annotated[str, BeforeValidator(_validate_path)]
+  recursive: bool = False
+  exclude_hidden: bool = True
+
+
+class LocalFileInput(BaseModel):
+  resource_type: Literal["local_file"]
+  path: Annotated[str, BeforeValidator(_validate_file)]
+
+
+class TextPlainInput(BaseModel):
+  resource_type: Literal["text/plain"]
+  path: Annotated[str, BeforeValidator(_validate_file)]
 
 
 class GlobProcessor(AbstractResourceProcessor):
@@ -55,25 +98,11 @@ class GlobProcessor(AbstractResourceProcessor):
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
-    if resource.resource_type != "glob":
-      raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports {self.supported_types}")
-    if "path" not in resource.metadata:
-      raise ValueError("Resource metadata does not contain key: 'path'")
-    path = resource.metadata["path"]
-    if path is None:
-      raise ValueError("Resource metadata key value is None: 'path'")
-    path = Path(path).absolute()
-    if not path.exists():
-      raise ValueError(f"Directory does not exist: {str(path)}")
-    if not path.is_dir():
-      raise ValueError(f"Path is not a directory: {str(path)}")
-    if "pattern" not in resource.metadata:
-      raise ValueError("Resource metadata does not contain key: 'pattern'")
-    pattern = resource.metadata["pattern"]
-    if pattern is None:
-      raise ValueError("Resource metadata key value is None: 'pattern'")
-    recursive = resource.metadata.get("recursive", False)
-    exclude_hidden = resource.metadata.get("exclude_hidden", True)
+    input = GlobInput(**resource.metadata)
+    path = Path(input.path)
+    pattern = input.pattern
+    exclude_hidden = input.exclude_hidden
+    recursive = input.recursive
     resources: List[IsResource] = []
     if not exclude_hidden:
       root = Path(path)
@@ -137,22 +166,10 @@ class LocalDirProcessor(AbstractResourceProcessor):
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
-    if resource.resource_type != LOCAL_DIR:
-      raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports ['local_dir']")
-    if "path" not in resource.metadata:
-      raise ValueError("Resource metadata does not contain key: 'path'")
-    path = resource.metadata["path"]
-    if path is None:
-      raise ValueError("Resource metadata key value is None: 'path'")
-    if not isinstance(path, Path) and not isinstance(path, str):
-      raise ValueError(f"Unsupported path type: {type(path)}, supports str or pathlib.Path")
-    path = Path(path)
-    if not path.exists():
-      raise ValueError(f"Directory does not exist: {path}")
-    if not path.is_dir():
-      raise ValueError(f"Path is not a directory: {path}")
-    recursive = resource.metadata.get("recursive", False)
-    exclude_hidden = resource.metadata.get("exclude_hidden", True)
+    input = LocalDirInput(**resource.metadata)
+    path = Path(input.path)
+    exclude_hidden = input.exclude_hidden
+    recursive = input.recursive
     resources = []
     if not exclude_hidden:
       pattern = "**/.*" if recursive else ".*"
@@ -213,22 +230,8 @@ class LocalFileProcessor(AbstractResourceProcessor):
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
-    if resource.resource_type != "local_file":
-      raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports ['local_file']")
-    if "path" not in resource.metadata:
-      raise ValueError("Resource metadata does not contain key: 'path'")
-    path = resource.metadata["path"]
-    if path is None:
-      raise ValueError("Resource metadata key value is None: 'path'")
-    if not isinstance(path, Path) and not isinstance(path, str):
-      raise ValueError(f"Unsupported path type: {type(path)}, supports str or pathlib.Path")
-    if isinstance(path, str):
-      path = Path(path)
-    if not path.exists():
-      raise ValueError(f"File does not exist: {path}")
-    if not path.is_file():
-      raise ValueError(f"Path is not a file: {path}")
-    # get path extension
+    input = LocalFileInput(**resource.metadata)
+    path = Path(input.path)
     ext = path.suffix
     if ext == ".txt":
       resources: List[IsResource] = [text_plain_file(path=path)]
@@ -279,21 +282,8 @@ class TextPlainProcessor(AbstractResourceProcessor):
   def process(
     self, resource: IsResource, stream: Optional[bool] = False
   ) -> Union[List[IsResource], Iterator[IsResource]]:
-    if resource.resource_type != "text/plain":
-      raise ValueError(f"Unsupported resource type: {resource.resource_type}, supports ['text/plain']")
-    if "path" not in resource.metadata:
-      raise ValueError("Resource metadata does not contain key: 'path'")
-    path = resource.metadata["path"]
-    if path is None:
-      raise ValueError("Resource metadata key value is None: 'path'")
-    if not isinstance(path, Path) and not isinstance(path, str):
-      raise ValueError(f"Unsupported path type: {type(path)}, supports str or pathlib.Path")
-    if isinstance(path, str):
-      path = Path(path)
-    if not path.exists():
-      raise ValueError(f"File does not exist: {path}")
-    if not path.is_file():
-      raise ValueError(f"Path is not a file: {path}")
+    input = TextPlainInput(**resource.metadata)
+    path = Path(input.path)
     resources: List[IsResource] = [Document(text=path.read_text(), path=str(path))]
     if stream:
       return iter(resources)

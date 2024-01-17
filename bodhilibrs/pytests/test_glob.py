@@ -2,14 +2,16 @@ import os
 import tempfile
 
 import pytest
-from bodhilib import IsResource, Resource, local_file
+from bodhilib import glob_pattern
+from pydantic import ValidationError
 
-from bodhilibrs import GlobProcessor
+from bodhilibrs import GlobProcessorRs
+from bodhilibrs._glob import GlobInput
 
 
 @pytest.fixture
-def glob_processor() -> GlobProcessor:
-  return GlobProcessor()
+def glob_processor() -> GlobProcessorRs:
+  return GlobProcessorRs()
 
 
 @pytest.fixture
@@ -17,6 +19,13 @@ def all_processors(glob_processor):
   return {
     "glob_processor": glob_processor,
   }
+
+
+@pytest.fixture
+def invalid_resources(tmp_test_dir):
+  resource = glob_pattern(tmp_test_dir, "*.txt", True, False)
+  resource.resource_type = "local_file"
+  return {"glob": resource}
 
 
 @pytest.fixture
@@ -40,33 +49,21 @@ def _tmpfile(tmpdir, filename, content):
   return tmpfilepath
 
 
-@pytest.mark.parametrize(
-  ["processor", "invalid_resource", "msg"],
-  [
-    (
-      "glob_processor",
-      local_file(path="invalid"),
-      "Unsupported resource type: local_file, supports ['glob']",
-    ),
-  ],
-)
-def test_processor_invalid_resource_type(all_processors, processor: str, invalid_resource: IsResource, msg: str):
-  processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    processor.process(invalid_resource)
-  assert isinstance(e.value, ValueError)
-  assert str(e.value) == msg
+def test_glob_input_invalid_resource_type(tmp_test_dir):
+  with pytest.raises(ValidationError) as e:
+    _ = GlobInput(resource_type="invalid", path=tmp_test_dir, pattern="*.txt", recursive=True, exclude_hidden=False)
+  assert isinstance(e.value, ValidationError)
+  assert e.value.error_count() == 1
+  errors = e.value.errors()[0]
+  assert errors["type"] == "literal_error"
+  assert errors["msg"] == "Input should be 'glob'"
 
 
-@pytest.mark.parametrize(
-  ["processor", "invalid_resource", "msg"],
-  [
-    ("glob_processor", Resource(resource_type="glob"), "Resource metadata does not contain key: 'pattern'"),
-    ("glob_processor", Resource(resource_type="glob", pattern=None), "Resource metadata key value is None: 'pattern'"),
-  ],
-)
-def test_processor_mandatory_args(all_processors, processor: str, invalid_resource: IsResource, msg: str):
-  processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    processor.process(invalid_resource)
-  assert str(e.value) == msg
+def test_glob_input_path_missing(tmp_test_dir):
+  with pytest.raises(ValidationError) as e:
+    _ = GlobInput(resource_type="glob", pattern="*.txt", recursive=True, exclude_hidden=False)
+  assert isinstance(e.value, ValidationError)
+  assert e.value.error_count() == 1
+  errors = e.value.errors()[0]
+  assert errors["type"] == "missing"
+  assert errors["msg"] == "Field required"

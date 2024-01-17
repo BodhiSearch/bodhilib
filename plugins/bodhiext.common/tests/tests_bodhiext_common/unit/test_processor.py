@@ -10,7 +10,6 @@ from bodhilib import (
   DOCUMENT,
   LOCAL_FILE,
   Document,
-  IsResource,
   Resource,
   ResourceProcessor,
   glob_pattern,
@@ -18,6 +17,7 @@ from bodhilib import (
   local_file,
   text_plain_file,
 )
+from pydantic import ValidationError
 
 
 @pytest.fixture
@@ -109,262 +109,255 @@ def test_processor_called_with_invalid_resource(all_processors, processor):
   assert 'not instance of <protocol "bodhilib._models.IsResource"' in str(e.value)
 
 
-invalid_args = [
-  (
-    "local_dir_processor",
-    local_file(path="invalid"),
-    "Unsupported resource type: local_file, supports ['local_dir']",
-  ),
-  (
-    "glob_processor",
-    local_file(path="invalid"),
-    "Unsupported resource type: local_file, supports ['glob']",
-  ),
-  (
-    pytest.param(
-      "glob_processor_rs",
-      local_file(path="invalid"),
-      "Unsupported resource type: local_file, supports ['glob']",
-      marks=pytest.mark.rs,
-    )
-  ),
-  (
-    "local_file_processor",
-    local_dir(path="invalid"),
-    "Unsupported resource type: local_dir, supports ['local_file']",
-  ),
-  (
-    "text_plain_processor",
-    local_file(path="invalid"),
-    "Unsupported resource type: local_file, supports ['text/plain']",
-  ),
-]
+def override_resource_type(resource, resource_type):
+  resource.resource_type = resource_type
+  return resource
 
 
-@pytest.mark.parametrize(
-  ["processor", "invalid_resource", "msg"],
-  invalid_args,
-)
-def test_processor_invalid_resource_type(all_processors, processor: str, invalid_resource: IsResource, msg: str):
-  processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    processor.process(invalid_resource)
-  assert isinstance(e.value, ValueError)
-  assert str(e.value) == msg
-
-
-@pytest.mark.parametrize(
-  ["processor", "invalid_resource", "msg"],
-  invalid_args,
-)
-@pytest.mark.asyncio
-async def test_processor_async_invalid_resource_type(
-  all_processors, processor: str, invalid_resource: IsResource, msg: str
-):
-  processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    await processor.aprocess(invalid_resource)
-  assert isinstance(e.value, ValueError)
-  assert str(e.value) == msg
+@pytest.fixture
+def invalid_resource_args(tmp_test_dir):
+  tmpfile = f"{tmp_test_dir}/test1.txt"
+  return {
+    "glob_missing_resource_type": [{"path": tmp_test_dir, "pattern": "*.txt"}, "missing", "Field required"],
+    "glob_invalid_resource_type": [
+      {"resource_type": "local_file", "path": tmp_test_dir, "pattern": "*.txt"},
+      "literal_error",
+      "Input should be 'glob'",
+    ],
+    "glob_missing_path": [{"resource_type": "glob", "pattern": "*.txt"}, "missing", "Field required"],
+    "glob_path_is_file": [
+      {"resource_type": "glob", "path": tmpfile, "pattern": "*.txt"},
+      "assertion_error",
+      f"Assertion failed, Path is not a directory: {tmpfile}",
+    ],
+    "glob_missing_pattern": [{"resource_type": "glob", "path": tmp_test_dir}, "missing", "Field required"],
+    "glob_invalid_path": [
+      {"resource_type": "glob", "path": "/non-exist", "pattern": "*.txt"},
+      "assertion_error",
+      "Assertion failed, Directory does not exist: /non-exist",
+    ],
+    "glob_pattern_none": [
+      {"resource_type": "glob", "path": tmp_test_dir, "pattern": None},
+      "string_type",
+      "Input should be a valid string",
+    ],
+    "glob_path_none": [
+      {"resource_type": "glob", "path": None, "pattern": "*.txt"},
+      "assertion_error",
+      "Assertion failed, Path is None",
+    ],
+    "local_dir_resource_type_invalid": [
+      {"resource_type": "glob", "path": tmp_test_dir},
+      "literal_error",
+      "Input should be 'local_dir'",
+    ],
+    "local_dir_resource_type_missing": [{"path": tmp_test_dir}, "missing", "Field required"],
+    "local_dir_resource_type_none": [
+      {"resource_type": None, "path": tmp_test_dir},
+      "string_type",
+      "Input should be a valid string",
+    ],
+    "local_dir_path_missing": [{"resource_type": "local_dir"}, "missing", "Field required"],
+    "local_dir_path_none": [
+      {"resource_type": "local_dir", "path": None},
+      "assertion_error",
+      "Assertion failed, Path is None",
+    ],
+    "local_dir_path_invalid_dir": [
+      {"resource_type": "local_dir", "path": "/non-exist"},
+      "assertion_error",
+      "Assertion failed, Directory does not exist: /non-exist",
+    ],
+    "local_dir_path_is_file": [
+      {"resource_type": "local_dir", "path": tmpfile},
+      "assertion_error",
+      f"Assertion failed, Path is not a directory: {tmpfile}",
+    ],
+    "local_file_resource_type_invalid": [
+      {"resource_type": "local_dir", "path": tmpfile},
+      "literal_error",
+      "Input should be 'local_file'",
+    ],
+    "local_file_resource_type_missing": [{"path": tmpfile}, "missing", "Field required"],
+    "local_file_resource_type_none": [
+      {"resource_type": None, "path": tmpfile},
+      "string_type",
+      "Input should be a valid string",
+    ],
+    "local_file_path_missing": [{"resource_type": None}, "string_type", "Input should be a valid string"],
+    "local_file_path_none": [
+      {"resource_type": "local_file", "path": None},
+      "assertion_error",
+      "Assertion failed, Path is None",
+    ],
+    "local_file_path_invalid_file": [
+      {"resource_type": "local_file", "path": "/non-exist"},
+      "assertion_error",
+      "Assertion failed, File does not exist: /non-exist",
+    ],
+    "local_file_path_is_dir": [
+      {"resource_type": "local_file", "path": tmp_test_dir},
+      "assertion_error",
+      f"Assertion failed, Path is not a file: {tmp_test_dir}",
+    ],
+    "txt_file_resource_type_missing": [{"path": tmpfile}, "missing", "Field required"],
+    "txt_file_resource_type_invalid": [
+      {"resource_type": "local_file", "path": tmpfile},
+      "literal_error",
+      "Input should be 'text/plain'",
+    ],
+    "txt_file_resource_type_none": [
+      {"resource_type": None, "path": tmpfile},
+      "string_type",
+      "Input should be a valid string",
+    ],
+    "txt_file_path_missing": [{"resource_type": "text/plain"}, "missing", "Field required"],
+    "txt_file_path_none": [
+      {"resource_type": "text/plain", "path": None},
+      "assertion_error",
+      "Assertion failed, Path is None",
+    ],
+    "txt_file_path_invalid_file": [
+      {"resource_type": "text/plain", "path": "/non-exist"},
+      "assertion_error",
+      "Assertion failed, File does not exist: /non-exist",
+    ],
+    "txt_file_path_is_dir": [
+      {"resource_type": "text/plain", "path": tmp_test_dir},
+      "assertion_error",
+      f"Assertion failed, Path is not a file: {tmp_test_dir}",
+    ],
+  }
 
 
 mandatory_args = [
-  ("glob_processor", Resource(resource_type="glob"), "Resource metadata does not contain key: 'path'"),
-  (
-    "glob_processor",
-    Resource(resource_type="glob", path=None),
-    "Resource metadata key value is None: 'path'",
-  ),
-  (
-    "glob_processor",
-    Resource(resource_type="glob", path="."),
-    "Resource metadata does not contain key: 'pattern'",
-  ),
-  (
-    "glob_processor",
-    Resource(resource_type="glob", path="foo"),
-    "Directory does not exist: ",
-  ),
-  (
-    "glob_processor",
-    Resource(resource_type="glob", path=".", pattern=None),
-    "Resource metadata key value is None: 'pattern'",
-  ),
+  ("glob_processor", "glob_missing_resource_type"),
+  ("glob_processor", "glob_invalid_resource_type"),
+  ("glob_processor", "glob_missing_path"),
+  ("glob_processor", "glob_missing_pattern"),
+  ("glob_processor", "glob_invalid_path"),
+  ("glob_processor", "glob_path_is_file"),
+  ("glob_processor", "glob_pattern_none"),
+  ("glob_processor", "glob_path_none"),
   (
     pytest.param(
       "glob_processor_rs",
-      Resource(resource_type="glob"),
-      "Resource metadata does not contain key: 'path'",
+      "glob_missing_resource_type",
       marks=pytest.mark.rs,
     )
   ),
   (
     pytest.param(
       "glob_processor_rs",
-      Resource(resource_type="glob", path=None),
-      "Resource metadata key value is None: 'path'",
+      "glob_invalid_resource_type",
       marks=pytest.mark.rs,
     )
   ),
   (
     pytest.param(
       "glob_processor_rs",
-      Resource(resource_type="glob", path="."),
-      "Resource metadata does not contain key: 'pattern'",
+      "glob_missing_path",
       marks=pytest.mark.rs,
     )
   ),
   (
     pytest.param(
       "glob_processor_rs",
-      Resource(resource_type="glob", path="foo"),
-      "Directory does not exist: ",
+      "glob_path_none",
       marks=pytest.mark.rs,
     )
   ),
   (
     pytest.param(
       "glob_processor_rs",
-      Resource(resource_type="glob", path=".", pattern=None),
-      "Resource metadata key value is None: 'pattern'",
+      "glob_missing_pattern",
       marks=pytest.mark.rs,
     )
   ),
-  ("local_dir_processor", Resource(resource_type="local_dir"), "Resource metadata does not contain key: 'path'"),
   (
-    "local_dir_processor",
-    Resource(resource_type="local_dir", path=None),
-    "Resource metadata key value is None: 'path'",
+    pytest.param(
+      "glob_processor_rs",
+      "glob_invalid_path",
+      marks=pytest.mark.rs,
+    )
   ),
   (
-    "local_dir_processor",
-    Resource(resource_type="local_dir", path=object()),
-    "Unsupported path type: <class 'object'>, supports str or pathlib.Path",
+    pytest.param(
+      "glob_processor_rs",
+      "glob_path_is_file",
+      marks=pytest.mark.rs,
+    )
   ),
   (
-    "local_dir_processor",
-    Resource(resource_type="local_dir", path="missing"),
-    "Directory does not exist: missing",
+    pytest.param(
+      "glob_processor_rs",
+      "glob_pattern_none",
+      marks=pytest.mark.rs,
+    )
   ),
-  ("local_file_processor", Resource(resource_type="local_file"), "Resource metadata does not contain key: 'path'"),
-  (
-    "local_file_processor",
-    Resource(resource_type="local_file", path=None),
-    "Resource metadata key value is None: 'path'",
-  ),
-  (
-    "local_file_processor",
-    Resource(resource_type="local_file", path=object()),
-    "Unsupported path type: <class 'object'>, supports str or pathlib.Path",
-  ),
-  (
-    "local_file_processor",
-    Resource(resource_type="local_file", path="missing.txt"),
-    "File does not exist: missing.txt",
-  ),
-  ("text_plain_processor", Resource(resource_type="text/plain"), "Resource metadata does not contain key: 'path'"),
-  (
-    "text_plain_processor",
-    Resource(resource_type="text/plain", path=None),
-    "Resource metadata key value is None: 'path'",
-  ),
-  (
-    "text_plain_processor",
-    Resource(resource_type="text/plain", path=object()),
-    "Unsupported path type: <class 'object'>, supports str or pathlib.Path",
-  ),
-  (
-    "text_plain_processor",
-    Resource(resource_type="text/plain", path="missing.txt"),
-    "File does not exist: missing.txt",
-  ),
+  ("local_dir_processor", "local_dir_resource_type_missing"),
+  ("local_dir_processor", "local_dir_resource_type_invalid"),
+  ("local_dir_processor", "local_dir_resource_type_none"),
+  ("local_dir_processor", "local_dir_path_missing"),
+  ("local_dir_processor", "local_dir_path_none"),
+  ("local_dir_processor", "local_dir_path_invalid_dir"),
+  ("local_dir_processor", "local_dir_path_is_file"),
+  ("local_file_processor", "local_file_resource_type_missing"),
+  ("local_file_processor", "local_file_resource_type_invalid"),
+  ("local_file_processor", "local_file_resource_type_none"),
+  ("local_file_processor", "local_file_path_missing"),
+  ("local_file_processor", "local_file_path_none"),
+  ("local_file_processor", "local_file_path_invalid_file"),
+  ("local_file_processor", "local_file_path_is_dir"),
+  ("text_plain_processor", "txt_file_resource_type_missing"),
+  ("text_plain_processor", "txt_file_resource_type_invalid"),
+  ("text_plain_processor", "txt_file_resource_type_none"),
+  ("text_plain_processor", "txt_file_path_missing"),
+  ("text_plain_processor", "txt_file_path_none"),
+  ("text_plain_processor", "txt_file_path_invalid_file"),
+  ("text_plain_processor", "txt_file_path_is_dir"),
 ]
 
 
 @pytest.mark.parametrize(
-  ["processor", "invalid_resource", "msg"],
+  ["processor", "invalid_resource_key"],
   mandatory_args,
 )
-def test_processor_mandatory_args(all_processors, processor: str, invalid_resource: IsResource, msg: str):
+def test_processor_mandatory_args(all_processors, invalid_resource_args, processor: str, invalid_resource_key):
   processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    processor.process(invalid_resource)
-  assert str(e.value).startswith(msg)
+  param = invalid_resource_args[invalid_resource_key]
+  invalid_resource = param[0]
+  error_type = param[1]
+  error_msg = param[2]
+  with pytest.raises(ValidationError) as e:
+    processor.process(Resource(**invalid_resource))
+  assert isinstance(e.value, ValidationError)
+  assert e.value.error_count() == 1
+  error = e.value.errors()[0]
+  assert error["type"] == error_type
+  assert error["msg"] == error_msg
 
 
 @pytest.mark.parametrize(
-  ["processor", "invalid_resource", "msg"],
+  ["processor", "invalid_resource_key"],
   mandatory_args,
 )
 @pytest.mark.asyncio
-async def test_processor_async_mandatory_args(all_processors, processor: str, invalid_resource: IsResource, msg: str):
+async def test_processor_async_mandatory_args(
+  all_processors, invalid_resource_args, processor: str, invalid_resource_key
+):
   processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    await processor.aprocess(invalid_resource)
-  assert str(e.value).startswith(msg)
-
-
-invalid_file_instead_of_dir = [
-  ("local_file_processor", "local_file", "Path is not a file: {tmpdir}"),
-  ("text_plain_processor", "text/plain", "Path is not a file: {tmpdir}"),
-]
-
-
-@pytest.mark.parametrize(
-  ["processor", "resource_type", "msg"],
-  invalid_file_instead_of_dir,
-)
-def test_processor_is_dir(tmpdir, all_processors, processor, resource_type, msg):
-  processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    processor.process(Resource(resource_type=resource_type, path=Path(tmpdir)))
-  assert str(e.value) == msg.format(tmpdir=tmpdir)
-
-
-@pytest.mark.parametrize(
-  ["processor", "resource_type", "msg"],
-  invalid_file_instead_of_dir,
-)
-@pytest.mark.asyncio
-async def test_processor_async_is_dir(tmpdir, all_processors, processor, resource_type, msg):
-  processor = all_processors[processor]
-  with pytest.raises(ValueError) as e:
-    processor.process(Resource(resource_type=resource_type, path=Path(tmpdir)))
-  assert str(e.value) == msg.format(tmpdir=tmpdir)
-
-
-invalid_dir_instead_of_file = [
-  ("local_dir_processor", "local_dir", "Path is not a directory: {tmpfile}"),
-  ("glob_processor", "glob", "Path is not a directory: {tmpfile}"),
-  (pytest.param("glob_processor_rs", "glob", "Path is not a directory: {tmpfile}", marks=pytest.mark.rs)),
-]
-
-
-@pytest.mark.parametrize(
-  ["processor", "resource_type", "msg"],
-  invalid_dir_instead_of_file,
-)
-def test_processor_not_directory(tmpdir, all_processors, processor, resource_type, msg):
-  processor = all_processors[processor]
-  tmpfile = Path(tmpdir).joinpath("test1.txt")
-  _tmpfile(tmpdir, "test1.txt", "hello world!")
-  with pytest.raises(ValueError) as e:
-    processor.process(Resource(resource_type=resource_type, path=str(tmpfile)))
-  assert str(e.value) == msg.format(tmpfile=tmpfile)
-
-
-@pytest.mark.parametrize(
-  ["processor", "resource_type", "msg"],
-  invalid_dir_instead_of_file,
-)
-@pytest.mark.asyncio
-async def test_processor_async_not_directory(tmpdir, all_processors, processor, resource_type, msg):
-  processor = all_processors[processor]
-  tmpfile = Path(tmpdir).joinpath("test1.txt")
-  _tmpfile(tmpdir, "test1.txt", "hello world!")
-  with pytest.raises(ValueError) as e:
-    processor.process(Resource(resource_type=resource_type, path=str(tmpfile)))
-  assert str(e.value) == msg.format(tmpfile=tmpfile)
+  param = invalid_resource_args[invalid_resource_key]
+  invalid_resource = param[0]
+  error_type = param[1]
+  error_msg = param[2]
+  with pytest.raises(ValidationError) as e:
+    await processor.aprocess(Resource(**invalid_resource))
+  assert isinstance(e.value, ValidationError)
+  assert e.value.error_count() == 1
+  error = e.value.errors()[0]
+  assert error["type"] == error_type
+  assert error["msg"] == error_msg
 
 
 @pytest.mark.parametrize(
