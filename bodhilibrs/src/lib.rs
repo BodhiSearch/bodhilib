@@ -26,18 +26,3 @@ macro_rules! assert_ok {
     }
   };
 }
-
-#[macro_export]
-macro_rules! arr_repr {
-  ($arr:ident) => {
-    fn $arr(&self) -> String {
-      let quoted = self
-        .$arr
-        .iter()
-        .map(|s| format!("'{}'", s))
-        .collect::<Vec<_>>()
-        .join(", ");
-      format!("[{}]", quoted)
-    }
-  };
-}

@@ -9,32 +9,12 @@ use pyo3::{PyErr, PyResult};
 create_exception!(bodhilibrs, BodhilibException, pyo3::exceptions::PyException);
 
 #[derive(Clone)]
-enum Any {
-  String(String),
-  Bool(bool),
-}
-
-#[derive(Clone)]
 #[pyclass]
 pub(crate) struct Resource {
   #[pyo3(get)]
   pub(crate) resource_type: String,
   #[pyo3(get)]
   pub(crate) metadata: HashMap<String, String>,
-}
-
-pub(crate) struct GlobResource {
-  pub(crate) resource_type: String,
-}
-
-impl TryFrom<&PyAny> for GlobResource {
-  type Error = PyErr;
-
-  fn try_from(value: &PyAny) -> Result<Self, Self::Error> {
-    let resource_type = value.getattr("resource_type")?;
-    let resource_type = resource_type.extract::<String>()?;
-    Ok(Self { resource_type })
-  }
 }
 
 #[pymethods]
