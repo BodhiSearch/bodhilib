@@ -1,6 +1,6 @@
 mod async_iter;
 mod common;
-mod glob;
+mod _glob;
 mod glob_py;
 mod openai_py;
 use pyo3::prelude::*;
