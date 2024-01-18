@@ -26,6 +26,7 @@ impl Resource {
       None => Err(PyAttributeError::new_err(format!("'Resource' object has no attribute '{}'", name))),
     }
   }
+
   fn __repr__(&self) -> PyResult<String> {
     let path = self.metadata.get("path").unwrap();
     Ok(format!("Resource(resource_type='{}', path='{}')", self.resource_type, path))

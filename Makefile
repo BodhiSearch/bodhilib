@@ -1,4 +1,4 @@
-.PHONY: install build test run exec all.check ci.test ci.build lint clean_docs docs run_docs
+.PHONY: install build test run exec all.check ci.test ci.build lint clean_docs docs run_docs rs testrs
 
 build:
 	@# Invoke the Python script to 'build' and all passed arguments.
@@ -26,10 +26,15 @@ stub:
 	@:
 
 rs:
-	cd bodhilibrs && maturin develop
+	$(MAKE) -C bodhilibrs build
 
 testrs: rs
 	poetry run pytest -vv -m rs
+	$(MAKE) -C bodhilibrs test
+	$(MAKE) -C bodhilibrs testrs
+
+benchrs:
+	$(MAKE) -C bodhilibrs bench
 
 ci.check-pyproj:
 	@python make.py check-pyproj all

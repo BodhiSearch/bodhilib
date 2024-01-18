@@ -11,11 +11,12 @@ from bodhilibrs.bodhilibrs import glob_sync, glob_async
 
 
 def _validate_path(input: Union[str, Path]) -> str:
-  assert input is not None, "Path is None"
   path = input if isinstance(input, Path) else Path(str(input))
+  path = path.expanduser()
+  path = path.resolve()
   assert path.exists(), f"Directory does not exist: {str(path)}"
   assert path.is_dir(), f"Path is not a directory: {str(path)}"
-  return str(path.absolute())
+  return str(path)
 
 
 class GlobInput(BaseModel):

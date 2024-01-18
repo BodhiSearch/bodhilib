@@ -1,6 +1,6 @@
 import os
 import pytest
-from bodhilibrs import OpenAI
+from bodhilibrs.bodhilibrs import OpenAI
 
 
 @pytest.mark.live
