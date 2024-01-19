@@ -42,6 +42,7 @@ SUPPORTED_EXTS = [".txt"]
 
 
 def _validate_path(input: Union[str, Path]) -> str:
+  assert input is not None, "Path is None"
   path = input if isinstance(input, Path) else Path(str(input))
   path = path.expanduser()
   path = path.resolve()

@@ -22,3 +22,9 @@ tempfile = "3.9.0"
 tokio = { version = "1.35.1", features = ["full"] }
 frompyo3 = { path = "../bodhilibrs_frompyo3" }
 regex = "1.10.2"
+
+[profile.release]
+opt-level = 3
+lto = true
+strip = true
+codegen-units = 1

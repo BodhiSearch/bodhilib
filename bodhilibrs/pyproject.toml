@@ -34,3 +34,5 @@ pytest-timeout = "^2.2.0"
 pytest-benchmark = "^4.0.0"
 langchain = "^0.1.1"
 bodhiext-common = {path = "../plugins/bodhiext.common"}
+llama-index = "^0.9.33"
+openai = "^1.8.0"

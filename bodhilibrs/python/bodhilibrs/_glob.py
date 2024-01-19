@@ -3,14 +3,17 @@ from pathlib import Path
 from typing import AsyncIterator, Iterator, List, Literal, Optional, Union
 
 from beartype import beartype
-from bodhilib import AbstractResourceProcessor, IsResource
+from bodhilib import AbstractResourceProcessor, IsResource, local_file
 from pydantic import BaseModel, BeforeValidator
 from typing_extensions import Annotated
 
-from bodhilibrs.bodhilibrs import glob_sync, glob_async
+from bodhilibrs.bodhilibrs import find_files
+
+from ._aiter import AsyncListIterator
 
 
 def _validate_path(input: Union[str, Path]) -> str:
+  assert input is not None, "Path is None"
   path = input if isinstance(input, Path) else Path(str(input))
   path = path.expanduser()
   path = path.resolve()
@@ -42,7 +45,12 @@ class GlobProcessorRs(AbstractResourceProcessor):
   ) -> Union[List[IsResource], Iterator[IsResource]]:
     """Process the resource and return a Document or another resource for further processing."""
     input = GlobInput(**resource.metadata)
-    return glob_sync(input, stream)  # type: ignore
+    files: List[str] = find_files(input.path, input.pattern, input.recursive, not input.exclude_hidden)
+    resources: List[IsResource] = [local_file(path) for path in files]
+    if stream:
+      resources_iter: Iterator[IsResource] = iter(resources)
+      return resources_iter
+    return resources
 
   @typing.overload
   async def aprocess(self, resource: IsResource, astream: Optional[Literal[False]] = ...) -> List[IsResource]:
@@ -57,13 +65,15 @@ class GlobProcessorRs(AbstractResourceProcessor):
     self, resource: IsResource, astream: Optional[bool] = False
   ) -> Union[List[IsResource], AsyncIterator[IsResource]]:
     """Process the resource and return a Document or another resource for further processing."""
-    input = GlobInput(**resource.metadata)
-    return await glob_async(input, astream)  # type: ignore
+    local_files = self.process(resource, False)
+    if astream:
+      return AsyncListIterator[IsResource](local_files)
+    return local_files
 
   @property
   def supported_types(self) -> List[str]:
     """List of supported resource types."""
-    return ['glob']
+    return ["glob"]
 
   @property
   def service_name(self) -> str:

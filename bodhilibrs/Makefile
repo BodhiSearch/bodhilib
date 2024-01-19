@@ -1,6 +1,9 @@
 build:
 	maturin develop
 
+release:
+	maturin develop --release
+
 testrs:
 	cargo test
 

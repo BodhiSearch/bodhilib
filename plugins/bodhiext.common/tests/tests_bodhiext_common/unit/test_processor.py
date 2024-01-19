@@ -32,10 +32,14 @@ def glob_processor():
 
 @pytest.fixture
 def glob_processor_rs():
-  # from bodhilibrs.bodhilibrs import GlobProcessor
-  from bodhilibrs import GlobProcessorRs as GlobProcessor
+  # check if module bodhilibrs is installed
+  # if not, return None
+  try:
+    from bodhilibrs import GlobProcessorRs as GlobProcessor
 
-  return GlobProcessor()
+    return GlobProcessor()
+  except ImportError:
+    return None
 
 
 @pytest.fixture
@@ -62,6 +66,7 @@ def all_processors(local_dir_processor, glob_processor, glob_processor_rs, local
 @pytest.fixture
 def tmp_test_dir():
   with tempfile.TemporaryDirectory() as tmpdir:
+    tmpdir = Path(tmpdir).expanduser().resolve()
     _tmpfile(tmpdir, "test1.txt", "hello world!")
     _tmpfile(tmpdir, "test2.csv", "world hello!")
     _tmpfile(tmpdir, ".test3.txt", "world hello!")
@@ -116,7 +121,7 @@ def override_resource_type(resource, resource_type):
 
 @pytest.fixture
 def invalid_resource_args(tmp_test_dir):
-  tmpfile = f"{tmp_test_dir}/test1.txt"
+  tmpfile = str(Path(f"{tmp_test_dir}/test1.txt"))
   return {
     "glob_missing_resource_type": [{"path": tmp_test_dir, "pattern": "*.txt"}, "missing", "Field required"],
     "glob_invalid_resource_type": [
