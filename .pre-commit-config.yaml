@@ -35,6 +35,7 @@ repos:
         exclude: >
             (?x)^(
                 .*\.txt
+                | .*\.md
             )$
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: 'v1.6.0'
